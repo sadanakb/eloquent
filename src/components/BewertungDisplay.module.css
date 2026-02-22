@@ -1,0 +1,204 @@
+.wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.playerLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.playerName {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.score {
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--accent-gold);
+  margin-top: 8px;
+  font-family: var(--font-mono);
+}
+
+.scoreLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.methodBadge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.methodKi {
+  composes: methodBadge;
+  background: rgba(74, 103, 65, 0.12);
+  color: var(--success);
+}
+
+.methodHeuristik {
+  composes: methodBadge;
+  background: rgba(139, 105, 20, 0.12);
+  color: var(--accent-gold);
+}
+
+.errorBanner {
+  margin-top: 8px;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(139, 58, 58, 0.08);
+  color: var(--error);
+  border: 1px solid rgba(139, 58, 58, 0.15);
+}
+
+.categories {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.catRow {
+  /* category row */
+}
+
+.catHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.catLabel {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.catScore {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.catFeedback {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.section {
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  letter-spacing: 0.03em;
+}
+
+.sectionTitleRhetorik {
+  composes: sectionTitle;
+  color: var(--accent-copper);
+}
+
+.sectionTitleWortschatz {
+  composes: sectionTitle;
+  color: var(--accent-gold);
+}
+
+.sectionTitleTipps {
+  composes: sectionTitle;
+  color: var(--success);
+}
+
+.sectionTitleEmpfehlungen {
+  composes: sectionTitle;
+  color: var(--accent-copper);
+}
+
+.mittelCard {
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+  border-left: 3px solid var(--accent-copper);
+}
+
+.mittelName {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.mittelZitat {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.feedbackBox {
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+}
+
+.feedbackText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.tipp {
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding: 4px 0 4px 16px;
+  border-left: 2px solid rgba(74, 103, 65, 0.3);
+  margin-bottom: 4px;
+}
+
+.empfCard {
+  padding: 8px 12px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+}
+
+.empfWort {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.empfBedeutung {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-left: 8px;
+}
+
+.weiterBtn {
+  text-align: center;
+  margin-top: 8px;
+}
+
+.gehobeneWrap {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}

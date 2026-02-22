@@ -20,7 +20,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-deep)" }}>
+    <div className="texture-paper" style={{ minHeight: "100vh" }}>
       {page !== "home" && <NavBar current={page} onNavigate={setPage} />}
       {page === "home" && <HeroPage onNavigate={setPage} />}
       {page === "duell" && <DuellPage onNavigate={setPage} />}

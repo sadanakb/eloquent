@@ -1,0 +1,192 @@
+.wrapper {
+  padding: 32px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.wdtLabel {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent-copper);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+}
+
+.wdtWord {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.wdtDef {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+.wdtExample {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-style: italic;
+  border-left: 2px solid var(--accent-copper);
+  padding-left: 12px;
+}
+
+.searchRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: var(--accent-copper);
+}
+
+.catRow {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  max-width: 100%;
+  padding-bottom: 4px;
+}
+
+.catChip {
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+  font-family: var(--font-display);
+}
+
+.catChip:hover {
+  border-color: var(--accent-copper);
+  color: var(--text-primary);
+}
+
+.catChipActive {
+  composes: catChip;
+  background: rgba(139, 105, 20, 0.08);
+  color: var(--accent-gold);
+  border-color: rgba(139, 105, 20, 0.3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wordRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.wordInfo {
+  flex: 1;
+}
+
+.wordHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.wordName {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.schwierigkeit {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 2px;
+}
+
+.wordDef {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.expandedSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.example {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 8px;
+  border-left: 2px solid var(--accent-copper);
+  padding-left: 10px;
+}
+
+.synonymRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.synonymLabel {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.count {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}

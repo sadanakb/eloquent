@@ -1,0 +1,36 @@
+/* ═══════════════════════════════════════════════
+   ELOQUENT — Ornament-Komponente
+   SVG-Vignetten als Emoji-Ersatz
+   ═══════════════════════════════════════════════ */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.iconSm { width: 16px; height: 16px; }
+.iconMd { width: 24px; height: 24px; }
+.iconLg { width: 32px; height: 32px; }
+.iconXl { width: 48px; height: 48px; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: var(--space-lg) 0;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--border), transparent);
+}
+
+.dividerCenter {
+  color: var(--accent-copper);
+  font-size: 14px;
+  line-height: 1;
+}

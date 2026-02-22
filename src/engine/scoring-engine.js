@@ -3,7 +3,7 @@ import { FUNKTIONS_WOERTER, NATUERLICHE_BIGRAMME } from '../data/deutsche-nlp-da
 import { tokenize, satzSinnScore, textKohaerenz, semantischerSituationsmatch, findeGehobeneWoerter, analysiereWortschatz, analysiereDiskursstruktur } from './heuristic-scorer.js';
 import { tiefesAntiGaming } from './anti-gaming.js';
 import { erkenneRhetorischeMittel } from './rhetorik-detector.js';
-import { aiBewerung, hasAiProvider } from './ki-scorer.js';
+import { aiBewertung, hasAiProvider } from './ki-scorer.js';
 
 // ══════════════════════════════════════════════════════
 // ELOQUENT Scoring Engine v6 — Additive Scoring
@@ -438,7 +438,7 @@ export async function kiBewertung(situation, antwort) {
   if (hasAiProvider()) {
     try {
       console.log('[ELOQUENT] Starte KI-Bewertung (Ollama → Groq)...');
-      const result = await aiBewerung(situation, text);
+      const result = await aiBewertung(situation, text);
       result._methode = 'ki';
       result._duration = ((Date.now() - startTime) / 1000).toFixed(1);
       console.log(`[ELOQUENT] KI-Bewertung erfolgreich! (${result._provider}/${result._model}) in ${result._duration}s`);
@@ -460,6 +460,19 @@ export async function kiBewertung(situation, antwort) {
     return heuristik;
   } catch (e) {
     console.error("Bewertung fehlgeschlagen:", e);
-    return null;
+    return {
+      kategorien: {
+        situationsbezug: { p: 0, f: 'Bewertung konnte nicht durchgeführt werden.' },
+        wortvielfalt: { p: 0, f: '' },
+        rhetorik: { p: 0, f: '' },
+        wortschatz: { p: 0, f: '' },
+        argumentation: { p: 0, f: '' },
+        kreativitaet: { p: 0, f: '' },
+        textstruktur: { p: 0, f: '' },
+      },
+      mittel: [], gehobene: [], tipps: [], empfehlungen: [],
+      feedback: 'Die Bewertung konnte leider nicht durchgeführt werden. Bitte versuche es erneut.',
+      gaming: false, _methode: 'fehler', _kiError: e.message,
+    };
   }
 }

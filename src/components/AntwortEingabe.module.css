@@ -1,0 +1,199 @@
+.wrapper {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.timerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.timerLabel {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.timerValue {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.timerNormal {
+  composes: timerValue;
+  font-size: 14px;
+}
+
+.timerUrgent {
+  composes: timerValue;
+  font-size: 18px;
+  animation: pulse 0.8s infinite;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-inset);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s linear, background 0.5s;
+}
+
+.situationContext {
+  margin-bottom: 20px;
+}
+
+.situationTitle {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  margin-top: 12px;
+  color: var(--text-primary);
+}
+
+.situationDesc {
+  font-size: 15px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-top: 10px;
+}
+
+/* ── Wort-Hinweise ── */
+.hinweiseWrap {
+  margin-bottom: 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.hinweiseHeader {
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.hinweiseLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+}
+
+.hinweiseArrow {
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.hinweiseArrowOpen {
+  composes: hinweiseArrow;
+  transform: rotate(180deg);
+}
+
+.hinweiseBody {
+  padding: 0 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hinweiseItem {
+  padding: 8px 10px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--accent-copper);
+}
+
+.hinweiseWort {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent-gold);
+}
+
+.hinweiseArt {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-left: 8px;
+}
+
+.hinweiseDef {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.hinweiseBsp {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* ── Textarea ── */
+.spielerLabel {
+  font-size: 13px;
+  color: var(--accent-gold);
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.7;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.textarea:focus {
+  border-color: var(--accent-copper);
+}
+
+.textarea:disabled {
+  opacity: 0.5;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.wordCount {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.wordCountLow {
+  composes: wordCount;
+  color: var(--error);
+}
+
+.wordCountOk {
+  composes: wordCount;
+  color: var(--text-muted);
+}

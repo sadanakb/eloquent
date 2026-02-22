@@ -1,13 +1,15 @@
-export function Card({ children, style: s, glow, onClick }) {
+import styles from './Card.module.css';
+
+export function Card({ children, style: s, glow, onClick, ornate, className = '' }) {
+  const classes = [
+    ornate ? styles.ornate : styles.card,
+    glow ? styles.glow : '',
+    onClick ? styles.clickable : '',
+    className,
+  ].filter(Boolean).join(' ');
+
   return (
-    <div onClick={onClick} style={{
-      background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 16,
-      padding: 28, transition: "all 0.3s",
-      ...(glow ? { animation: "glow 3s ease-in-out infinite" } : {}),
-      ...(onClick ? { cursor: "pointer" } : {}), ...s,
-    }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-light)"; e.currentTarget.style.background = "var(--bg-card-hover)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--bg-card)"; }}>
+    <div onClick={onClick} className={classes} style={s}>
       {children}
     </div>
   );

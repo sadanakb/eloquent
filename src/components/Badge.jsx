@@ -1,9 +1,9 @@
-export function Badge({ children, color = "var(--gold)" }) {
+import styles from './Badge.module.css';
+
+export function Badge({ children, style: s, className = '' }) {
   return (
-    <span style={{
-      display: "inline-flex", padding: "3px 10px", borderRadius: 20,
-      fontSize: 11, fontWeight: 600, letterSpacing: 0.5,
-      background: `${color}18`, color, border: `1px solid ${color}33`,
-    }}>{children}</span>
+    <span className={`${styles.badge} ${className}`} style={s}>
+      {children}
+    </span>
   );
 }

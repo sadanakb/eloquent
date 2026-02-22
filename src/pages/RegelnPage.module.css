@@ -1,0 +1,34 @@
+.wrapper {
+  padding: 32px 24px;
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.ruleItem {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 6px 0 6px 16px;
+  border-left: 2px solid var(--border);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}

@@ -1,0 +1,107 @@
+/* ═══════════════════════════════════════════════
+   ELOQUENT — Logo (Zeitungs-Masthead)
+   ═══════════════════════════════════════════════ */
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  user-select: none;
+}
+
+/* ── Große Variante (HeroPage) ── */
+.logoFull {
+  composes: logo;
+}
+
+.topRule {
+  width: 100%;
+  max-width: 420px;
+  height: 3px;
+  background: var(--text-primary);
+  position: relative;
+  margin-bottom: 2px;
+}
+
+.topRule::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--text-primary);
+}
+
+.title {
+  font-family: var(--font-logo);
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: 0.45em;
+  text-indent: 0.45em;
+  color: var(--text-primary);
+  padding: 12px 0 8px;
+  text-align: center;
+}
+
+.subtitle {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(0.75rem, 2vw, 0.9375rem);
+  color: var(--text-secondary);
+  letter-spacing: 0.12em;
+  padding: 0 16px;
+  text-align: center;
+  position: relative;
+}
+
+.subtitle::before,
+.subtitle::after {
+  content: '—';
+  padding: 0 8px;
+  color: var(--accent-copper);
+}
+
+.bottomRule {
+  width: 100%;
+  max-width: 420px;
+  height: 1px;
+  background: var(--text-primary);
+  margin-top: 2px;
+  position: relative;
+}
+
+.bottomRule::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--text-primary);
+}
+
+/* ── Kompakte Variante (NavBar) ── */
+.logoCompact {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.titleCompact {
+  font-family: var(--font-logo);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  color: var(--text-primary);
+}
+
+.subtitleCompact {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}

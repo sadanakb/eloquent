@@ -113,20 +113,24 @@ Antworte NUR mit JSON:
   ]
 }`;
 
+function sanitizeForPrompt(text) {
+  return String(text).replace(/[{}"`]/g, ' ').slice(0, 2000);
+}
+
 function buildResearchPrompt(situation, antwort) {
   return RESEARCH_PROMPT
-    .replace('{titel}', situation.titel || '')
-    .replace('{kontext}', situation.kontext || '')
-    .replace('{beschreibung}', situation.beschreibung || '')
-    .replace('{antwort}', antwort);
+    .replace('{titel}', sanitizeForPrompt(situation.titel || ''))
+    .replace('{kontext}', sanitizeForPrompt(situation.kontext || ''))
+    .replace('{beschreibung}', sanitizeForPrompt(situation.beschreibung || ''))
+    .replace('{antwort}', sanitizeForPrompt(antwort));
 }
 
 function buildBewertungPrompt(situation, antwort, researchJson) {
   return BEWERTUNG_PROMPT
-    .replace('{titel}', situation.titel || '')
-    .replace('{kontext}', situation.kontext || '')
-    .replace('{beschreibung}', situation.beschreibung || '')
-    .replace('{antwort}', antwort)
+    .replace('{titel}', sanitizeForPrompt(situation.titel || ''))
+    .replace('{kontext}', sanitizeForPrompt(situation.kontext || ''))
+    .replace('{beschreibung}', sanitizeForPrompt(situation.beschreibung || ''))
+    .replace('{antwort}', sanitizeForPrompt(antwort))
     .replace('{research}', JSON.stringify(researchJson, null, 2));
 }
 
@@ -366,7 +370,7 @@ async function mitRetry(fn, providerName) {
   throw lastError;
 }
 
-export async function aiBewerung(situation, antwort) {
+export async function aiBewertung(situation, antwort) {
   const situObj = typeof situation === 'string'
     ? { titel: '', kontext: '', beschreibung: situation }
     : situation;
@@ -408,14 +412,24 @@ export async function aiBewerung(situation, antwort) {
 // ──────────────────────────────────────────────────────
 
 export function getGroqKey() {
-  return localStorage.getItem('eloquent_groq_key') || '';
+  // Migration: alten localStorage-Key nach sessionStorage übernehmen
+  const oldKey = localStorage.getItem('eloquent_groq_key');
+  if (oldKey) {
+    try { sessionStorage.setItem('eloquent_groq_key', btoa(oldKey)); } catch {}
+    localStorage.removeItem('eloquent_groq_key');
+  }
+  const encoded = sessionStorage.getItem('eloquent_groq_key') || '';
+  if (!encoded) return '';
+  try { return atob(encoded); } catch { return ''; }
 }
 
 export function setGroqKey(key) {
+  // Alten localStorage-Eintrag entfernen (Migration)
+  localStorage.removeItem('eloquent_groq_key');
   if (key) {
-    localStorage.setItem('eloquent_groq_key', key.trim());
+    sessionStorage.setItem('eloquent_groq_key', btoa(key.trim()));
   } else {
-    localStorage.removeItem('eloquent_groq_key');
+    sessionStorage.removeItem('eloquent_groq_key');
   }
 }
 

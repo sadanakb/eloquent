@@ -1,0 +1,75 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg-card);
+  border-bottom: 3px double var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  height: 56px;
+}
+
+.links {
+  display: flex;
+  gap: 4px;
+}
+
+.link {
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-weight: 400;
+  transition: all var(--transition-fast);
+  letter-spacing: 0.02em;
+  border: none;
+  background: none;
+}
+
+.link:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.linkActive {
+  composes: link;
+  color: var(--accent-gold);
+  font-weight: 600;
+  background: var(--bg-elevated);
+}
+
+.right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kiBadge {
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(74, 103, 65, 0.12);
+  color: var(--success);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+}
+
+.settingsBtn {
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+  background: none;
+  border: none;
+}
+
+.settingsBtn:hover {
+  color: var(--text-primary);
+}

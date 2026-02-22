@@ -1,0 +1,73 @@
+/* ═══════════════════════════════════════════════
+   ELOQUENT — Design Tokens (Retro-Intellektuell)
+   1920er Literatur-Magazin / Wiener Café Ästhetik
+   ═══════════════════════════════════════════════ */
+
+:root {
+  /* ── Backgrounds ── */
+  --bg-page:       #F5F0E8;
+  --bg-card:       #FFFDF7;
+  --bg-card-hover: #FBF7EE;
+  --bg-elevated:   #F0EAD6;
+  --bg-inset:      #EDE5D3;
+
+  /* ── Text ── */
+  --text-primary:  #2C1810;
+  --text-secondary:#5C4A3A;
+  --text-muted:    #8B7B6B;
+  --text-dim:      #8B7B6B;
+
+  /* ── Accents ── */
+  --accent-gold:   #8B6914;
+  --accent-copper: #C4956A;
+  --accent-warm:   #A67C52;
+
+  /* ── Legacy aliases (Kompatibilität während Migration) ── */
+  --bg-deep:       #F5F0E8;
+  --gold:          #8B6914;
+  --gold-bright:   #A67C00;
+  --gold-dim:      #C4956A;
+  --accent:        #6B4E2E;
+  --green:         #4A6741;
+  --green-dim:     #3A5235;
+  --red:           #8B3A3A;
+  --red-dim:       #6B2A2A;
+  --text:          #2C1810;
+  --border:        #D4C5A9;
+  --border-light:  #E2D6BE;
+
+  /* ── Semantic ── */
+  --error:         #8B3A3A;
+  --success:       #4A6741;
+  --warning:       #8B6914;
+
+  /* ── Spacing ── */
+  --space-xs:  4px;
+  --space-sm:  8px;
+  --space-md:  16px;
+  --space-lg:  24px;
+  --space-xl:  32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* ── Radii ── */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* ── Shadows ── */
+  --shadow-card:     0 1px 3px rgba(44, 24, 16, 0.06), 0 1px 2px rgba(44, 24, 16, 0.04);
+  --shadow-elevated: 0 4px 12px rgba(44, 24, 16, 0.08), 0 2px 4px rgba(44, 24, 16, 0.04);
+  --shadow-inset:    inset 0 1px 3px rgba(44, 24, 16, 0.06);
+
+  /* ── Typography ── */
+  --font-display:  'Cormorant Garamond', 'Georgia', serif;
+  --font-body:     'Libre Baskerville', 'Georgia', serif;
+  --font-logo:     'Old Standard TT', 'Georgia', serif;
+  --font-mono:     'JetBrains Mono', monospace;
+
+  /* ── Transitions ── */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+}

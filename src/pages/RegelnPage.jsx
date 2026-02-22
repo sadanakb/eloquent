@@ -1,20 +1,59 @@
 import { Card } from '../components/Card.jsx';
+import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
+import styles from './RegelnPage.module.css';
 
 export function RegelnPage() {
+  const sections = [
+    {
+      icon: 'federn',
+      title: 'Duell-Modus',
+      items: [
+        'Zwei Spieler treten in 3 Runden an',
+        'Jede Runde eine Situation mit steigender Schwierigkeit',
+        'Die KI bewertet beide Antworten nach 7 Kriterien',
+        'Der eloquentere Spieler gewinnt Pokale',
+      ],
+    },
+    {
+      icon: 'ziel',
+      title: 'Bewertungskriterien',
+      items: [
+        'Situationsbezug (15 Pkt) \u2014 Passt die Antwort?',
+        'Wortvielfalt (15 Pkt) \u2014 Abwechslung statt Wiederholungen',
+        'Rhetorik (25 Pkt) \u2014 Metaphern, Fragen, Antithesen...',
+        'Wortschatz (15 Pkt) \u2014 Gehobene Ausdrücke',
+        'Argumentation (15 Pkt) \u2014 Logischer Aufbau',
+        'Kreativität (10 Pkt) \u2014 Originelle Gedanken',
+        'Textstruktur (5 Pkt) \u2014 Kohärenz & Bindewörter',
+      ],
+    },
+    {
+      icon: 'feder',
+      title: 'Tipps',
+      items: [
+        "Vergleiche: \u201Ewie ein Leuchtturm in stürmischer Nacht\u201C",
+        "Rhetorische Fragen: \u201EIst es nicht so, dass...?\u201C",
+        "Trikolon: \u201EFreiheit, Gleichheit, Brüderlichkeit\u201C",
+        "Antithesen: \u201ENicht nur..., sondern auch...\u201C",
+        "Gehobene Wörter: \u201Enichtsdestotrotz\u201C, \u201Eeloquent\u201C, \u201Esublim\u201C",
+        'Variiere deine Satzlänge!',
+      ],
+    },
+  ];
+
   return (
-    <div style={{ padding: "32px 24px", maxWidth: 680, margin: "0 auto" }}>
-      <div className="animate-in" style={{ textAlign: "center", marginBottom: 32 }}>
-        <h1 className="serif" style={{ fontSize: 32, fontWeight: 900, color: "var(--gold)" }}>❓ Spielregeln</h1>
+    <div className={styles.wrapper}>
+      <div className={`${styles.header} animate-in`}>
+        <h1 className={styles.title}>Spielregeln</h1>
       </div>
-      {[
-        { title: "⚔️ Duell-Modus", items: ["Zwei Spieler treten in 3 Runden an", "Jede Runde eine Situation mit steigender Schwierigkeit", "Die KI bewertet beide Antworten nach 7 Kriterien", "Der eloquentere Spieler gewinnt Pokale"] },
-        { title: "📊 Bewertungskriterien", items: ["Situationsbezug (15 Pkt) — Passt die Antwort?", "Wortvielfalt (15 Pkt) — Abwechslung statt Wiederholungen", "Rhetorik (25 Pkt) — Metaphern, Fragen, Antithesen...", "Wortschatz (15 Pkt) — Gehobene Ausdrücke", "Argumentation (15 Pkt) — Logischer Aufbau", "Kreativität (10 Pkt) — Originelle Gedanken", "Textstruktur (5 Pkt) — Kohärenz & Bindewörter"] },
-        { title: "💡 Tipps", items: ["Vergleiche: 'wie ein Leuchtturm in stürmischer Nacht'", "Rhetorische Fragen: 'Ist es nicht so, dass...?'", "Trikolon: 'Freiheit, Gleichheit, Brüderlichkeit'", "Antithesen: 'Nicht nur..., sondern auch...'", "Gehobene Wörter: 'nichtsdestotrotz', 'eloquent', 'sublim'", "Variiere deine Satzlänge!"] },
-      ].map(section => (
+      {sections.map(section => (
         <Card key={section.title} style={{ marginBottom: 16 }}>
-          <h2 className="serif" style={{ fontSize: 20, fontWeight: 700, marginBottom: 12 }}>{section.title}</h2>
+          <h2 className={styles.sectionTitle}>
+            <OrnamentIcon name={section.icon} size="sm" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
+            {section.title}
+          </h2>
           {section.items.map((item, i) => (
-            <div key={i} style={{ fontSize: 14, color: "var(--text-dim)", padding: "6px 0 6px 16px", borderLeft: "2px solid var(--border)", marginBottom: 4, lineHeight: 1.5 }}>{item}</div>
+            <div key={i} className={styles.ruleItem}>{item}</div>
           ))}
         </Card>
       ))}

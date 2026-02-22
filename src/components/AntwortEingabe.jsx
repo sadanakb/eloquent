@@ -3,6 +3,8 @@ import { WOERTERBUCH } from '../data/woerterbuch.js';
 import { Card } from './Card.jsx';
 import { Badge } from './Badge.jsx';
 import { Button } from './Button.jsx';
+import { OrnamentIcon } from './Ornament.jsx';
+import styles from './AntwortEingabe.module.css';
 
 const TIMER_DURATIONS = { leicht: 180, mittel: 150, schwer: 120 };
 const DEFAULT_TIMER = 150;
@@ -11,12 +13,6 @@ function formatTime(seconds) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
-}
-
-function timerColor(ratio) {
-  if (ratio > 0.5) return 'var(--green)';
-  if (ratio > 0.25) return 'var(--gold)';
-  return 'var(--red)';
 }
 
 function WortHinweise() {
@@ -28,35 +24,24 @@ function WortHinweise() {
   const [offen, setOffen] = useState(false);
 
   return (
-    <div style={{
-      marginBottom: 16, background: 'var(--bg-deep)', borderRadius: 10,
-      border: '1px solid var(--border)', overflow: 'hidden',
-    }}>
-      <div
-        onClick={() => setOffen(!offen)}
-        style={{
-          padding: '10px 14px', cursor: 'pointer',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--gold)' }}>
-          💡 Wort-Inspiration ({woerter.length} Wörter)
+    <div className={styles.hinweiseWrap}>
+      <div onClick={() => setOffen(!offen)} className={styles.hinweiseHeader}>
+        <span className={styles.hinweiseLabel}>
+          <OrnamentIcon name="buch" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+          Wort-Inspiration ({woerter.length} Wörter)
         </span>
-        <span style={{ fontSize: 12, color: 'var(--text-muted)', transition: 'transform 0.2s', transform: offen ? 'rotate(180deg)' : 'none' }}>▼</span>
+        <span className={offen ? styles.hinweiseArrowOpen : styles.hinweiseArrow}>▼</span>
       </div>
       {offen && (
-        <div style={{ padding: '0 14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className={styles.hinweiseBody}>
           {woerter.map((w, i) => (
-            <div key={i} style={{
-              padding: '8px 10px', background: 'var(--bg-card)', borderRadius: 8,
-              borderLeft: '3px solid var(--gold-dim)',
-            }}>
+            <div key={i} className={styles.hinweiseItem}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
-                <span className="serif" style={{ fontWeight: 700, fontSize: 14, color: 'var(--gold-bright)' }}>{w.wort}</span>
-                <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>{w.wortart}</span>
+                <span className={styles.hinweiseWort}>{w.wort}</span>
+                <span className={styles.hinweiseArt}>{w.wortart}</span>
               </div>
-              <div style={{ fontSize: 12, color: 'var(--text-dim)', lineHeight: 1.5 }}>{w.definition}</div>
-              <div style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', marginTop: 2 }}>„{w.beispiel}"</div>
+              <div className={styles.hinweiseDef}>{w.definition}</div>
+              <div className={styles.hinweiseBsp}>{'\u201E'}{w.beispiel}{'\u201C'}</div>
             </div>
           ))}
         </div>
@@ -66,7 +51,7 @@ function WortHinweise() {
 }
 
 export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit }) {
-  const [text, setText] = useState("");
+  const [text, setText] = useState('');
   const wc = text.trim().split(/\s+/).filter(Boolean).length;
   const taRef = useRef(null);
   const textRef = useRef(text);
@@ -88,7 +73,6 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
     submittedRef.current = true;
     const currentText = textRef.current.trim();
     const currentWc = currentText.split(/\s+/).filter(Boolean).length;
-    // 0 words → signal skip with null
     if (!currentText || currentWc === 0) {
       onSubmit(null);
     } else {
@@ -111,62 +95,58 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
   }, [doSubmit]);
 
   const ratio = timeLeft / totalTime;
-  const color = timerColor(ratio);
   const isUrgent = timeLeft <= 15;
+  const timerColor = ratio > 0.5 ? 'var(--success)' : ratio > 0.25 ? 'var(--accent-gold)' : 'var(--error)';
 
   return (
-    <div className="animate-in" style={{ maxWidth: 640, margin: "0 auto" }}>
+    <div className={`${styles.wrapper} animate-in`}>
       <Card>
         {/* Timer */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500 }}>Verbleibende Zeit</span>
-            <span className="mono" style={{
-              fontSize: isUrgent ? 18 : 14, fontWeight: 700, color,
-              transition: 'all 0.3s',
-              animation: isUrgent ? 'pulse 0.8s infinite' : 'none',
-            }}>
+        <div>
+          <div className={styles.timerRow}>
+            <span className={styles.timerLabel}>Verbleibende Zeit</span>
+            <span
+              className={isUrgent ? styles.timerUrgent : styles.timerNormal}
+              style={{ color: timerColor }}
+            >
               {formatTime(timeLeft)}
             </span>
           </div>
-          <div style={{ width: '100%', height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{
-              width: `${ratio * 100}%`, height: '100%', background: color,
-              borderRadius: 2, transition: 'width 1s linear, background 0.5s',
-            }} />
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${ratio * 100}%`, background: timerColor }} />
           </div>
         </div>
 
-        <div style={{ marginBottom: 20 }}>
-          <Badge color="var(--accent)">{situation.kontext}</Badge>
-          <h2 className="serif" style={{ fontSize: 26, fontWeight: 700, marginTop: 12, color: "var(--text)" }}>{situation.titel}</h2>
-          <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginTop: 10 }}>{situation.beschreibung}</p>
+        <div className={styles.situationContext}>
+          <Badge>{situation.kontext}</Badge>
+          <h2 className={styles.situationTitle}>{situation.titel}</h2>
+          <p className={styles.situationDesc}>{situation.beschreibung}</p>
         </div>
 
-        {/* Wort-Inspirationen */}
         <WortHinweise />
 
-        <div style={{ position: "relative" }}>
-          {spielerName && <div style={{ fontSize: 13, color: "var(--gold)", fontWeight: 600, marginBottom: 8 }}>✍️ {spielerName}, zeig deine Eloquenz:</div>}
-          <textarea ref={taRef} value={text} onChange={e => setText(e.target.value)}
+        <div style={{ position: 'relative' }}>
+          {spielerName && (
+            <div className={styles.spielerLabel}>
+              <OrnamentIcon name="feder" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+              {spielerName}, zeig deine Eloquenz:
+            </div>
+          )}
+          <textarea
+            ref={taRef}
+            value={text}
+            onChange={e => setText(e.target.value)}
             placeholder="Schreibe hier deine eloquente Antwort..."
             disabled={timeLeft <= 0}
-            style={{
-              width: "100%", minHeight: 180, padding: 16, background: "var(--bg-deep)",
-              border: `1px solid ${isUrgent ? color : 'var(--border)'}`, borderRadius: 10, color: "var(--text)",
-              fontFamily: "'DM Sans', sans-serif", fontSize: 15, lineHeight: 1.7,
-              resize: "vertical", outline: "none", transition: "border-color 0.3s",
-              opacity: timeLeft <= 0 ? 0.5 : 1,
-            }}
-            onFocus={e => { if (!isUrgent) e.target.style.borderColor = "var(--gold-dim)"; }}
-            onBlur={e => { if (!isUrgent) e.target.style.borderColor = "var(--border)"; }}
+            className={styles.textarea}
+            style={isUrgent ? { borderColor: timerColor } : undefined}
           />
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, alignItems: "center" }}>
-            <span className="mono" style={{ fontSize: 12, color: wc < 10 ? "var(--red)" : "var(--text-muted)" }}>
-              {wc} Wörter {wc < 10 ? "(min. 10)" : "✓"}
+          <div className={styles.footer}>
+            <span className={wc < 10 ? styles.wordCountLow : styles.wordCountOk}>
+              {wc} Wörter {wc < 10 ? '(min. 10)' : '\u2713'}
             </span>
-            <Button variant="gold" disabled={wc < 10 || timeLeft <= 0} onClick={() => { submittedRef.current = true; onSubmit(text); }}>
-              Antwort abgeben →
+            <Button variant="gold" disabled={wc < 10 || timeLeft <= 0} onClick={() => { if (submittedRef.current) return; doSubmit(); }}>
+              Antwort abgeben \u2192
             </Button>
           </div>
         </div>

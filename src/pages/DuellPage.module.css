@@ -1,0 +1,298 @@
+.wrapper {
+  padding: 32px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.setupHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-style: italic;
+}
+
+.playerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.playerLabel {
+  font-size: 13px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+}
+
+.playerLabelS1 {
+  composes: playerLabel;
+  color: var(--accent-gold);
+}
+
+.playerLabelS2 {
+  composes: playerLabel;
+  color: var(--accent-copper);
+}
+
+.playerInput {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.playerInput:focus {
+  border-color: var(--accent-copper);
+}
+
+.katHeader {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.katGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.katCard {
+  cursor: pointer;
+  text-align: center;
+  padding: 16px 12px;
+}
+
+.katEmoji {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.katLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.roundBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.scoreBar {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+}
+
+.scoreS1 {
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.scoreVs {
+  color: var(--text-muted);
+}
+
+.scoreS2 {
+  color: var(--accent-copper);
+  font-weight: 700;
+}
+
+.passScreen {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.passIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  font-family: var(--font-display);
+  color: var(--accent-copper);
+}
+
+.passTitle {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.passPlayer {
+  color: var(--accent-copper);
+  font-weight: 700;
+}
+
+.loadingWrap {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.loadingIcon {
+  font-size: 48px;
+  animation: pulse 1.5s infinite;
+  margin-bottom: 16px;
+  font-family: var(--font-display);
+  color: var(--accent-gold);
+}
+
+.loadingTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: var(--accent-gold);
+}
+
+.loadingText {
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.elapsed {
+  font-family: var(--font-mono);
+  color: var(--accent-copper);
+}
+
+.dots {
+  display: inline-block;
+  width: 24px;
+  text-align: left;
+}
+
+.resultTitle {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--accent-gold);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.resultGrid {
+  display: grid;
+  gap: 20px;
+}
+
+.vsSep {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 3px;
+  font-family: var(--font-display);
+}
+
+.finalTitle {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+}
+
+.finalGrid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.finalName {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.finalNameWin {
+  composes: finalName;
+  color: var(--accent-gold);
+}
+
+.finalNameLose {
+  composes: finalName;
+  color: var(--text-muted);
+}
+
+.finalScore {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 900;
+}
+
+.finalScoreS1 {
+  composes: finalScore;
+  color: var(--accent-gold);
+}
+
+.finalScoreS2 {
+  composes: finalScore;
+  color: var(--accent-copper);
+}
+
+.finalRounds {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.finalVs {
+  font-size: 28px;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+}
+
+.winnerBox {
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  margin-top: 16px;
+}
+
+.winnerText {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.winnerS1 {
+  composes: winnerText;
+  color: var(--accent-gold);
+}
+
+.winnerS2 {
+  composes: winnerText;
+  color: var(--accent-copper);
+}
+
+.winnerDraw {
+  composes: winnerText;
+  color: var(--text-primary);
+}
+
+.finalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 16px;
+}

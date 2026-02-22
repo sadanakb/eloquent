@@ -1,0 +1,249 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(44, 24, 16, 0.5);
+  backdrop-filter: blur(8px);
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  max-width: 560px;
+  width: 90%;
+  box-shadow: var(--shadow-elevated);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.title {
+  font-family: var(--font-display);
+  color: var(--accent-gold);
+  margin-bottom: 8px;
+  font-size: 24px;
+}
+
+.statusBanner {
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.statusOk {
+  composes: statusBanner;
+  background: rgba(74, 103, 65, 0.08);
+  border: 1px solid rgba(74, 103, 65, 0.2);
+  color: var(--success);
+}
+
+.statusWarn {
+  composes: statusBanner;
+  background: rgba(139, 105, 20, 0.08);
+  border: 1px solid rgba(139, 105, 20, 0.2);
+  color: var(--accent-gold);
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.recommendBadge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(74, 103, 65, 0.12);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.sectionDesc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.ollamaStatus {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.ollamaOk {
+  composes: ollamaStatus;
+  background: rgba(74, 103, 65, 0.08);
+  border: 1px solid rgba(74, 103, 65, 0.2);
+  color: var(--success);
+}
+
+.ollamaPending {
+  composes: ollamaStatus;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.retryBtn {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--accent-gold);
+  border: 1px solid var(--border);
+}
+
+.retryBtn:hover {
+  border-color: var(--accent-gold);
+}
+
+.instructionBox {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.instructionTitle {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.inputLabel {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+}
+
+.input:focus {
+  border-color: var(--accent-copper);
+}
+
+.btnRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.smallBtn {
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.smallBtnGold {
+  composes: smallBtn;
+  background: var(--accent-gold);
+  color: var(--bg-card);
+  border: none;
+}
+
+.smallBtnGold:hover {
+  background: var(--accent-warm);
+}
+
+.smallBtnGhost {
+  composes: smallBtn;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.smallBtnGhost:hover {
+  border-color: var(--accent-copper);
+}
+
+.smallBtnGhost:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.smallBtnDanger {
+  composes: smallBtn;
+  background: transparent;
+  color: var(--error);
+  border: 1px solid rgba(139, 58, 58, 0.3);
+}
+
+.smallBtnDanger:hover {
+  background: var(--error);
+  color: var(--bg-card);
+}
+
+.resultMsg {
+  margin-top: 8px;
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.resultOk {
+  composes: resultMsg;
+  background: rgba(74, 103, 65, 0.08);
+  color: var(--success);
+}
+
+.resultError {
+  composes: resultMsg;
+  background: rgba(139, 58, 58, 0.08);
+  color: var(--error);
+}
+
+.closeBtn {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+}
+
+.closeBtn:hover {
+  border-color: var(--accent-copper);
+  color: var(--text-primary);
+}

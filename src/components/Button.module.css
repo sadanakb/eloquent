@@ -1,0 +1,82 @@
+.btn {
+  padding: 12px 28px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.2;
+}
+
+.btn:hover:not(.disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.btn:active:not(.disabled) {
+  transform: translateY(0);
+}
+
+.disabled {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Varianten ── */
+.default {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.default:hover:not(.disabled) {
+  background: var(--bg-inset);
+  border-color: var(--accent-copper);
+}
+
+.gold {
+  background: var(--accent-gold);
+  color: var(--bg-card);
+}
+
+.gold:hover:not(.disabled) {
+  background: var(--accent-warm);
+}
+
+.accent {
+  background: var(--text-secondary);
+  color: var(--bg-card);
+}
+
+.accent:hover:not(.disabled) {
+  background: var(--text-primary);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.ghost:hover:not(.disabled) {
+  background: var(--bg-elevated);
+  border-color: var(--accent-copper);
+  color: var(--text-primary);
+}
+
+.danger {
+  background: transparent;
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+
+.danger:hover:not(.disabled) {
+  background: var(--error);
+  color: var(--bg-card);
+}

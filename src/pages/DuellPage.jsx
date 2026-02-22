@@ -6,12 +6,14 @@ import { Card } from '../components/Card.jsx';
 import { Badge } from '../components/Badge.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
+import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
+import styles from './DuellPage.module.css';
 
 export function DuellPage({ onNavigate }) {
-  const [phase, setPhase] = useState("setup");
-  const [s1, setS1] = useState("");
-  const [s2, setS2] = useState("");
-  const [kategorie, setKategorie] = useState(null); // null = Zufall
+  const [phase, setPhase] = useState('setup');
+  const [s1, setS1] = useState('');
+  const [s2, setS2] = useState('');
+  const [kategorie, setKategorie] = useState(null);
   const [runde, setRunde] = useState(1);
   const [situation, setSituation] = useState(null);
   const [ergebnis1, setErgebnis1] = useState(null);
@@ -35,13 +37,13 @@ export function DuellPage({ onNavigate }) {
     const iv = setInterval(() => {
       const sec = Math.floor((Date.now() - loadingStartRef.current) / 1000);
       setElapsed(sec);
-      document.title = `⏳ ${sec}s — Bewertung...`;
+      document.title = `${sec}s \u2014 Bewertung...`;
     }, 1000);
     return () => clearInterval(iv);
   }, [loading]);
 
   const getSituation = (r) => {
-    const diff = r <= 1 ? "leicht" : r <= 2 ? "mittel" : "schwer";
+    const diff = r <= 1 ? 'leicht' : r <= 2 ? 'mittel' : 'schwer';
     let pool;
     if (kategorie && SITUATIONEN_NACH_KATEGORIE?.[kategorie]?.[diff]) {
       pool = SITUATIONEN_NACH_KATEGORIE[kategorie][diff];
@@ -59,7 +61,7 @@ export function DuellPage({ onNavigate }) {
   const goToCategory = () => {
     if (!s1.trim() || !s2.trim()) return;
     if (s1.trim().toLowerCase() === s2.trim().toLowerCase()) return;
-    setPhase("category");
+    setPhase('category');
   };
 
   const startDuell = (kat) => {
@@ -68,8 +70,7 @@ export function DuellPage({ onNavigate }) {
     setRunde(1);
     setScores({ s1: 0, s2: 0, r1: 0, r2: 0 });
     setHistory([]);
-    // Need to compute situation after setting kategorie — use kat directly
-    const diff = "leicht";
+    const diff = 'leicht';
     let pool;
     if (kat && SITUATIONEN_NACH_KATEGORIE?.[kat]?.[diff]) {
       pool = SITUATIONEN_NACH_KATEGORIE[kat][diff];
@@ -79,18 +80,18 @@ export function DuellPage({ onNavigate }) {
     const chosen = pool[Math.floor(Math.random() * pool.length)];
     gespielteRef.current.add(chosen.titel);
     setSituation(chosen);
-    setPhase("s1_write");
+    setPhase('s1_write');
   };
 
   const SKIP_ERGEBNIS = {
     kategorien: {
-      situationsbezug: { p: 0, f: "Keine Antwort abgegeben." },
-      wortvielfalt: { p: 0, f: "" }, rhetorik: { p: 0, f: "" },
-      wortschatz: { p: 0, f: "" }, argumentation: { p: 0, f: "" },
-      kreativitaet: { p: 0, f: "" }, textstruktur: { p: 0, f: "" },
+      situationsbezug: { p: 0, f: 'Keine Antwort abgegeben.' },
+      wortvielfalt: { p: 0, f: '' }, rhetorik: { p: 0, f: '' },
+      wortschatz: { p: 0, f: '' }, argumentation: { p: 0, f: '' },
+      kreativitaet: { p: 0, f: '' }, textstruktur: { p: 0, f: '' },
     },
-    mittel: [], gehobene: [], tipps: ["Nächstes Mal unbedingt eine Antwort abgeben!"],
-    empfehlungen: [], feedback: "Keine Antwort eingereicht — 0 Punkte.", gaming: false, _methode: 'skip',
+    mittel: [], gehobene: [], tipps: ['Nächstes Mal unbedingt eine Antwort abgeben!'],
+    empfehlungen: [], feedback: 'Keine Antwort eingereicht \u2014 0 Punkte.', gaming: false, _methode: 'skip',
   };
 
   const handleS1Submit = (text) => {
@@ -99,19 +100,17 @@ export function DuellPage({ onNavigate }) {
       s1PromiseRef.current = null;
     } else {
       setErgebnis1({ text });
-      // Frühe S1-Bewertung im Hintergrund starten
       s1PromiseRef.current = kiBewertung(situation, text);
     }
-    setPhase("s1_pass");
+    setPhase('s1_pass');
     window.scrollTo(0, 0);
   };
 
   const handleS2Submit = async (text) => {
     setLoading(true);
-    setPhase("result");
+    setPhase('result');
     const s1Skipped = ergebnis1.skipped;
     const s2Skipped = text === null;
-    // S1 aus Hintergrund-Promise nutzen (bereits gestartet bei S1-Abgabe)
     const s1Promise = s1Skipped ? Promise.resolve(SKIP_ERGEBNIS)
       : (s1PromiseRef.current || kiBewertung(situation, ergebnis1.text));
     const [r1, r2] = await Promise.all([
@@ -131,178 +130,176 @@ export function DuellPage({ onNavigate }) {
   };
 
   const nextRound = () => {
-    if (runde >= 3) { setPhase("final"); return; }
+    if (runde >= 3) { setPhase('final'); return; }
     const nr = runde + 1;
     setRunde(nr);
     setSituation(getSituation(nr));
     setErgebnis1(null);
     setErgebnis2(null);
     s1PromiseRef.current = null;
-    setPhase("s1_write");
+    setPhase('s1_write');
   };
 
-  const diffLabel = runde <= 1 ? "🟢 Leicht" : runde <= 2 ? "🟡 Mittel" : "🔴 Schwer";
+  const diffLabel = runde <= 1 ? 'Leicht' : runde <= 2 ? 'Mittel' : 'Schwer';
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: 800, margin: "0 auto" }}>
-      {phase === "setup" && (
+    <div className={styles.wrapper}>
+      {phase === 'setup' && (
         <div className="animate-in">
-          <div style={{ textAlign: "center", marginBottom: 40 }}>
-            <h1 className="serif" style={{ fontSize: 36, fontWeight: 900, color: "var(--gold)" }}>⚔️ Duell-Modus</h1>
-            <p style={{ color: "var(--text-dim)", marginTop: 8 }}>Zwei Meister der Eloquenz. Drei Runden. Ein Gewinner.</p>
+          <div className={styles.setupHeader}>
+            <h1 className={styles.title}>
+              <OrnamentIcon name="federn" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
+              Duell-Modus
+            </h1>
+            <p className={styles.subtitle}>Zwei Meister der Eloquenz. Drei Runden. Ein Gewinner.</p>
           </div>
           <Card>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+            <div className={styles.playerGrid}>
               <div>
-                <label style={{ fontSize: 13, color: "var(--gold)", fontWeight: 600, display: "block", marginBottom: 8 }}>Spieler 1</label>
-                <input value={s1} onChange={e => setS1(e.target.value)} placeholder="Name eingeben..."
-                  style={{ width: "100%", padding: "12px 16px", background: "var(--bg-deep)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 15, fontFamily: "inherit", outline: "none" }}
-                  onFocus={e => { e.target.style.borderColor = "var(--gold-dim)"; }} onBlur={e => { e.target.style.borderColor = "var(--border)"; }} />
+                <label className={styles.playerLabelS1}>Spieler 1</label>
+                <input value={s1} onChange={e => setS1(e.target.value)} placeholder="Name eingeben..." className={styles.playerInput} />
               </div>
               <div>
-                <label style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600, display: "block", marginBottom: 8 }}>Spieler 2</label>
-                <input value={s2} onChange={e => setS2(e.target.value)} placeholder="Name eingeben..."
-                  style={{ width: "100%", padding: "12px 16px", background: "var(--bg-deep)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 15, fontFamily: "inherit", outline: "none" }}
-                  onFocus={e => { e.target.style.borderColor = "var(--accent)"; }} onBlur={e => { e.target.style.borderColor = "var(--border)"; }} />
+                <label className={styles.playerLabelS2}>Spieler 2</label>
+                <input value={s2} onChange={e => setS2(e.target.value)} placeholder="Name eingeben..." className={styles.playerInput} />
               </div>
             </div>
-            <div style={{ textAlign: "center", marginTop: 28 }}>
+            <div style={{ textAlign: 'center', marginTop: 28 }}>
               <Button variant="gold" onClick={goToCategory} disabled={!s1.trim() || !s2.trim() || s1.trim().toLowerCase() === s2.trim().toLowerCase()}>
-                Weiter zur Kategorie →
+                Weiter zur Kategorie \u2192
               </Button>
             </div>
           </Card>
         </div>
       )}
 
-      {phase === "category" && (
+      {phase === 'category' && (
         <div className="animate-in">
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <h2 className="serif" style={{ fontSize: 28, fontWeight: 900, color: "var(--gold)" }}>Kategorie wählen</h2>
-            <p style={{ color: "var(--text-dim)", marginTop: 8 }}>{s1} vs {s2} — In welchem Feld messt ihr euch?</p>
+          <div className={styles.katHeader}>
+            <h2 className={styles.title} style={{ fontSize: 28 }}>Kategorie wählen</h2>
+            <p className={styles.subtitle}>{s1} vs {s2} \u2014 In welchem Feld messt ihr euch?</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 20 }}>
+          <div className={styles.katGrid}>
             {(SITUATION_KATEGORIEN || []).map(kat => (
-              <Card key={kat.id} onClick={() => startDuell(kat.id)}
-                style={{ cursor: "pointer", textAlign: "center", padding: "16px 12px", transition: "border-color 0.2s" }}
-              >
-                <div style={{ fontSize: 28, marginBottom: 6 }}>{kat.emoji}</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{kat.label}</div>
+              <Card key={kat.id} onClick={() => startDuell(kat.id)} className={styles.katCard}>
+                <div className={styles.katEmoji}><OrnamentIcon name="feder" size="lg" /></div>
+                <div className={styles.katLabel}>{kat.label}</div>
               </Card>
             ))}
           </div>
-          <div style={{ textAlign: "center" }}>
-            <Button variant="gold" onClick={() => startDuell(null)}>
-              🎲 Zufällige Kategorie
-            </Button>
+          <div style={{ textAlign: 'center' }}>
+            <Button variant="gold" onClick={() => startDuell(null)}>Zufällige Kategorie</Button>
           </div>
         </div>
       )}
 
-      {phase === "s1_write" && situation && (
+      {phase === 's1_write' && situation && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div className={styles.roundBar}>
             <Badge>Runde {runde}/3</Badge>
-            <Badge color="var(--text-dim)">{diffLabel}</Badge>
+            <Badge>{diffLabel}</Badge>
           </div>
           {scores.s1 + scores.s2 > 0 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: 32, marginBottom: 20, padding: 12, background: "var(--bg-card)", borderRadius: 10 }}>
-              <span style={{ color: "var(--gold)", fontWeight: 700 }}>{s1}: {scores.s1.toFixed(1)}</span>
-              <span style={{ color: "var(--text-muted)" }}>vs</span>
-              <span style={{ color: "var(--accent)", fontWeight: 700 }}>{s2}: {scores.s2.toFixed(1)}</span>
+            <div className={styles.scoreBar}>
+              <span className={styles.scoreS1}>{s1}: {scores.s1.toFixed(1)}</span>
+              <span className={styles.scoreVs}>vs</span>
+              <span className={styles.scoreS2}>{s2}: {scores.s2.toFixed(1)}</span>
             </div>
           )}
-          <AntwortEingabe situation={situation} spielerName={s1} onSubmit={handleS1Submit} schwierigkeit={runde <= 1 ? "leicht" : runde <= 2 ? "mittel" : "schwer"} />
+          <AntwortEingabe situation={situation} spielerName={s1} onSubmit={handleS1Submit} schwierigkeit={runde <= 1 ? 'leicht' : runde <= 2 ? 'mittel' : 'schwer'} />
         </div>
       )}
 
-      {phase === "s1_pass" && (
-        <div className="animate-in" style={{ textAlign: "center", padding: "80px 20px" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🔄</div>
-          <h2 className="serif" style={{ fontSize: 28, color: "var(--text)", marginBottom: 12 }}>Gerät weitergeben</h2>
-          <p style={{ color: "var(--text-dim)", marginBottom: 32 }}>Bitte an <strong style={{ color: "var(--accent)" }}>{s2}</strong> übergeben.</p>
-          <Button variant="accent" onClick={() => { setPhase("s2_write"); window.scrollTo(0, 0); }}>
-            {s2} ist bereit →
+      {phase === 's1_pass' && (
+        <div className={`${styles.passScreen} animate-in`}>
+          <div className={styles.passIcon}>\u21C4</div>
+          <h2 className={styles.passTitle}>Gerät weitergeben</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 32 }}>
+            Bitte an <strong className={styles.passPlayer}>{s2}</strong> übergeben.
+          </p>
+          <Button variant="accent" onClick={() => { setPhase('s2_write'); window.scrollTo(0, 0); }}>
+            {s2} ist bereit \u2192
           </Button>
         </div>
       )}
 
-      {phase === "s2_write" && situation && (
+      {phase === 's2_write' && situation && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+          <div className={styles.roundBar}>
             <Badge>Runde {runde}/3</Badge>
-            <Badge color="var(--text-dim)">{diffLabel}</Badge>
+            <Badge>{diffLabel}</Badge>
           </div>
-          <AntwortEingabe situation={situation} spielerName={s2} onSubmit={handleS2Submit} schwierigkeit={runde <= 1 ? "leicht" : runde <= 2 ? "mittel" : "schwer"} />
+          <AntwortEingabe situation={situation} spielerName={s2} onSubmit={handleS2Submit} schwierigkeit={runde <= 1 ? 'leicht' : runde <= 2 ? 'mittel' : 'schwer'} />
         </div>
       )}
 
-      {phase === "result" && (
+      {phase === 'result' && (
         loading ? (
-          <div style={{ textAlign: "center", padding: "80px 20px" }}>
-            <div style={{ fontSize: 48, animation: "pulse 1.5s infinite", marginBottom: 16 }}>🧠</div>
-            <h2 className="serif" style={{ fontSize: 24, color: "var(--gold)" }}>
-              {elapsed >= 15 ? "KI braucht etwas länger..." : "KI bewertet eure Eloquenz..."}
+          <div className={styles.loadingWrap}>
+            <div className={styles.loadingIcon}>
+              <OrnamentIcon name="tintenfass" size="xl" />
+            </div>
+            <h2 className={styles.loadingTitle}>
+              {elapsed >= 15 ? 'KI braucht etwas länger...' : 'KI bewertet eure Eloquenz...'}
             </h2>
-            <p style={{ color: "var(--text-dim)", marginTop: 8 }}>
-              {elapsed > 0 && <span className="mono" style={{ color: "var(--gold-dim)" }}>{elapsed}s </span>}
-              {elapsed >= 15 ? "Qualität braucht Zeit — bitte noch kurz Geduld" : "Die Antworten werden analysiert"}
-              <span style={{ display: "inline-block", width: 24, textAlign: "left" }}>
-                {".".repeat((elapsed % 3) + 1)}
-              </span>
+            <p className={styles.loadingText}>
+              {elapsed > 0 && <span className={styles.elapsed}>{elapsed}s </span>}
+              {elapsed >= 15 ? 'Qualität braucht Zeit \u2014 bitte noch kurz Geduld' : 'Die Antworten werden analysiert'}
+              <span className={styles.dots}>{'.'.repeat((elapsed % 3) + 1)}</span>
             </p>
           </div>
         ) : (
           <div>
-            <h2 className="serif" style={{ fontSize: 28, color: "var(--gold)", textAlign: "center", marginBottom: 24 }}>
-              Runde {runde} — Ergebnis
-            </h2>
-            <div style={{ display: "grid", gap: 20 }}>
+            <h2 className={styles.resultTitle}>Runde {runde} \u2014 Ergebnis</h2>
+            <div className={styles.resultGrid}>
               <BewertungDisplay ergebnis={ergebnis1} spielerName={s1} />
-              <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)", letterSpacing: 3 }}>─── VS ───</div>
+              <div className={styles.vsSep}>\u2014\u2014\u2014 VS \u2014\u2014\u2014</div>
               <BewertungDisplay ergebnis={ergebnis2} spielerName={s2} />
             </div>
-            <div style={{ textAlign: "center", marginTop: 28 }}>
+            <div style={{ textAlign: 'center', marginTop: 28 }}>
               <Button variant="gold" onClick={nextRound}>
-                {runde >= 3 ? "🏆 Endergebnis" : `Runde ${runde + 1} →`}
+                {runde >= 3 ? (
+                  <><OrnamentIcon name="lorbeer" size="sm" /> Endergebnis</>
+                ) : `Runde ${runde + 1} \u2192`}
               </Button>
             </div>
           </div>
         )
       )}
 
-      {phase === "final" && (
-        <div className="animate-in" style={{ textAlign: "center" }}>
-          <h1 className="serif" style={{ fontSize: 40, fontWeight: 900, color: "var(--gold)", marginBottom: 32 }}>
-            🏆 Endergebnis 🏆
+      {phase === 'final' && (
+        <div className="animate-in" style={{ textAlign: 'center' }}>
+          <h1 className={styles.finalTitle}>
+            <OrnamentIcon name="lorbeer" size="lg" style={{ verticalAlign: 'text-bottom', marginRight: 8 }} />
+            Endergebnis
           </h1>
-          <Card glow style={{ maxWidth: 500, margin: "0 auto 24px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 16, alignItems: "center", padding: "20px 0" }}>
+          <Card glow ornate style={{ maxWidth: 500, margin: '0 auto 24px' }}>
+            <div className={styles.finalGrid}>
               <div>
-                <div className="serif" style={{ fontSize: 20, fontWeight: 700, color: scores.s1 > scores.s2 ? "var(--gold-bright)" : "var(--text-dim)" }}>{s1}</div>
-                <div className="mono" style={{ fontSize: 36, fontWeight: 900, color: "var(--gold)" }}>{scores.s1.toFixed(1)}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{scores.r1} Runden</div>
+                <div className={scores.s1 > scores.s2 ? styles.finalNameWin : styles.finalNameLose}>{s1}</div>
+                <div className={styles.finalScoreS1}>{scores.s1.toFixed(1)}</div>
+                <div className={styles.finalRounds}>{scores.r1} Runden</div>
               </div>
-              <div style={{ fontSize: 28, color: "var(--text-muted)" }}>⚡</div>
+              <div className={styles.finalVs}>\u2694</div>
               <div>
-                <div className="serif" style={{ fontSize: 20, fontWeight: 700, color: scores.s2 > scores.s1 ? "var(--gold-bright)" : "var(--text-dim)" }}>{s2}</div>
-                <div className="mono" style={{ fontSize: 36, fontWeight: 900, color: "var(--accent)" }}>{scores.s2.toFixed(1)}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{scores.r2} Runden</div>
+                <div className={scores.s2 > scores.s1 ? styles.finalNameWin : styles.finalNameLose}>{s2}</div>
+                <div className={styles.finalScoreS2}>{scores.s2.toFixed(1)}</div>
+                <div className={styles.finalRounds}>{scores.r2} Runden</div>
               </div>
             </div>
-            <div style={{ padding: 16, background: "var(--bg-deep)", borderRadius: 10, marginTop: 16 }}>
+            <div className={styles.winnerBox}>
               {scores.s1 > scores.s2 ? (
-                <div className="serif" style={{ fontSize: 22, fontWeight: 700, color: "var(--gold-bright)" }}>🏆 {s1} gewinnt!</div>
+                <div className={styles.winnerS1}>{s1} gewinnt!</div>
               ) : scores.s2 > scores.s1 ? (
-                <div className="serif" style={{ fontSize: 22, fontWeight: 700, color: "var(--accent)" }}>🏆 {s2} gewinnt!</div>
+                <div className={styles.winnerS2}>{s2} gewinnt!</div>
               ) : (
-                <div className="serif" style={{ fontSize: 22, fontWeight: 700, color: "var(--text)" }}>🤝 Unentschieden!</div>
+                <div className={styles.winnerDraw}>Unentschieden!</div>
               )}
             </div>
           </Card>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 16 }}>
-            <Button variant="gold" onClick={() => { setPhase("setup"); }}>Neues Duell</Button>
-            <Button variant="ghost" onClick={() => onNavigate("home")}>Zum Menü</Button>
+          <div className={styles.finalActions}>
+            <Button variant="gold" onClick={() => setPhase('setup')}>Neues Duell</Button>
+            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Menü</Button>
           </div>
         </div>
       )}
