@@ -2,6 +2,8 @@
 
 **Die Kunst der Sprache als Wettkampf.**
 
+ELOQUENT entstand aus einer einfachen Frage: Wie trainiert man Eloquenz, ohne einen Rhetorik-Kurs zu besuchen? Als jemand, der Deutsch, Persisch, Englisch und Französisch spricht, fasziniert mich Sprache — und ich wollte ein Spiel bauen, das Wortgewandtheit zum Wettkampf macht.
+
 ELOQUENT ist ein deutschsprachiges Wortduell-Spiel, bei dem Spieler ihre Eloquenz und rhetorische Qualität unter Beweis stellen. Tretet in spannenden Situationen gegeneinander an, lasst eure Texte von KI bewerten und erweitert euren Wortschatz — ob im Duell, im Training oder im Story-Modus.
 
 ## Spielmodi
@@ -26,7 +28,7 @@ Durchsuche gehobene deutsche Wörter mit Definitionen, Beispielsätzen und Synon
 - **7 Bewertungskategorien**: Situationsbezug, Wortvielfalt, Rhetorik, Wortschatz, Argumentation, Kreativität, Textstruktur (100 Punkte gesamt)
 - **45+ Spielsituationen**: 15 leichte, 15 mittlere, 15 schwere — von Alltagsthemen bis Parlamentsreden
 - **Anti-Gaming**: Erkennt Keyword-Stuffing, Spam und Wortsalat
-- **Heuristik-Fallback**: Funktioniert auch komplett offline ohne KI(aber im Moment mit Vorsicht zu genießen, wird aber immer besser)
+- **Heuristik-Fallback**: Funktioniert auch komplett offline ohne KI (aber im Moment mit Vorsicht zu genießen, wird aber immer besser)
 - **Rangliste**: Lokale Bestenliste für Duell-Ergebnisse
 
 ## Schnellstart
@@ -34,7 +36,7 @@ Durchsuche gehobene deutsche Wörter mit Definitionen, Beispielsätzen und Synon
 ### 1. Repository klonen
 
 ```bash
-git clone https://github.com/aki-sadan/eloquent.git
+git clone https://github.com/sadanakb/eloquent.git
 cd eloquent
 ```
 
@@ -142,6 +144,12 @@ eloquent/
 - **Fonts**: Playfair Display, DM Sans, JetBrains Mono
 - **KI**: Ollama (lokal) / Groq Cloud (Llama 3.3 70B)
 
+## Autor
+
+**Sadan Akbari** — Wirtschaftsinformatik-Student an der Frankfurt University of Applied Sciences
+
+[Portfolio](https://sadanakb.github.io) · [LinkedIn](https://www.linkedin.com/in/sadan-akbari) · [GitHub](https://github.com/sadanakb)
+
 ## Lizenz
 
-MIT
+MIT — siehe [LICENSE](LICENSE).
