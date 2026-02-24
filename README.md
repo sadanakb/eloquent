@@ -26,7 +26,7 @@ Durchsuche gehobene deutsche Wörter mit Definitionen, Beispielsätzen und Synon
 - **Wort-Inspiration**: Aufklappbares Panel mit zufälligen gehobenen Wörtern + Definitionen während des Schreibens
 - **KI-Bewertung mit Ollama**: Lokale, kostenlose Bewertung durch ein LLM mit detailliertem Feedback
 - **7 Bewertungskategorien**: Situationsbezug, Wortvielfalt, Rhetorik, Wortschatz, Argumentation, Kreativität, Textstruktur (100 Punkte gesamt)
-- **45+ Spielsituationen**: 15 leichte, 15 mittlere, 15 schwere — von Alltagsthemen bis Parlamentsreden
+- **108 Spielsituationen in 12 Kategorien**: von Alltagsthemen bis Parlamentsreden, drei Schwierigkeitsstufen
 - **Anti-Gaming**: Erkennt Keyword-Stuffing, Spam und Wortsalat
 - **Heuristik-Fallback**: Funktioniert auch komplett offline ohne KI (aber im Moment mit Vorsicht zu genießen, wird aber immer besser)
 - **Rangliste**: Lokale Bestenliste für Duell-Ergebnisse
@@ -116,7 +116,7 @@ eloquent/
 │   │   ├── rhetorik-detector.js   # Rhetorische Mittel
 │   │   └── anti-gaming.js         # Anti-Manipulation
 │   ├── data/
-│   │   ├── situationen.js         # 45+ Spielsituationen
+│   │   ├── situationen.js         # 108 Spielsituationen (12 Kategorien)
 │   │   ├── woerterbuch.js         # Gehobene Wörter + Definitionen
 │   │   └── raenge.js              # Ränge & Noten
 │   ├── components/                # React-Komponenten
