@@ -228,8 +228,8 @@ export function semantischerSituationsmatch(situation, text) {
   }
 
   // 2. Direct title/description matching (30% weight)
-  const titelT = tokenize(situation.titel).filter(w => w.length > 3 && !FUNKTIONS_WOERTER.has(w));
-  const beschT = tokenize(situation.beschreibung).filter(w => w.length > 4 && !FUNKTIONS_WOERTER.has(w));
+  const titelT = tokenize(situation.titel || '').filter(w => w.length > 3 && !FUNKTIONS_WOERTER.has(w));
+  const beschT = tokenize(situation.beschreibung || '').filter(w => w.length > 4 && !FUNKTIONS_WOERTER.has(w));
   let dh = 0;
   for (const kw of [...titelT, ...beschT]) for (const iw of inhalt) { if (iw.includes(kw) || kw.includes(iw)) { dh++; break; } }
   const ds = Math.min(dh / Math.max(titelT.length + beschT.length * 0.3, 1), 1);
@@ -307,7 +307,7 @@ export function findeGehobeneWoerter(text) {
 
 export function analysiereWortschatz(text, gehobene) {
   const tokens = tokenize(text);
-  if (tokens.length < 3) return { score: 0, details: {} };
+  if (tokens.length < 3) return { score: 0, details: { ttr: 0, langWoerter: 0, komposita: 0, fremdwoerter: 0, avgLen: 0, rareWordRatio: 0, entropie: 0 } };
 
   const unique = new Set(tokens.map(t => t.toLowerCase()));
   const ttr = unique.size / tokens.length;

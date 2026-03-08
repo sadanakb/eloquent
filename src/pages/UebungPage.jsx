@@ -59,7 +59,7 @@ export function UebungPage() {
   };
 
   const submit = async (text) => {
-    if (text === null) {
+    if (text === null || !text.trim()) {
       setErgebnis({
         kategorien: {
           situationsbezug: { p: 0, f: 'Keine Antwort abgegeben.' },

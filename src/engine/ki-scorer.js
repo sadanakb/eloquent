@@ -141,9 +141,14 @@ function parseJson(text, label) {
   try {
     return JSON.parse(text);
   } catch {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonMatch = text.match(/\{[\s\S]*?\}(?=[^}]*$)/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]);
+    }
+    // Fallback: try to find any JSON block
+    const blockMatch = text.match(/\{[\s\S]*\}/);
+    if (blockMatch) {
+      return JSON.parse(blockMatch[0]);
     }
     throw new Error(`${label}: JSON-Parsing fehlgeschlagen`);
   }
@@ -235,9 +240,10 @@ function parseAiResult(rawText) {
   };
 
   for (const [key, max] of Object.entries(maxMap)) {
-    if (result.kategorien[key]) {
-      result.kategorien[key].p = Math.max(0, Math.min(result.kategorien[key].p || 0, max));
-      result.kategorien[key].f = result.kategorien[key].f || '';
+    const val = result.kategorien[key];
+    if (val && typeof val === 'object' && val !== null) {
+      result.kategorien[key].p = Math.max(0, Math.min(Number(val.p) || 0, max));
+      result.kategorien[key].f = String(val.f || '');
     } else {
       result.kategorien[key] = { p: 0, f: '' };
     }
@@ -310,7 +316,7 @@ export function setGroqKey(key) {
   // Alten localStorage-Eintrag entfernen (Migration)
   localStorage.removeItem('eloquent_groq_key');
   if (key) {
-    sessionStorage.setItem('eloquent_groq_key', btoa(key.trim()));
+    try { sessionStorage.setItem('eloquent_groq_key', btoa(key.trim())); } catch { /* non-ASCII key */ }
   } else {
     sessionStorage.removeItem('eloquent_groq_key');
   }

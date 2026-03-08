@@ -430,8 +430,23 @@ function berechneHeuristik(text, situation, kiError) {
 }
 
 export async function kiBewertung(situation, antwort) {
-  const text = antwort.trim();
+  const text = (antwort || '').trim();
   const startTime = Date.now();
+
+  // Leeren Text sofort abfangen
+  if (!text) {
+    return {
+      kategorien: {
+        situationsbezug: { p: 0, f: 'Kein Text eingegeben.' },
+        wortvielfalt: { p: 0, f: '' }, rhetorik: { p: 0, f: '' },
+        wortschatz: { p: 0, f: '' }, argumentation: { p: 0, f: '' },
+        kreativitaet: { p: 0, f: '' }, textstruktur: { p: 0, f: '' },
+      },
+      mittel: [], gehobene: [], tipps: ['Schreibe mindestens einen vollständigen Satz.'],
+      empfehlungen: [], feedback: 'Kein Text zur Bewertung eingegeben.',
+      gaming: false, _methode: 'leer', _duration: '0.0',
+    };
+  }
 
   // KI-Bewertung OHNE Timeout — lieber warten als Heuristik
   // Fallback-Kette: Groq → Heuristik (allerletzter Ausweg)

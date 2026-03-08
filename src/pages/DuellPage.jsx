@@ -95,12 +95,15 @@ export function DuellPage({ onNavigate }) {
   };
 
   const handleS1Submit = (text) => {
-    if (text === null) {
+    if (text === null || !text.trim()) {
       setErgebnis1({ text: null, skipped: true });
       s1PromiseRef.current = null;
     } else {
       setErgebnis1({ text });
-      s1PromiseRef.current = kiBewertung(situation, text);
+      const promise = kiBewertung(situation, text);
+      // Prevent unhandled rejection if S1 scoring fails before S2 submits
+      promise.catch(() => {});
+      s1PromiseRef.current = promise;
     }
     setPhase('s1_pass');
     window.scrollTo(0, 0);
@@ -109,14 +112,21 @@ export function DuellPage({ onNavigate }) {
   const handleS2Submit = async (text) => {
     setLoading(true);
     setPhase('result');
-    const s1Skipped = ergebnis1.skipped;
-    const s2Skipped = text === null;
+    const s1Skipped = ergebnis1?.skipped;
+    const s2Skipped = text === null || !text?.trim();
     const s1Promise = s1Skipped ? Promise.resolve(SKIP_ERGEBNIS)
       : (s1PromiseRef.current || kiBewertung(situation, ergebnis1.text));
-    const [r1, r2] = await Promise.all([
-      s1Promise,
-      s2Skipped ? SKIP_ERGEBNIS : kiBewertung(situation, text),
-    ]);
+    let r1, r2;
+    try {
+      [r1, r2] = await Promise.all([
+        s1Promise.catch(e => { console.error('[Duell] S1 Scoring Fehler:', e.message); return SKIP_ERGEBNIS; }),
+        s2Skipped ? Promise.resolve(SKIP_ERGEBNIS) : kiBewertung(situation, text).catch(e => { console.error('[Duell] S2 Scoring Fehler:', e.message); return SKIP_ERGEBNIS; }),
+      ]);
+    } catch (e) {
+      console.error('[Duell] Bewertung fehlgeschlagen:', e.message);
+      r1 = SKIP_ERGEBNIS;
+      r2 = SKIP_ERGEBNIS;
+    }
     const p1 = r1 ? Object.values(r1.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0) : 0;
     const p2 = r2 ? Object.values(r2.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0) : 0;
     setErgebnis1(r1);

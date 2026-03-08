@@ -70,7 +70,7 @@ export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
             {ergebnis.mittel.map((m, i) => (
               <div key={i} className={styles.mittelCard}>
                 <span className={styles.mittelName}>{m.name}</span>
-                <div className={styles.mittelZitat}>{'\u201E'}{m.beispiel}{'\u201C'}</div>
+                <div className={styles.mittelZitat}>{'\u201E'}{m.beispiel || m.zitat || ''}{'\u201C'}</div>
               </div>
             ))}
           </div>
@@ -83,7 +83,7 @@ export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
               Gehobene Wörter verwendet
             </div>
             <div className={styles.gehobeneWrap}>
-              {ergebnis.gehobene.map((w, i) => <Badge key={i}>{w}</Badge>)}
+              {ergebnis.gehobene.map((w, i) => <Badge key={i}>{typeof w === 'string' ? w : w?.wort || ''}</Badge>)}
             </div>
           </div>
         )}
