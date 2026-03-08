@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { hasAiProvider, checkOllama } from '../engine/ki-scorer.js';
+import { hasAiProvider } from '../engine/ki-scorer.js';
 import { EinstellungenModal } from './EinstellungenModal.jsx';
 import { LogoCompact } from './Logo.jsx';
 import styles from './NavBar.module.css';
@@ -9,11 +9,7 @@ export function NavBar({ current, onNavigate }) {
   const [aiActive, setAiActive] = useState(false);
 
   useEffect(() => {
-    if (hasAiProvider()) {
-      setAiActive(true);
-    } else {
-      checkOllama().then(() => setAiActive(hasAiProvider()));
-    }
+    setAiActive(hasAiProvider());
   }, []);
 
   const refreshAiStatus = () => {

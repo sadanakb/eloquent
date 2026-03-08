@@ -434,10 +434,10 @@ export async function kiBewertung(situation, antwort) {
   const startTime = Date.now();
 
   // KI-Bewertung OHNE Timeout — lieber warten als Heuristik
-  // Fallback-Kette: Ollama → Groq → Heuristik (allerletzter Ausweg)
+  // Fallback-Kette: Groq → Heuristik (allerletzter Ausweg)
   if (hasAiProvider()) {
     try {
-      console.log('[ELOQUENT] Starte KI-Bewertung (Ollama → Groq)...');
+      console.log('[ELOQUENT] Starte KI-Bewertung (Groq)...');
       const result = await aiBewertung(situation, text);
       result._methode = 'ki';
       result._duration = ((Date.now() - startTime) / 1000).toFixed(1);

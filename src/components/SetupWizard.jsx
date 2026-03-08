@@ -1,39 +1,27 @@
 import { useState, useEffect } from 'react';
-import { checkOllama, getGroqKey, setGroqKey } from '../engine/ki-scorer.js';
+import { getGroqKey, setGroqKey } from '../engine/ki-scorer.js';
 import { Card } from './Card.jsx';
 import { Button } from './Button.jsx';
 import { Logo } from './Logo.jsx';
 import { OrnamentDivider } from './Ornament.jsx';
 import styles from './SetupWizard.module.css';
 
-const STEPS = ['willkommen', 'ki-wahl', 'ollama', 'groq', 'fertig'];
+const STEPS = ['willkommen', 'groq', 'fertig'];
 
 export function SetupWizard({ onComplete }) {
   const [step, setStep] = useState('willkommen');
-  const [ollamaStatus, setOllamaStatus] = useState(null);
   const [groqKey, setGroqKeyState] = useState('');
   const [testingGroq, setTestingGroq] = useState(false);
   const [groqResult, setGroqResult] = useState(null);
   const [kiReady, setKiReady] = useState(false);
 
   useEffect(() => {
-    checkOllama().then(result => {
-      setOllamaStatus(result);
-      if (result.available) setKiReady(true);
-    });
     const existing = getGroqKey();
     if (existing) {
       setGroqKeyState(existing);
       setKiReady(true);
     }
   }, []);
-
-  const handleRefreshOllama = async () => {
-    setOllamaStatus(null);
-    const result = await checkOllama();
-    setOllamaStatus(result);
-    if (result.available) setKiReady(true);
-  };
 
   const handleSaveGroq = () => {
     setGroqKey(groqKey);
@@ -101,85 +89,8 @@ export function SetupWizard({ onComplete }) {
                 Das dauert nur 1 Minute und macht das Spiel deutlich besser.
               </p>
               <div className={styles.actions}>
-                <Button variant="gold" onClick={() => setStep('ki-wahl')}>KI einrichten</Button>
+                <Button variant="gold" onClick={() => setStep('groq')}>KI einrichten</Button>
                 <Button variant="ghost" onClick={handleSkip}>Ohne KI starten</Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* KI-Wahl */}
-        {step === 'ki-wahl' && (
-          <Card glow>
-            <div style={{ padding: '12px 0' }}>
-              <h2 className={styles.sectionTitle}>KI-Provider wählen</h2>
-              <p className={styles.sectionDesc}>Wähle eine Option für die KI-gestützte Textbewertung.</p>
-
-              <div className={styles.optionCard} onClick={() => setStep('ollama')}>
-                <div className={styles.optionHeader}>
-                  <span className={styles.optionTitle}>Ollama (Lokal)</span>
-                  <span className={styles.recommendBadge}>EMPFOHLEN</span>
-                </div>
-                <p className={styles.optionDesc}>Kostenlos, privat, kein API-Key. Läuft auf deinem Mac.</p>
-                {ollamaStatus?.available && (
-                  <div className={styles.providerInfo}>Bereits aktiv: {ollamaStatus.model}</div>
-                )}
-              </div>
-
-              <div className={styles.optionCard} onClick={() => setStep('groq')}>
-                <span className={styles.optionTitle} style={{ display: 'block', marginBottom: 6 }}>Groq Cloud (Kostenlos)</span>
-                <p className={styles.optionDesc}>Llama 3.3 70B, 14.400 Bewertungen/Tag. Braucht kostenlosen API-Key.</p>
-              </div>
-
-              <div style={{ textAlign: 'center' }}>
-                <Button variant="ghost" onClick={handleSkip}>Ohne KI fortfahren</Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Ollama Setup */}
-        {step === 'ollama' && (
-          <Card glow>
-            <div style={{ padding: '12px 0' }}>
-              <h2 className={styles.sectionTitle}>Ollama einrichten</h2>
-
-              <div className={ollamaStatus?.available ? styles.statusOk : styles.statusPending}>
-                {ollamaStatus === null
-                  ? 'Suche Ollama...'
-                  : ollamaStatus.available
-                    ? <>Ollama aktiv! Modell: <strong>{ollamaStatus.model}</strong></>
-                    : 'Ollama nicht gefunden.'}
-              </div>
-
-              {ollamaStatus?.available ? (
-                <div style={{ textAlign: 'center' }}>
-                  <p style={{ fontSize: 14, color: 'var(--success)', marginBottom: 20 }}>Alles bereit! Ollama läuft auf deinem Rechner.</p>
-                  <Button variant="gold" onClick={() => setStep('fertig')}>Weiter</Button>
-                </div>
-              ) : (
-                <>
-                  <div className={styles.instructionBox}>
-                    <strong className={styles.instructionTitle}>Installation:</strong>
-                    <ol style={{ margin: '8px 0 0 20px', padding: 0 }}>
-                      <li style={{ marginBottom: 4 }}>
-                        Gehe zu <a href="https://ollama.com" target="_blank" rel="noopener" style={{ color: 'var(--accent-gold)', textDecoration: 'underline' }}>ollama.com</a> und installiere die App
-                      </li>
-                      <li style={{ marginBottom: 4 }}>
-                        Öffne Terminal und führe aus:
-                        <code className={styles.codeBlock}>ollama pull llama3.2</code>
-                      </li>
-                      <li>Klicke unten auf &quot;Erneut prüfen&quot;</li>
-                    </ol>
-                  </div>
-                  <div className={styles.actions}>
-                    <Button variant="gold" onClick={handleRefreshOllama}>Erneut prüfen</Button>
-                    <Button variant="ghost" onClick={() => setStep('groq')}>Stattdessen Groq nutzen</Button>
-                  </div>
-                </>
-              )}
-              <div style={{ textAlign: 'center' }}>
-                <button className={styles.backLink} onClick={() => setStep('ki-wahl')}>Zurück</button>
               </div>
             </div>
           </Card>
@@ -228,7 +139,7 @@ export function SetupWizard({ onComplete }) {
               </div>
 
               <div style={{ textAlign: 'center' }}>
-                <button className={styles.backLink} onClick={() => setStep('ki-wahl')}>Zurück</button>
+                <button className={styles.backLink} onClick={() => setStep('willkommen')}>Zurück</button>
               </div>
             </div>
           </Card>
@@ -249,7 +160,7 @@ export function SetupWizard({ onComplete }) {
               </p>
               {kiReady && (
                 <div className={styles.providerInfo}>
-                  {ollamaStatus?.available ? `Ollama (${ollamaStatus.model})` : 'Groq (Llama 3.3 70B)'}
+                  Groq (Llama 3.3 70B)
                 </div>
               )}
               <div style={{ marginTop: 8 }}>

@@ -24,7 +24,7 @@ Durchsuche gehobene deutsche Wörter mit Definitionen, Beispielsätzen und Synon
 
 - **Timer pro Spieler**: Keine unendliche Zeit — Leicht: 3 Min, Mittel: 2:30, Schwer: 2 Min
 - **Wort-Inspiration**: Aufklappbares Panel mit zufälligen gehobenen Wörtern + Definitionen während des Schreibens
-- **KI-Bewertung mit Ollama**: Lokale, kostenlose Bewertung durch ein LLM mit detailliertem Feedback
+- **KI-Bewertung mit Groq Cloud**: Kostenlose Bewertung durch ein LLM mit detailliertem Feedback
 - **7 Bewertungskategorien**: Situationsbezug, Wortvielfalt, Rhetorik, Wortschatz, Argumentation, Kreativität, Textstruktur (100 Punkte gesamt)
 - **108 Spielsituationen in 12 Kategorien**: von Alltagsthemen bis Parlamentsreden, drei Schwierigkeitsstufen
 - **Anti-Gaming**: Erkennt Keyword-Stuffing, Spam und Wortsalat
@@ -46,24 +46,15 @@ cd eloquent
 npm install
 ```
 
-### 3. Ollama einrichten (empfohlen)
+### 3. Groq einrichten
 
-Ollama ist der empfohlene Weg, ELOQUENT zu nutzen. Es läuft lokal auf deinem Rechner, ist kostenlos und liefert die besten Bewertungen.
+ELOQUENT nutzt Groq Cloud für die KI-Bewertung. Groq ist kostenlos und liefert exzellente Ergebnisse mit Llama 3.3 70B.
 
-```bash
-# 1. Ollama installieren (https://ollama.com)
-# 2. Ein Sprachmodell herunterladen:
-ollama pull llama3.2
-
-# 3. Ollama läuft automatisch im Hintergrund
-```
-
-> **Warum Ollama?** Die KI-Bewertung mit Ollama versteht den semantischen Kontext deiner Antworten, erkennt rhetorische Mittel und gibt konkretes, hilfreiches Feedback. Die Heuristik-Engine (ohne KI) funktioniert auch, aber Ollama macht das Spiel deutlich besser.
-
-**Alternativ: Groq Cloud** (kostenlos, kein lokales Modell nötig)
-1. Account erstellen auf [console.groq.com](https://console.groq.com) (keine Kreditkarte)
-2. API-Key generieren
+1. Account erstellen auf [console.groq.com](https://console.groq.com) (keine Kreditkarte nötig)
+2. API-Key generieren unter "API Keys" → "Create API Key"
 3. Im Setup-Wizard der App eingeben
+
+> **Warum Groq?** Groq nutzt Llama 3.3 70B — ein exzellentes Sprachmodell für Deutsch. Die KI versteht den semantischen Kontext deiner Antworten, erkennt rhetorische Mittel und gibt konkretes Feedback. Kostenlos mit 14.400 Bewertungen pro Tag.
 
 ### 4. Starten
 
@@ -97,12 +88,12 @@ Die App startet auf `http://localhost:5173`. Beim ersten Start führt ein Setup-
 
 ### KI vs. Heuristik
 
-| | KI (Ollama/Groq) | Heuristik (Offline) |
+| | KI (Groq) | Heuristik (Offline) |
 |---|---|---|
 | Sprachverständnis | Semantisch | Regelbasiert |
 | Rhetorik-Erkennung | Kontextbasiert | Pattern-Matching |
 | Feedback | Individuell & konkret | Template-basiert |
-| Verfügbarkeit | Ollama/Internet nötig | Immer verfügbar |
+| Verfügbarkeit | Internet nötig | Immer verfügbar |
 
 ## Projektstruktur
 
@@ -111,7 +102,7 @@ eloquent/
 ├── src/
 │   ├── engine/                    # Bewertungs-Engine
 │   │   ├── scoring-engine.js      # Hauptlogik: KI + Heuristik
-│   │   ├── ki-scorer.js           # Ollama & Groq Integration
+│   │   ├── ki-scorer.js           # Groq Cloud Integration
 │   │   ├── heuristic-scorer.js    # Offline-Bewertung
 │   │   ├── rhetorik-detector.js   # Rhetorische Mittel
 │   │   └── anti-gaming.js         # Anti-Manipulation
@@ -142,7 +133,7 @@ eloquent/
 - **Frontend**: React 18 + Vite 6
 - **Styling**: CSS Custom Properties (Dark Theme)
 - **Fonts**: Playfair Display, DM Sans, JetBrains Mono
-- **KI**: Ollama (lokal) / Groq Cloud (Llama 3.3 70B)
+- **KI**: Groq Cloud (Llama 3.3 70B)
 
 ## Autor
 

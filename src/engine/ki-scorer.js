@@ -2,10 +2,9 @@
 // ELOQUENT — KI-Bewertung (2-Agenten-System)
 // Schritt 1: Research-Agent (Textanalyse)
 // Schritt 2: Bewertungs-Agent (Scoring auf Basis der Analyse)
-// Provider: Ollama (lokal) + Groq (Cloud)
+// Provider: Groq (Cloud)
 // ──────────────────────────────────────────────────────
 
-const OLLAMA_URL = 'http://localhost:11434';
 const GROQ_PROXY = '/api/groq'; // Vite proxy → api.groq.com
 
 // ──────────────────────────────────────────────────────
@@ -154,26 +153,6 @@ function parseJson(text, label) {
 // Low-Level API Calls
 // ──────────────────────────────────────────────────────
 
-async function callOllama(messages) {
-  const res = await fetch(`${OLLAMA_URL}/api/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: ollamaModel,
-      messages,
-      format: 'json',
-      stream: false,
-      options: { temperature: 0.1, num_predict: 2048 },
-    }),
-  });
-
-  if (!res.ok) throw new Error(`Ollama Fehler: ${res.status}`);
-  const data = await res.json();
-  const text = data.message?.content;
-  if (!text) throw new Error('Ollama: Keine Antwort');
-  return text;
-}
-
 async function callGroq(apiKey, messages) {
   const res = await fetch(`${GROQ_PROXY}/chat/completions`, {
     method: 'POST',
@@ -198,78 +177,6 @@ async function callGroq(apiKey, messages) {
   const text = data.choices?.[0]?.message?.content;
   if (!text) throw new Error('Groq: Keine Antwort');
   return text;
-}
-
-// ──────────────────────────────────────────────────────
-// Ollama (local) — 2-Schritt
-// ──────────────────────────────────────────────────────
-
-let ollamaAvailable = null; // cached check
-let ollamaModel = null;
-let lastOllamaCheck = 0;
-const OLLAMA_RECHECK_INTERVAL = 60000; // 60 seconds
-
-export async function checkOllama() {
-  try {
-    const res = await fetch(`${OLLAMA_URL}/api/tags`, { signal: AbortSignal.timeout(2000) });
-    if (!res.ok) return { available: false };
-    const data = await res.json();
-    const models = (data.models || []).map(m => m.name);
-
-    // Prefer good German-capable models
-    const preferred = [
-      'llama3.3', 'llama3.1', 'llama3.2', 'llama3',
-      'mistral', 'mixtral', 'gemma2', 'qwen2.5',
-      'phi3', 'phi4',
-    ];
-    let bestModel = models[0] || null;
-    for (const p of preferred) {
-      const match = models.find(m => m.startsWith(p));
-      if (match) { bestModel = match; break; }
-    }
-
-    ollamaAvailable = !!bestModel;
-    ollamaModel = bestModel;
-    lastOllamaCheck = Date.now();
-    return { available: !!bestModel, model: bestModel, allModels: models };
-  } catch {
-    ollamaAvailable = false;
-    lastOllamaCheck = Date.now();
-    return { available: false };
-  }
-}
-
-async function ollamaScore(situation, antwort) {
-  if (ollamaAvailable === null ||
-      (ollamaAvailable === false && Date.now() - lastOllamaCheck > OLLAMA_RECHECK_INTERVAL)) {
-    await checkOllama();
-  }
-  if (!ollamaAvailable) throw new Error('Ollama nicht verfügbar');
-
-  // Schritt 1: Research-Agent
-  console.log(`[Research-Agent] Ollama → ${ollamaModel} — Textanalyse...`);
-  const researchPrompt = buildResearchPrompt(situation, antwort);
-  const researchText = await callOllama([
-    { role: 'system', content: 'Du bist ein Textanalyst. Antworte NUR mit JSON.' },
-    { role: 'user', content: researchPrompt },
-  ]);
-
-  const researchResult = parseJson(researchText, 'Research-Agent');
-  console.log(`[Research-Agent] Analyse abgeschlossen:`, {
-    mittel: researchResult.mittel?.length || 0,
-    gehobene: researchResult.gehobene_woerter?.length || 0,
-  });
-
-  // Schritt 2: Bewertungs-Agent
-  console.log(`[Bewertungs-Agent] Ollama → ${ollamaModel} — Scoring...`);
-  const bewertungPrompt = buildBewertungPrompt(situation, antwort, researchResult);
-  const bewertungText = await callOllama([
-    { role: 'system', content: 'Du bist ein Bewertungs-Professor. Antworte NUR mit JSON.' },
-    { role: 'user', content: bewertungPrompt },
-  ]);
-
-  console.log('[Bewertungs-Agent] Scoring abgeschlossen');
-  return { text: bewertungText, provider: 'ollama', model: ollamaModel };
 }
 
 // ──────────────────────────────────────────────────────
@@ -375,36 +282,12 @@ export async function aiBewertung(situation, antwort) {
     ? { titel: '', kontext: '', beschreibung: situation }
     : situation;
 
-  // Kaskade mit Retries: Ollama (3x) → Groq (3x) → Error
-  // Retry umfasst den gesamten 2-Schritt-Prozess (Research + Bewertung)
-
-  if (ollamaAvailable === null ||
-      (ollamaAvailable === false && Date.now() - lastOllamaCheck > OLLAMA_RECHECK_INTERVAL)) {
-    await checkOllama();
-  }
-
-  // 1. Ollama mit Retries (wenn verfügbar)
-  if (ollamaAvailable) {
-    try {
-      return await mitRetry(() => ollamaScore(situObj, antwort), 'Ollama');
-    } catch (ollamaError) {
-      console.warn(`[ELOQUENT KI] Ollama nach ${MAX_RETRIES + 1} Versuchen fehlgeschlagen, wechsle zu Groq:`, ollamaError.message);
-    }
-  }
-
-  // 2. Groq mit Retries (wenn Key vorhanden)
   const groqKey = getGroqKey();
-  if (groqKey) {
-    try {
-      return await mitRetry(() => groqScore(groqKey, situObj, antwort), 'Groq');
-    } catch (groqError) {
-      console.error(`[ELOQUENT KI] Groq nach ${MAX_RETRIES + 1} Versuchen fehlgeschlagen:`, groqError.message);
-      throw new Error(`Alle KI-Provider fehlgeschlagen nach Retries (Ollama + Groq): ${groqError.message}`);
-    }
+  if (!groqKey) {
+    throw new Error('Kein Groq API-Key konfiguriert');
   }
 
-  // Kein Provider verfügbar
-  throw new Error('Kein KI-Provider verfügbar (Ollama offline, kein Groq-Key)');
+  return await mitRetry(() => groqScore(groqKey, situObj, antwort), 'Groq');
 }
 
 // ──────────────────────────────────────────────────────
@@ -434,13 +317,11 @@ export function setGroqKey(key) {
 }
 
 export function hasAiProvider() {
-  return ollamaAvailable || !!getGroqKey();
+  return !!getGroqKey();
 }
 
 export function getAiStatus() {
   return {
-    ollama: ollamaAvailable,
-    ollamaModel,
     groq: !!getGroqKey(),
   };
 }

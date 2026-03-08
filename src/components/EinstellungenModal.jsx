@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { checkOllama, getGroqKey, setGroqKey, getAiStatus, migrateFromGemini } from '../engine/ki-scorer.js';
+import { getGroqKey, setGroqKey, getAiStatus, migrateFromGemini } from '../engine/ki-scorer.js';
 import styles from './EinstellungenModal.module.css';
 
 export function EinstellungenModal({ onClose }) {
   const [groqKey, setGroqKeyState] = useState('');
   const [saved, setSaved] = useState(false);
-  const [ollamaStatus, setOllamaStatus] = useState(null);
   const [testingGroq, setTestingGroq] = useState(false);
   const [groqResult, setGroqResult] = useState(null);
 
@@ -13,7 +12,6 @@ export function EinstellungenModal({ onClose }) {
     migrateFromGemini();
     const existing = getGroqKey();
     if (existing) setGroqKeyState(existing);
-    checkOllama().then(result => setOllamaStatus(result));
   }, []);
 
   const handleSaveGroq = () => {
@@ -58,13 +56,7 @@ export function EinstellungenModal({ onClose }) {
     setTestingGroq(false);
   };
 
-  const handleRefreshOllama = async () => {
-    setOllamaStatus(null);
-    const result = await checkOllama();
-    setOllamaStatus(result);
-  };
-
-  const hasAny = ollamaStatus?.available || !!groqKey;
+  const hasAny = !!groqKey;
 
   return (
     <div className={styles.overlay} onClick={onClose}>
@@ -78,42 +70,12 @@ export function EinstellungenModal({ onClose }) {
             : 'Heuristik-Modus \u2014 Bewertung basiert auf Regeln. Für bessere Ergebnisse: KI aktivieren.'}
         </div>
 
-        {/* Ollama Section */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>Option 1: Ollama (Lokal)</h3>
-            <span className={styles.recommendBadge}>EMPFOHLEN</span>
-          </div>
-          <p className={styles.sectionDesc}>
-            Ollama läuft lokal auf deinem Mac \u2014 kostenlos, privat, kein API-Key nötig.
-          </p>
-
-          <div className={ollamaStatus?.available ? styles.ollamaOk : styles.ollamaPending}>
-            {ollamaStatus === null
-              ? 'Suche Ollama...'
-              : ollamaStatus.available
-                ? <>Ollama aktiv! Modell: <strong>{ollamaStatus.model}</strong></>
-                : <>
-                    Ollama nicht gefunden.
-                    <button onClick={handleRefreshOllama} className={styles.retryBtn}>Erneut prüfen</button>
-                  </>}
-          </div>
-
-          {!ollamaStatus?.available && (
-            <div className={styles.instructionBox}>
-              <strong className={styles.instructionTitle}>So installierst du Ollama:</strong>
-              <ol style={{ margin: '6px 0 0 20px', padding: 0 }}>
-                <li>Gehe zu <a href="https://ollama.com" target="_blank" rel="noopener" style={{ color: 'var(--accent-gold)', textDecoration: 'underline' }}>ollama.com</a> und installiere die App</li>
-                <li>Öffne Terminal: <code style={{ background: 'var(--bg-inset)', padding: '1px 6px', borderRadius: 3 }}>ollama pull llama3.2</code></li>
-                <li>Klicke oben auf &quot;Erneut prüfen&quot;</li>
-              </ol>
-            </div>
-          )}
-        </div>
-
         {/* Groq Section */}
         <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>Option 2: Groq Cloud (Kostenlos)</h3>
+          <div className={styles.sectionHeader}>
+            <h3 className={styles.sectionTitle}>Groq Cloud (Kostenlos)</h3>
+            <span className={styles.recommendBadge}>EMPFOHLEN</span>
+          </div>
           <p className={styles.sectionDesc}>
             Groq nutzt Llama 3.3 70B \u2014 exzellent für Deutsch. Kostenlos, 14.400 Bewertungen/Tag.
           </p>

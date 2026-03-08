@@ -83,25 +83,6 @@
   line-height: 1.5;
 }
 
-.ollamaStatus {
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-}
-
-.ollamaOk {
-  composes: ollamaStatus;
-  background: rgba(74, 103, 65, 0.08);
-  border: 1px solid rgba(74, 103, 65, 0.2);
-  color: var(--success);
-}
-
-.ollamaPending {
-  composes: ollamaStatus;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-}
 
 .retryBtn {
   margin-left: 8px;
