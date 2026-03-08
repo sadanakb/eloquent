@@ -1,6 +1,6 @@
 # ELOQUENT — Das Wortduell
 
-**Die Kunst der Sprache als Wettkampf.**
+**[Live Demo](https://eloquent2.vercel.app)** | Die Kunst der Sprache als Wettkampf.
 
 ELOQUENT entstand aus einer einfachen Frage: Wie trainiert man Eloquenz, ohne einen Rhetorik-Kurs zu besuchen? Als jemand, der Deutsch, Persisch, Englisch und Französisch spricht, fasziniert mich Sprache — und ich wollte ein Spiel bauen, das Wortgewandtheit zum Wettkampf macht.
 

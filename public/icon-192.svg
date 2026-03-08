@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="24" fill="#F5F0E8"/>
+  <rect x="30" y="36" width="132" height="3" fill="#2C1810"/>
+  <rect x="30" y="41" width="132" height="1" fill="#2C1810"/>
+  <text x="96" y="130" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="100" fill="#2C1810">E</text>
+  <rect x="30" y="148" width="132" height="1" fill="#2C1810"/>
+  <rect x="30" y="151" width="132" height="3" fill="#2C1810"/>
+  <rect x="52" y="160" width="88" height="2" fill="#8B6914"/>
+</svg>
