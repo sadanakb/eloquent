@@ -91,7 +91,7 @@
 }
 
 .ornament-star::before {
-  content: '✦  ✦  ✦';
+  content: '\00B7  \00B7  \00B7';
 }
 
 /* ── Zeitungs-Überschrift ── */

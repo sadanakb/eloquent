@@ -9,7 +9,7 @@ export function HeroPage({ onNavigate }) {
       <div className={`${styles.content} animate-slide`}>
         <Logo />
 
-        <OrnamentDivider symbol="\u2726" />
+        <OrnamentDivider />
 
         <p className={styles.tagline}>
           Die Kunst der Sprache als Wettkampf.

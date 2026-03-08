@@ -77,7 +77,7 @@ export function OrnamentIcon({ name, size = 'md', className = '', style = {} }) 
   );
 }
 
-export function OrnamentDivider({ symbol = '✦' }) {
+export function OrnamentDivider({ symbol = '\u00B7' }) {
   return (
     <div className={styles.divider}>
       <div className={styles.dividerLine} />
