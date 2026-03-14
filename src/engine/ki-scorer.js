@@ -301,24 +301,16 @@ export async function aiBewertung(situation, antwort) {
 // ──────────────────────────────────────────────────────
 
 export function getGroqKey() {
-  // Migration: alten localStorage-Key nach sessionStorage übernehmen
-  const oldKey = localStorage.getItem('eloquent_groq_key');
-  if (oldKey) {
-    try { sessionStorage.setItem('eloquent_groq_key', btoa(oldKey)); } catch {}
-    localStorage.removeItem('eloquent_groq_key');
-  }
-  const encoded = sessionStorage.getItem('eloquent_groq_key') || '';
+  const encoded = localStorage.getItem('eloquent_groq_key') || '';
   if (!encoded) return '';
-  try { return atob(encoded); } catch { return ''; }
+  try { return atob(encoded); } catch { return encoded; }
 }
 
 export function setGroqKey(key) {
-  // Alten localStorage-Eintrag entfernen (Migration)
-  localStorage.removeItem('eloquent_groq_key');
   if (key) {
-    try { sessionStorage.setItem('eloquent_groq_key', btoa(key.trim())); } catch { /* non-ASCII key */ }
+    try { localStorage.setItem('eloquent_groq_key', btoa(key.trim())); } catch { /* non-ASCII key */ }
   } else {
-    sessionStorage.removeItem('eloquent_groq_key');
+    localStorage.removeItem('eloquent_groq_key');
   }
 }
 
