@@ -4,14 +4,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        detectSessionInUrl: true,
-        flowType: 'implicit',
-        autoRefreshToken: true,
-        persistSession: true,
-      },
-    })
+  ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
 
 export function isOnline() {

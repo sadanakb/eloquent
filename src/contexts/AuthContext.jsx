@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { supabase, isOnline } from '../lib/supabase.js';
 
 const AuthContext = createContext(null);
@@ -8,41 +8,42 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const initializedRef = useRef(false);
+  const handledRef = useRef(false);
 
-  async function fetchProfile(userId) {
+  async function fetchOrCreateProfile(userId) {
     if (!supabase) return null;
-    const { data, error } = await supabase
+
+    // Try to fetch existing profile
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
       .single();
-    if (error && error.code !== 'PGRST116') {
-      console.error('Failed to fetch profile:', error.message);
-    }
-    return data || null;
+
+    if (data) return data;
+
+    // Create new profile for first-time users
+    const { data: created } = await supabase
+      .from('profiles')
+      .upsert({
+        id: userId,
+        elo_rating: 1200,
+        wins: 0,
+        losses: 0,
+        total_games: 0,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    return created || null;
   }
 
-  const handleSession = useCallback(async (session) => {
+  async function setSession(session) {
     if (session?.user) {
       setUser(session.user);
       setIsAuthenticated(true);
-      let p = await fetchProfile(session.user.id);
-      if (!p && supabase) {
-        const { data } = await supabase
-          .from('profiles')
-          .upsert({
-            id: session.user.id,
-            elo_rating: 1200,
-            wins: 0,
-            losses: 0,
-            total_games: 0,
-            updated_at: new Date().toISOString(),
-          })
-          .select()
-          .single();
-        p = data || null;
-      }
+      const p = await fetchOrCreateProfile(session.user.id);
       setProfile(p);
     } else {
       setUser(null);
@@ -50,7 +51,7 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(false);
     }
     setIsLoading(false);
-  }, []);
+  }
 
   useEffect(() => {
     if (!isOnline()) {
@@ -58,51 +59,42 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // 1. Subscribe to auth changes (catches future changes + INITIAL_SESSION)
+    // Listen to all auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        handleSession(session);
+        handledRef.current = true;
+        setSession(session);
       }
     );
 
-    // 2. Also explicitly get session as backup
-    //    This handles the case where INITIAL_SESSION already fired
-    //    before our listener was registered
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!initializedRef.current) {
-        initializedRef.current = true;
-        handleSession(session);
+    // Fallback: if onAuthStateChange doesn't fire within 2s, check manually
+    const timeout = setTimeout(() => {
+      if (!handledRef.current) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+        });
       }
-    });
-
-    // Clean hash fragments from URL (OAuth redirect leaves them)
-    if (window.location.hash && window.location.hash.includes('access_token')) {
-      // Small delay to let Supabase process the hash first
-      setTimeout(() => {
-        window.history.replaceState(null, '', window.location.pathname);
-      }, 500);
-    }
+    }, 2000);
 
     return () => {
       subscription.unsubscribe();
+      clearTimeout(timeout);
     };
-  }, [handleSession]);
+  }, []);
 
   async function signIn() {
     if (!supabase) return;
-    const { error } = await supabase.auth.signInWithOAuth({
+    await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin,
       },
     });
-    if (error) console.error('Sign-in failed:', error.message);
   }
 
   async function signOut() {
     if (!supabase) return;
-    const { error } = await supabase.auth.signOut();
-    if (error) console.error('Sign-out failed:', error.message);
+    await supabase.auth.signOut();
   }
 
   async function updateProfile(updates) {
