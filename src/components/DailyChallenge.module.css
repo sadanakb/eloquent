@@ -1,0 +1,142 @@
+/* ═══════════════════════════════════════════
+   DailyChallenge — Tages-Challenge Card
+   1920er Retro-Intellektuell Aesthetic
+   ═══════════════════════════════════════════ */
+
+.wrapper {
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+  border-color: var(--accent-gold);
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--border-light);
+  padding-bottom: var(--space-md);
+}
+
+.calendarIcon {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.title {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin: 0;
+  flex: 1;
+}
+
+.date {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Situation ── */
+.section {
+  margin-bottom: var(--space-lg);
+}
+
+.situationTitle {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-xs);
+}
+
+.situationContext {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+}
+
+/* ── Wort des Tages ── */
+.wortSection {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+  border-left: 3px solid var(--accent-gold);
+}
+
+.wortLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.wort {
+  font-family: 'Playfair Display', 'Georgia', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.wortDef {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+/* ── Streak ── */
+.streak {
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-gold);
+  margin-bottom: var(--space-md);
+  letter-spacing: 0.02em;
+}
+
+/* ── Completed state ── */
+.completed {
+  text-align: center;
+  padding: var(--space-md) 0 0;
+}
+
+.scoreLabel {
+  font-size: 1rem;
+  color: var(--text-primary);
+}
+
+.nextHint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: var(--space-xs) 0 0;
+}
+
+/* ── Play button ── */
+.playBtn {
+  width: 100%;
+  margin-top: var(--space-sm);
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .wrapper {
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .wort {
+    font-size: 1.05rem;
+  }
+}

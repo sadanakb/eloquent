@@ -6,6 +6,7 @@ import { Button } from '../components/Button.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { OrnamentIcon } from '../components/Ornament.jsx';
+import { checkAchievements } from '../engine/achievements.js';
 import styles from './UebungPage.module.css';
 
 export function UebungPage() {
@@ -78,6 +79,14 @@ export function UebungPage() {
     const r = await kiBewertung(situation, text);
     setErgebnis(r);
     setLoading(false);
+    // Check achievements
+    const score = Object.values(r.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
+    checkAchievements('uebung_complete', {
+      score,
+      gehobene: r.gehobene || [],
+      mittel: r.mittel || [],
+      kategorie: kategorie,
+    });
   };
 
   const diffOptions = [

@@ -1,0 +1,426 @@
+.wrapper {
+  padding: 32px 24px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Menu ── */
+.menuOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menuCard {
+  cursor: default;
+}
+
+.menuCardInner {
+  text-align: center;
+  padding: 8px 0;
+}
+
+.menuCardTitle {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 10px 0 6px;
+}
+
+.menuCardDesc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.codeToggle {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--accent-gold);
+  cursor: pointer;
+  padding: 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.codeToggle:hover {
+  color: var(--accent-warm);
+}
+
+.codeInputWrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.codeInput {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: 18px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-align: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  outline: none;
+  text-transform: uppercase;
+}
+
+.codeInput:focus {
+  border-color: var(--accent-copper);
+}
+
+/* Friend challenge */
+.friendCodeTitle {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.friendCodeDisplay {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: var(--accent-gold);
+  margin-bottom: 8px;
+}
+
+.friendCodeHint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.friendCodeActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.waitingDots {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ── Searching ── */
+.searchingWrap {
+  text-align: center;
+  padding: 48px 0;
+}
+
+.searchingPulse {
+  color: var(--accent-gold);
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.searchingTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.searchingTime {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin-bottom: 8px;
+}
+
+.searchingRange {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.searchingExpanded {
+  font-size: 12px;
+  color: var(--accent-copper);
+  margin-top: 4px;
+}
+
+/* ── Matched / VS Screen ── */
+.matchedWrap {
+  text-align: center;
+  padding: 32px 0;
+}
+
+.matchedTitle {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  margin-bottom: 24px;
+}
+
+.vsScreen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.vsPlayer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-gold);
+}
+
+.vsName {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.vsElo {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.vsCenter {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--accent-copper);
+  padding: 0 8px;
+}
+
+.matchedCountdown {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+/* ── Writing ── */
+.writingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.opponentWriting {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.opponentDone {
+  font-size: 13px;
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* ── Waiting ── */
+.waitingWrap {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--accent-gold);
+}
+
+.waitingTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.waitingText {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ── Scoring ── */
+.scoringWrap {
+  text-align: center;
+  padding: 48px 0;
+}
+
+.scoringPulse {
+  color: var(--accent-gold);
+  margin-bottom: 16px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.scoringTitle {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.scoringText {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ── Result ── */
+.resultMainTitle {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.resultVs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 16px 0;
+}
+
+.resultPlayerCol {
+  text-align: center;
+  flex: 1;
+}
+
+.resultPlayerName {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.resultScoreNum {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.resultVsCenter {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent-copper);
+}
+
+.eloChangeRow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 4px;
+}
+
+.eloChangeLabel {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.eloChangePos {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.eloChangeNeg {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--error);
+}
+
+.resultActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* ── Offline / Auth messages ── */
+.offlineMsg {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.offlineIcon {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.offlineTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.offlineText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 480px) {
+  .vsScreen {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .vsCenter {
+    font-size: 24px;
+  }
+
+  .resultVs {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

@@ -1,9 +1,55 @@
+/* ============================================================
+   StoryPage — RPG Story Mode Styles
+   ============================================================ */
+
 .wrapper {
   padding: 32px 24px;
   max-width: 700px;
   margin: 0 auto;
 }
 
+/* ---- Top Bar ---- */
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+}
+
+.chapterProgress {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.xpBar {
+  flex: 1;
+  min-width: 60px;
+}
+
+.characterPortrait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-gold);
+  flex-shrink: 0;
+}
+
+/* ---- Score Bar (legacy / top bar points) ---- */
 .scoreBar {
   display: flex;
   justify-content: space-between;
@@ -25,11 +71,17 @@
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--accent-gold);
+  white-space: nowrap;
 }
 
 .wordsLearned {
   font-size: 12px;
   color: var(--text-muted);
+}
+
+/* ---- Story Intro ---- */
+.storyIntro {
+  text-align: center;
 }
 
 .introTitle {
@@ -48,6 +100,7 @@
   padding: 8px 0;
 }
 
+/* ---- Chapter Intro ---- */
 .kapitelTitle {
   font-family: var(--font-display);
   font-size: 26px;
@@ -75,6 +128,7 @@
   color: var(--text-primary);
 }
 
+/* ---- Challenge Bar ---- */
 .challengeBar {
   display: flex;
   justify-content: space-between;
@@ -89,6 +143,7 @@
   font-weight: 500;
 }
 
+/* ---- Options (multiple choice) ---- */
 .optionen {
   display: flex;
   flex-direction: column;
@@ -137,6 +192,7 @@
   color: var(--text-muted);
 }
 
+/* ---- Result Box ---- */
 .resultBox {
   margin-top: 20px;
 }
@@ -195,6 +251,7 @@
   font-style: italic;
 }
 
+/* ---- Outro ---- */
 .outroTitle {
   font-family: var(--font-display);
   font-size: 24px;
@@ -209,6 +266,11 @@
   line-height: 1.8;
   color: var(--text-secondary);
   font-style: italic;
+}
+
+/* ---- Ende / Ending Section ---- */
+.endingSection {
+  text-align: center;
 }
 
 .endeTitle {
@@ -239,6 +301,7 @@
   margin-bottom: 16px;
 }
 
+/* ---- Stat Grid ---- */
 .statGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -272,6 +335,7 @@
   color: var(--text-muted);
 }
 
+/* ---- Gelernte / Learned Words ---- */
 .gelernteTitle {
   font-size: 13px;
   font-weight: 600;
@@ -286,6 +350,7 @@
   gap: 6px;
 }
 
+/* ---- Hinweis / Info Box ---- */
 .hinweisBox {
   padding: 16px;
   background: var(--bg-card);
@@ -302,8 +367,60 @@
   line-height: 1.6;
 }
 
+/* ---- Resume Banner ---- */
+.resumeBanner {
+  padding: 16px 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.resumeBanner p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ---- Final Actions ---- */
 .finalActions {
   display: flex;
   gap: 12px;
   justify-content: center;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  .wrapper {
+    padding: 16px 12px;
+  }
+
+  .topBar {
+    gap: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .introTitle,
+  .endeTitle {
+    font-size: 24px;
+  }
+
+  .kapitelTitle {
+    font-size: 20px;
+  }
+
+  .statGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .finalActions {
+    flex-direction: column;
+    align-items: center;
+  }
 }

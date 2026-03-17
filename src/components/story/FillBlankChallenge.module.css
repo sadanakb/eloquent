@@ -1,0 +1,157 @@
+.wrapper {
+  width: 100%;
+}
+
+/* ── Sentence display ── */
+.satzWrap {
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  margin-bottom: 28px;
+  font-weight: 400;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.blank {
+  display: inline-block;
+  min-width: 80px;
+  padding: 2px 12px;
+  border-bottom: 2.5px solid var(--accent-gold);
+  color: var(--accent-gold);
+  font-weight: 600;
+  margin: 0 4px;
+  text-align: center;
+  transition: all var(--transition-fast);
+}
+
+.blankCorrect {
+  composes: blank;
+  border-bottom-color: var(--success);
+  color: var(--success);
+  background: rgba(74, 103, 65, 0.06);
+  border-radius: var(--radius-sm, 4px);
+}
+
+.blankWrong {
+  composes: blank;
+  border-bottom-color: var(--error);
+  color: var(--error);
+  background: rgba(139, 58, 58, 0.06);
+  border-radius: var(--radius-sm, 4px);
+  text-decoration: line-through;
+}
+
+/* ── Options ── */
+.optionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.optionBtn {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-body);
+  min-width: 44px;
+}
+
+.optionBtn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-gold);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.optionBtn:active {
+  transform: translateY(0);
+}
+
+.optionCorrect {
+  composes: optionBtn;
+  background: rgba(74, 103, 65, 0.1);
+  border-color: var(--success);
+  color: var(--success);
+  cursor: default;
+  pointer-events: none;
+}
+
+.optionWrong {
+  composes: optionBtn;
+  background: rgba(139, 58, 58, 0.1);
+  border-color: var(--error);
+  color: var(--error);
+  cursor: default;
+  pointer-events: none;
+}
+
+.optionFaded {
+  composes: optionBtn;
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* ── Result ── */
+.resultBox {
+  margin-top: 20px;
+}
+
+.resultBanner {
+  padding: 16px;
+  border-radius: var(--radius-md);
+}
+
+.resultCorrect {
+  composes: resultBanner;
+  background: rgba(74, 103, 65, 0.06);
+  border: 1px solid var(--success);
+}
+
+.resultWrong {
+  composes: resultBanner;
+  background: rgba(139, 58, 58, 0.06);
+  border: 1px solid var(--error);
+}
+
+.resultLabelOk {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--success);
+}
+
+.resultLabelFail {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--error);
+}
+
+.correctAnswer {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.erklaerung {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.weiterWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}

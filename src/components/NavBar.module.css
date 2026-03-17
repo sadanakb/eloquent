@@ -74,19 +74,44 @@
   color: var(--text-primary);
 }
 
-@media (max-width: 600px) {
-  .nav {
-    padding: 0 12px;
-  }
-
-  .link, .linkActive {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
+.profileBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  color: var(--bg-card);
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  transition: all var(--transition-fast);
 }
 
-@media (max-width: 440px) {
-  .links {
+.profileBtn:hover {
+  background: var(--accent-warm);
+}
+
+.authBtn {
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--font-display);
+  background: transparent;
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  transition: all var(--transition-fast);
+}
+
+.authBtn:hover {
+  background: var(--accent-gold);
+  color: var(--bg-card);
+}
+
+@media (max-width: 768px) {
+  .nav {
     display: none;
   }
 }

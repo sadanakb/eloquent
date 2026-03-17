@@ -1,6 +1,8 @@
 import { Button } from '../components/Button.jsx';
 import { Logo } from '../components/Logo.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
+import { DailyChallenge } from '../components/DailyChallenge.jsx';
+import { InstallPrompt } from '../components/InstallPrompt.jsx';
 import styles from './HeroPage.module.css';
 
 export function HeroPage({ onNavigate }) {
@@ -21,10 +23,15 @@ export function HeroPage({ onNavigate }) {
           <Button variant="gold" onClick={() => onNavigate('duell')} style={{ fontSize: 17, padding: '16px 40px' }}>
             <OrnamentIcon name="federn" size="sm" /> Duell starten
           </Button>
+          <Button variant="accent" onClick={() => onNavigate('online')} style={{ fontSize: 17, padding: '16px 40px' }}>
+            <OrnamentIcon name="lorbeer" size="sm" /> Online Match
+          </Button>
           <Button variant="default" onClick={() => onNavigate('uebung')} style={{ fontSize: 17, padding: '16px 40px' }}>
             <OrnamentIcon name="ziel" size="sm" /> Übungsmodus
           </Button>
         </div>
+
+        <DailyChallenge onPlay={() => onNavigate('uebung')} />
 
         <div className={styles.navLinks}>
           {[
@@ -32,6 +39,7 @@ export function HeroPage({ onNavigate }) {
             { icon: 'lorbeer', label: 'Rangliste', page: 'rangliste' },
             { icon: 'buchOffen', label: 'Story-Modus', page: 'story' },
             { icon: 'feder', label: 'Regeln', page: 'regeln' },
+            { icon: 'stern', label: 'Errungenschaften', page: 'achievements' },
           ].map(item => (
             <div key={item.page} onClick={() => onNavigate(item.page)} className={styles.navItem}>
               <div className={styles.navIcon}>
@@ -41,6 +49,8 @@ export function HeroPage({ onNavigate }) {
             </div>
           ))}
         </div>
+
+        <InstallPrompt />
       </div>
     </div>
   );

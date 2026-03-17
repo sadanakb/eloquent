@@ -1,0 +1,34 @@
+@keyframes floatUp {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px);
+  }
+}
+
+.container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  bottom: 0;
+  color: var(--accent-gold, #8B6914);
+  font-size: 16px;
+  animation-name: floatUp;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+  animation-iteration-count: infinite;
+}

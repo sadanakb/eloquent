@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getGroqKey, setGroqKey, getAiStatus, migrateFromGemini } from '../engine/ki-scorer.js';
+import soundManager from '../engine/sound-manager.js';
 import styles from './EinstellungenModal.module.css';
 
 export function EinstellungenModal({ onClose }) {
@@ -115,6 +116,26 @@ export function EinstellungenModal({ onClose }) {
               <li>Klicke &quot;API Keys&quot; &rarr; &quot;Create API Key&quot;</li>
               <li>Kopiere den Schlüssel und füge ihn hier ein</li>
             </ol>
+          </div>
+        </div>
+
+        {/* Sound-Einstellungen */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Ton</h3>
+          <p className={styles.sectionDesc}>Steuere die Audioausgabe des Spiels.</p>
+          <div className={styles.btnRow}>
+            <button
+              onClick={() => soundManager.toggleSound()}
+              className={soundManager.isSoundEnabled() ? styles.smallBtnGold : styles.smallBtnGhost}
+            >
+              {soundManager.isSoundEnabled() ? 'UI-Sounds: An' : 'UI-Sounds: Aus'}
+            </button>
+            <button
+              onClick={() => soundManager.toggleMusic()}
+              className={soundManager.isMusicEnabled() ? styles.smallBtnGold : styles.smallBtnGhost}
+            >
+              {soundManager.isMusicEnabled() ? 'Musik: An' : 'Musik: Aus'}
+            </button>
           </div>
         </div>
 

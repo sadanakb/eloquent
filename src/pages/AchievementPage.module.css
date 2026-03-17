@@ -1,0 +1,233 @@
+/* ═══════════════════════════════════════════════
+   ELOQUENT — Achievement Page
+   1920s Retro-Intellectual Showcase
+   ═══════════════════════════════════════════════ */
+
+.wrapper {
+  padding: 32px 24px 64px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.backBtn {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 4px 8px;
+  transition: color var(--transition-fast);
+}
+
+.backBtn:hover {
+  color: var(--accent-gold);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  margin-top: 6px;
+}
+
+.progressWrap {
+  max-width: 320px;
+  margin: 16px auto 0;
+}
+
+/* ── Category tabs ── */
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.tab {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tab:hover {
+  border-color: var(--accent-copper);
+  color: var(--text-primary);
+}
+
+.tabActive {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: #FFFDF7;
+}
+
+.tabActive:hover {
+  background: var(--gold-bright);
+  border-color: var(--gold-bright);
+  color: #FFFDF7;
+}
+
+/* ── Achievement grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.achCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px !important;
+  transition: all var(--transition-base);
+}
+
+/* ── Unlocked state ── */
+.unlocked {
+  border-color: var(--accent-gold) !important;
+}
+
+.unlocked:hover {
+  box-shadow: 0 0 24px rgba(139, 105, 20, 0.15);
+}
+
+/* ── Locked state ── */
+.locked {
+  opacity: 0.55;
+  filter: grayscale(0.6);
+}
+
+.locked:hover {
+  opacity: 0.7;
+  filter: grayscale(0.3);
+}
+
+/* ── Icon ── */
+.achIcon {
+  margin-bottom: 12px;
+}
+
+.iconColor {
+  color: var(--accent-gold);
+}
+
+.iconMuted {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+/* ── Info ── */
+.achInfo {
+  flex: 1;
+}
+
+.achName {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.locked .achName {
+  color: var(--text-muted);
+}
+
+.achDesc {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.locked .achDesc {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.achCategory {
+  font-family: var(--font-body);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-copper);
+  margin-top: 8px;
+}
+
+/* ── Empty state ── */
+.empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-style: italic;
+  margin-top: 48px;
+}
+
+/* ── Responsive: 2 columns on tablet, 2 on mobile ── */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 28px;
+  }
+
+  .wrapper {
+    padding: 24px 16px 64px;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .achCard {
+    padding: 16px 12px !important;
+  }
+
+  .achName {
+    font-size: 15px;
+  }
+
+  .tabs {
+    gap: 6px;
+  }
+
+  .tab {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}

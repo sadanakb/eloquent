@@ -1,0 +1,208 @@
+.wrapper {
+  padding: 32px 24px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.avatarLarge {
+  color: var(--accent-gold);
+  margin-bottom: 12px;
+}
+
+.username {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.rankRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.eloNum {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-gold);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+
+/* Stats */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.statCell {
+  text-align: center;
+  padding: 10px 4px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+}
+
+.statValue {
+  display: block;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--accent-gold);
+}
+
+.statLabel {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* XP */
+.xpHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.xpLevel {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.xpTotal {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent-gold);
+}
+
+.xpFooter {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Achievements */
+.achievementList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.achievementRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+}
+
+.achievementIcon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.achievementInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.achievementName {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.achievementDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.linkRow {
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* Login prompt */
+.loginPrompt {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.loginIcon {
+  color: var(--accent-gold);
+  margin-bottom: 16px;
+}
+
+.loginTitle {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.loginText {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Loading */
+.loadingWrap {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--accent-gold);
+}
+
+.loadingText {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

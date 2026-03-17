@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { hasAiProvider } from '../engine/ki-scorer.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { EinstellungenModal } from './EinstellungenModal.jsx';
+import { AuthModal } from './AuthModal.jsx';
 import { LogoCompact } from './Logo.jsx';
 import styles from './NavBar.module.css';
 
 export function NavBar({ current, onNavigate }) {
   const [showSettings, setShowSettings] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [aiActive, setAiActive] = useState(false);
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     setAiActive(hasAiProvider());
@@ -18,6 +22,7 @@ export function NavBar({ current, onNavigate }) {
 
   const navItems = [
     { id: 'duell', label: 'Duell' },
+    { id: 'online', label: 'Online' },
     { id: 'uebung', label: 'Übung' },
     { id: 'woerterbuch', label: 'Wörter' },
     { id: 'rangliste', label: 'Rangliste' },
@@ -42,6 +47,23 @@ export function NavBar({ current, onNavigate }) {
 
         <div className={styles.right}>
           {aiActive && <span className={styles.kiBadge}>KI</span>}
+          {isAuthenticated ? (
+            <button
+              onClick={() => onNavigate('profil')}
+              className={styles.profileBtn}
+              title="Profil"
+            >
+              {user?.user_metadata?.full_name?.[0] || '?'}
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowAuth(true)}
+              className={styles.authBtn}
+              title="Anmelden"
+            >
+              Anmelden
+            </button>
+          )}
           <button
             onClick={() => setShowSettings(true)}
             className={styles.settingsBtn}
@@ -53,6 +75,9 @@ export function NavBar({ current, onNavigate }) {
       </nav>
       {showSettings && (
         <EinstellungenModal onClose={() => { setShowSettings(false); refreshAiStatus(); }} />
+      )}
+      {showAuth && (
+        <AuthModal onClose={() => setShowAuth(false)} />
       )}
     </>
   );

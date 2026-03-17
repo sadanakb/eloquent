@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import eventBus from '../engine/event-bus.js';
 import { WOERTERBUCH } from '../data/woerterbuch.js';
 import { Card } from './Card.jsx';
 import { Badge } from './Badge.jsx';
@@ -93,6 +94,12 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
     }, 1000);
     return () => clearInterval(interval);
   }, [doSubmit]);
+
+  useEffect(() => {
+    if (timeLeft === 15) {
+      eventBus.emit('sound:play', { sound: 'timerWarning' });
+    }
+  }, [timeLeft]);
 
   const ratio = timeLeft / totalTime;
   const isUrgent = timeLeft <= 15;

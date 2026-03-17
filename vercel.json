@@ -1,6 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/groq/:path*", "destination": "/api/groq" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!assets|sounds|icons|manifest|sw|favicon).*)", "destination": "/index.html" }
   ]
 }

@@ -106,3 +106,74 @@
 .stagger-3 { animation-delay: 0.3s; }
 .stagger-4 { animation-delay: 0.4s; }
 .stagger-5 { animation-delay: 0.5s; }
+
+/* === Phase 1 Neue Animationen === */
+
+@keyframes confettiFall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes countUpPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes particleFloat {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-120px) scale(0.5); opacity: 0; }
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes slideInFromTop {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInFromBottom {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+.page-enter {
+  animation: pageEnter 300ms ease-out both;
+}
+
+.page-exit {
+  animation: pageExit 200ms ease-in both;
+}
+
+.animate-slide-top {
+  animation: slideInFromTop 400ms ease-out both;
+}
+
+.animate-slide-bottom {
+  animation: slideInFromBottom 400ms ease-out both;
+}
+
+.animate-shake {
+  animation: shake 400ms ease-in-out;
+}
+
+.animate-count-pulse {
+  animation: countUpPulse 300ms ease-out;
+}

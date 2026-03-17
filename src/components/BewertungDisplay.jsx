@@ -1,9 +1,13 @@
+import { useEffect } from 'react';
+import eventBus from '../engine/event-bus.js';
 import { getNote } from '../data/raenge.js';
 import { GoldBar } from './GoldBar.jsx';
+import { GoldParticles } from './GoldParticles.jsx';
 import { Card } from './Card.jsx';
 import { Badge } from './Badge.jsx';
 import { Button } from './Button.jsx';
 import { OrnamentIcon, OrnamentDivider } from './Ornament.jsx';
+import { useCountUp } from '../hooks/useCountUp.js';
 import styles from './BewertungDisplay.module.css';
 
 export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
@@ -12,7 +16,15 @@ export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
   const maxMap = { situationsbezug: 15, wortvielfalt: 15, rhetorik: 25, wortschatz: 15, argumentation: 15, kreativitaet: 10, textstruktur: 5 };
   const labelMap = { situationsbezug: 'Situationsbezug', wortvielfalt: 'Wortvielfalt', rhetorik: 'Rhetorik', wortschatz: 'Wortschatz', argumentation: 'Argumentation', kreativitaet: 'Kreativität', textstruktur: 'Textstruktur' };
   const gesamt = Object.entries(kat).reduce((s, [k, v]) => s + Math.min(v.p || 0, maxMap[k] || 0), 0);
+  const animatedScore = useCountUp(gesamt, 1200);
   const { note, emoji } = getNote(gesamt);
+
+  useEffect(() => {
+    eventBus.emit('sound:play', { sound: 'success' });
+    if (gesamt >= 70) {
+      setTimeout(() => eventBus.emit('sound:play', { sound: 'goldGain' }), 500);
+    }
+  }, []);
 
   return (
     <div className={`${styles.wrapper} animate-in`}>
@@ -21,8 +33,9 @@ export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
           {spielerName && <div className={styles.playerLabel}>Bewertung für</div>}
           {spielerName && <div className={styles.playerName}>{spielerName}</div>}
           <div className={`${styles.score} animate-stamp`}>
-            {gesamt.toFixed(1)}
+            {animatedScore.toFixed(1)}
           </div>
+          <GoldParticles active={gesamt >= 75} />
           <div className={styles.scoreLabel}>von 100 Punkten</div>
           <Badge>{note}</Badge>
 

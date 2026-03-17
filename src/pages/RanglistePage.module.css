@@ -100,3 +100,60 @@
   font-size: 10px;
   color: var(--text-muted);
 }
+
+.nameMe {
+  composes: name;
+  color: var(--accent-gold);
+}
+
+/* Tab Bar */
+.tabBar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tab:hover {
+  background: var(--bg-inset);
+  color: var(--text-primary);
+}
+
+.tabActive {
+  composes: tab;
+  background: var(--accent-gold);
+  color: var(--bg-card);
+}
+
+.tabActive:hover {
+  background: var(--accent-warm);
+  color: var(--bg-card);
+}
+
+/* Global message */
+.globalMsg {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-muted);
+}
+
+.globalMsg p {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.5;
+}

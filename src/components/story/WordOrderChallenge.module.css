@@ -1,0 +1,192 @@
+.wrapper {
+  width: 100%;
+}
+
+.anweisung {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+/* ── Selected area ── */
+.selectedArea {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--accent-gold);
+  min-height: 72px;
+}
+
+.selectedLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.placeholder {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ── Available area ── */
+.availableArea {
+  margin-bottom: 24px;
+}
+
+/* ── Tile row ── */
+.tileRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Tiles ── */
+.tile {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--accent-gold);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-body);
+}
+
+.tile:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-warm);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.tile:active {
+  transform: translateY(0);
+}
+
+.tileUsed {
+  composes: tile;
+  opacity: 0.25;
+  cursor: default;
+  pointer-events: none;
+}
+
+.tileSelected {
+  composes: tile;
+  background: var(--accent-gold);
+  color: var(--bg-card);
+  border-color: var(--accent-gold);
+}
+
+.tileSelected:hover {
+  background: var(--accent-warm);
+  border-color: var(--accent-warm);
+  color: var(--bg-card);
+}
+
+.tileCorrect {
+  composes: tile;
+  background: rgba(74, 103, 65, 0.1);
+  border-color: var(--success);
+  color: var(--success);
+  cursor: default;
+}
+
+.tileWrong {
+  composes: tile;
+  background: rgba(139, 58, 58, 0.1);
+  border-color: var(--error);
+  color: var(--error);
+  cursor: default;
+}
+
+.tileCorrectSmall {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--success);
+  background: rgba(74, 103, 65, 0.06);
+  color: var(--success);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ── Actions ── */
+.actionRow {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ── Result ── */
+.resultBox {
+  margin-top: 20px;
+}
+
+.resultBanner {
+  padding: 16px;
+  border-radius: var(--radius-md);
+}
+
+.resultCorrect {
+  composes: resultBanner;
+  background: rgba(74, 103, 65, 0.06);
+  border: 1px solid var(--success);
+}
+
+.resultWrong {
+  composes: resultBanner;
+  background: rgba(139, 58, 58, 0.06);
+  border: 1px solid var(--error);
+}
+
+.resultLabelOk {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--success);
+}
+
+.resultLabelFail {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--error);
+}
+
+.correctOrder {
+  margin: 12px 0;
+}
+
+.correctOrderLabel {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.erklaerung {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+.weiterWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}

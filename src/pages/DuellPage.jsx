@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import eventBus from '../engine/event-bus.js';
+import { Confetti } from '../components/Confetti.jsx';
 import { SITUATIONEN, SITUATION_KATEGORIEN, SITUATIONEN_NACH_KATEGORIE } from '../data/situationen.js';
 import { kiBewertung } from '../engine/scoring-engine.js';
 import { Button } from '../components/Button.jsx';
@@ -7,6 +9,7 @@ import { Badge } from '../components/Badge.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
+import { checkAchievements } from '../engine/achievements.js';
 import styles from './DuellPage.module.css';
 
 export function DuellPage({ onNavigate }) {
@@ -137,6 +140,16 @@ export function DuellPage({ onNavigate }) {
       r1: prev.r1 + (p1 > p2 ? 1 : 0), r2: prev.r2 + (p2 > p1 ? 1 : 0),
     }));
     setLoading(false);
+    // Check achievements for both players
+    const score1 = p1;
+    const score2 = p2;
+    const bestScore = Math.max(score1, score2);
+    checkAchievements('duell_complete', {
+      score: bestScore,
+      gehobene: [...(r1.gehobene || []), ...(r2.gehobene || [])],
+      mittel: [...(r1.mittel || []), ...(r2.mittel || [])],
+      kategorie: kategorie,
+    });
   };
 
   const nextRound = () => {
@@ -279,6 +292,7 @@ export function DuellPage({ onNavigate }) {
 
       {phase === 'final' && (
         <div className="animate-in" style={{ textAlign: 'center' }}>
+          <Confetti active={true} />
           <h1 className={styles.finalTitle}>
             <OrnamentIcon name="lorbeer" size="lg" style={{ verticalAlign: 'text-bottom', marginRight: 8 }} />
             Endergebnis

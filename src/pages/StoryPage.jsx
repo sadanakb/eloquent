@@ -1,134 +1,272 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { initStory, resumeStory, getStoryState, advanceState, resetStory, getArchetypeBonus } from '../engine/story-engine.js';
+import { addXP, getXP } from '../engine/xp-system.js';
+import { STORY_CHAPTERS, ARCHETYPES, STORY_ENDINGS } from '../data/story-data.js';
+import eventBus from '../engine/event-bus.js';
+import { checkAchievements } from '../engine/achievements.js';
+import { MultipleChoiceChallenge } from '../components/story/MultipleChoiceChallenge.jsx';
+import { FreeTextChallenge } from '../components/story/FreeTextChallenge.jsx';
+import { WordOrderChallenge } from '../components/story/WordOrderChallenge.jsx';
+import { FillBlankChallenge } from '../components/story/FillBlankChallenge.jsx';
+import { BossFight } from '../components/story/BossFight.jsx';
+import { StoryDecision } from '../components/story/StoryDecision.jsx';
+import { CharacterSelect } from '../components/story/CharacterSelect.jsx';
 import { Card } from '../components/Card.jsx';
 import { Badge } from '../components/Badge.jsx';
 import { Button } from '../components/Button.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
-import { WOERTERBUCH } from '../data/woerterbuch.js';
+import { GoldBar } from '../components/GoldBar.jsx';
+import { Confetti } from '../components/Confetti.jsx';
+import { useTypewriter } from '../hooks/useTypewriter.js';
 import styles from './StoryPage.module.css';
 
-// Story Data
-const STORY = {
-  titel: 'Die Akademie der verlorenen Worte',
-  intro: 'In einer Welt, in der Worte Macht besitzen, liegt die legendäre Akademie der Eloquenz verborgen in den Nebeln des Vergessens. Einst war sie der Ort, an dem die größten Redner der Geschichte ihre Kunst perfektionierten. Doch ein dunkler Fluch hat die Worte aus der Akademie gestohlen \u2014 und mit ihnen die Macht der Sprache selbst.',
-  kapitel: [
-    {
-      id: 1,
-      titel: 'Kapitel I: Das Tor der Worte',
-      szene: 'Ihr steht vor einem gewaltigen Tor aus schwarzem Obsidian. In die Oberfläche sind leere Vertiefungen eingelassen \u2014 dort, wo einst goldene Buchstaben prangten. Eine Stimme flüstert aus dem Stein:',
-      dialog: '\u201ENur wer die Sprache ehrt, darf eintreten. Beweise dein Wissen, Wanderer\u2026\u201C',
-      challenges: [
-        { typ: 'wort_wahl', frage: 'Die Stimme fragt: Welches Wort bedeutet \u201Eredegewandt und sprachlich meisterhaft\u201C?', optionen: ['eloquent', 'turbulent', 'prominent', 'kompetent'], richtig: 0, erklaerung: 'Eloquent \u2014 von lat. \u201Eeloquentia\u201C \u2014 beschreibt die Kunst, sich sprachlich geschickt und überzeugend auszudrücken.', belohnung: 'Das erste goldene Wort erscheint am Tor: E\u00B7L\u00B7O\u00B7Q\u00B7U\u00B7E\u00B7N\u00B7T' },
-        { typ: 'luecke', frage: 'Das Tor erzittert und eine Inschrift erscheint: \u201EDie ___ der Sprache liegt nicht im Schreien, sondern im Flüstern.\u201C', optionen: ['Katastrophe', 'Melodie', 'Quintessenz', 'Frequenz'], richtig: 2, erklaerung: 'Quintessenz \u2014 das Wesentlichste, der Kern einer Sache.', belohnung: 'Ein zweites Wort leuchtet auf. Das Tor beginnt sich zu öffnen\u2026' },
-        { typ: 'synonym', frage: 'Die letzte Prüfung: Welches Wort ist ein Synonym für \u201Edennoch\u201C oder \u201Etrotz alledem\u201C?', optionen: ['gewissermaßen', 'bedauerlicherweise', 'zwangsläufig', 'nichtsdestotrotz'], richtig: 3, erklaerung: 'Nichtsdestotrotz \u2014 eines der schönsten und längsten deutschen Wörter.', belohnung: 'Das Tor schwingt auf! Dahinter erstreckt sich ein nebelverhangener Innenhof.' },
-      ],
-      outro: 'Ihr tretet durch das Tor. Der Nebel lichtet sich und enthüllt einen weitläufigen Innenhof mit verfallenen Säulen. An den Wänden hängen verblichene Porträts vergessener Rhetoriker. In der Mitte steht ein Brunnen \u2014 doch statt Wasser fließen leuchtende Buchstaben durch seine Becken. Eine Gestalt in einer dunklen Robe tritt aus dem Schatten\u2026',
-    },
-    {
-      id: 2,
-      titel: 'Kapitel II: Der Hüter des Brunnens',
-      szene: 'Die Gestalt zieht ihre Kapuze zurück. Ein alter Mann mit silbernem Bart und funkelnden Augen mustert euch. In seiner Hand hält er ein Buch, dessen Seiten leer sind.',
-      dialog: '\u201EIch bin Veritas, der letzte Hüter dieser Akademie. Der Fluch hat unsere Worte gestohlen \u2014 aber nicht unser Wissen. Zeig mir, dass du würdig bist, die verlorenen Worte zurückzubringen.\u201C',
-      challenges: [
-        { typ: 'bedeutung', frage: 'Veritas hebt die Hand und ein Wort erscheint in der Luft: \u201EEPHEMER\u201C. Was bedeutet es?', optionen: ['Gewaltig und mächtig', 'Flüchtig und vergänglich', 'Rätselhaft und mysteriös', 'Fröhlich und heiter'], richtig: 1, erklaerung: 'Ephemer \u2014 wie der Morgentau, der mit den ersten Sonnenstrahlen verschwindet.', belohnung: 'Das Wort sinkt in den Brunnen und das Wasser beginnt heller zu leuchten.' },
-        { typ: 'gegenteil', frage: 'Veritas nickt anerkennend: \u201EUnd was ist das Gegenteil von APATHIE?\u201C', optionen: ['Sympathie', 'Nostalgie', 'Euphorie', 'Anarchie'], richtig: 2, erklaerung: 'Euphorie \u2014 ein Zustand überwältigender Begeisterung und Lebensfreude.', belohnung: 'Ein weiteres Wort fließt in den Brunnen. Die Säulen des Innenhofs beginnen zu leuchten.' },
-        { typ: 'stilmittel', frage: 'Veritas liest: \u201EDie Freiheit tanzt auf den Trümmern der Tyrannei.\u201C Welches Stilmittel ist das?', optionen: ['Alliteration', 'Hyperbel', 'Ellipse', 'Personifikation'], richtig: 3, erklaerung: 'Personifikation \u2014 der Freiheit wird eine menschliche Handlung (tanzen) zugeschrieben.', belohnung: 'Veritas lächelt. \u201EDu hast Potenzial, Wanderer.\u201C' },
-      ],
-      outro: 'Der Brunnen pulsiert mit neuem Licht. Die leeren Porträts an den Wänden beginnen, Farbe zu zeigen. Veritas deutet auf eine massive Tür am Ende des Innenhofs, über der ein einziges Wort in Flammen steht: RHETORIKA.',
-    },
-    {
-      id: 3,
-      titel: 'Kapitel III: Die Bibliothek der Rhetorika',
-      szene: 'Die Tür öffnet sich und ihr betretet eine Bibliothek von unfassbarer Größe. Regale ragen bis in die Unendlichkeit. Doch die meisten Bücher sind leer. In der Mitte schwebt eine leuchtende Gestalt: Rhetorika, die Hüterin der Sprache.',
-      dialog: '\u201EEin neuer Aspirant? Wie\u2026 erfrischend. Doch um die Worte zu befreien, musst du die Sprache nicht nur kennen \u2014 du musst sie FÜHLEN.\u201C',
-      challenges: [
-        { typ: 'satz_bauen', frage: 'Rhetorika stellt die Aufgabe: Welcher Satz enthält eine Antithese?', optionen: ['Der Mond scheint hell über dem dunklen Wald.', 'Gestern war ein wunderschöner Tag gewesen.', 'Viele Menschen gehen gerne im Park spazieren.', 'Nicht die Stärke macht den Helden, sondern die Güte.'], richtig: 3, erklaerung: 'Die Antithese stellt Gegensätze gegenüber: Stärke vs. Güte.', belohnung: 'Ein ganzes Regal füllt sich mit Worten!' },
-        { typ: 'klimax', frage: 'Welche Reihenfolge bildet eine Klimax \u2014 eine rhetorische Steigerung?', optionen: ['Er siegte, er sah, er kam.', 'Er sah, er siegte, er kam.', 'Er kam, er sah, er siegte.', 'Er kam, er siegte, er sah.'], richtig: 2, erklaerung: 'Klimax \u2014 die berühmten Worte Cäsars: \u201EVeni, vidi, vici.\u201C', belohnung: 'Bücher fliegen aus den Regalen und öffnen sich!' },
-        { typ: 'meister', frage: 'Finale Prüfung: Was beschreibt SUBLIM am besten?', optionen: ['Subtil und kaum wahrnehmbar', 'Erhaben und von höchster Schönheit', 'Schnell und dynamisch', 'Traurig und melancholisch'], richtig: 1, erklaerung: 'Sublim \u2014 ein Wort für Momente, die über das Gewöhnliche hinausgehen.', belohnung: 'Rhetorika lächelt zum ersten Mal. \u201EDu bist würdig.\u201C' },
-      ],
-      outro: 'Die gesamte Bibliothek erstrahlt in goldenem Licht. Bücher füllen sich, Worte tanzen durch die Luft, und die Akademie der Eloquenz erwacht aus ihrem langen Schlaf. Rhetorika überreicht euch ein leeres Buch mit goldenen Initialen: E.Q. \u201EDieses Buch wird sich füllen, während du lernst. Komm zurück, wenn du bereit bist für das nächste Kapitel\u2026\u201C',
-    },
-  ],
-};
+const ARCHETYPE_ICONS = { dichter: 'feder', redner: 'federn', gelehrter: 'buch' };
+const XP_PER_CHALLENGE = 15;
+const XP_PER_BOSS = 40;
+const TOTAL_CHAPTERS = STORY_CHAPTERS.length;
+
+function determineEnding(choices) {
+  for (const ending of STORY_ENDINGS) {
+    if (ending.requiredFlags.length === 0) continue;
+    if (ending.requiredFlags.every(flag => choices.includes(flag))) return ending;
+  }
+  return STORY_ENDINGS.find(e => e.id === 'default') || STORY_ENDINGS[STORY_ENDINGS.length - 1];
+}
 
 export function StoryPage({ onNavigate }) {
-  const [phase, setPhase] = useState('intro');
-  const [kapitelIdx, setKapitelIdx] = useState(0);
-  const [challengeIdx, setChallengeIdx] = useState(0);
-  const [gewaehlt, setGewaehlt] = useState(null);
-  const [punkte, setPunkte] = useState(0);
-  const [gelernt, setGelernt] = useState([]);
-  const [streak, setStreak] = useState(0);
+  const [gameState, setGameState] = useState(null);
+  const [phase, setPhase] = useState('loading');
+  const [chapterXP, setChapterXP] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
 
-  const kapitel = STORY.kapitel[kapitelIdx];
-  const challenge = kapitel?.challenges[challengeIdx];
+  // Derived state
+  const chapter = gameState ? STORY_CHAPTERS[gameState.currentChapter] : null;
+  const challengeIdx = gameState ? gameState.currentChallenge : 0;
+  const challenge = chapter?.challenges?.[challengeIdx] || null;
+  const xpData = getXP();
+  const xpProgress = xpData.level > 0 ? (xpData.xp / xpData.nextLevelXP) : 0;
 
-  const handleAntwort = (idx) => {
-    setGewaehlt(idx);
-    if (idx === challenge.richtig) {
-      setPunkte(p => p + 10 + streak * 2);
-      setStreak(s => s + 1);
-      setGelernt(prev => [...prev, challenge.erklaerung.split(' \u2014 ')[0]]);
+  // Loading / resume
+  useEffect(() => {
+    const saved = resumeStory();
+    if (saved && saved.characterArchetype) {
+      setGameState(saved);
+      const st = saved.currentState;
+      if (st === 'chapter_intro') setPhase('chapter_intro');
+      else if (st === 'challenge') setPhase('challenge');
+      else if (st === 'boss_fight') setPhase('boss_fight');
+      else if (st === 'decision') setPhase('decision');
+      else if (st === 'chapter_outro') setPhase('chapter_outro');
+      else if (st === 'game_over') setPhase('ending');
+      else setPhase('story_intro');
     } else {
-      setStreak(0);
+      setPhase('select_character');
     }
+  }, []);
+
+  // Character selection
+  const handleCharacterSelect = useCallback((archetype) => {
+    const state = initStory(archetype);
+    setGameState(state);
+    setPhase('story_intro');
+  }, []);
+
+  // Start first chapter
+  const startAdventure = useCallback(() => {
+    const state = advanceState('start_chapter');
+    setGameState(state);
+    setPhase('chapter_intro');
+  }, []);
+
+  // Begin challenges for current chapter
+  const acceptChallenge = useCallback(() => {
+    const state = advanceState('start_challenge');
+    setGameState(state);
+    setPhase('challenge');
+  }, []);
+
+  // Challenge complete handler
+  const handleChallengeComplete = useCallback((result) => {
+    const score = result.score || 0;
+    const xp = result.correct ? XP_PER_CHALLENGE : Math.floor(XP_PER_CHALLENGE * 0.3);
+
+    if (result.correct) {
+      eventBus.emit('sound:play', { sound: 'success' });
+    } else {
+      eventBus.emit('sound:play', { sound: 'error' });
+    }
+
+    addXP(xp, 'story_challenge');
+    setChapterXP(prev => prev + xp);
+
+    const hasBoss = !!chapter?.boss;
+    const state = advanceState('complete_challenge', {
+      score,
+      xp,
+      maxChallenges: chapter?.challenges?.length || 3,
+      hasBoss,
+    });
+    setGameState(state);
+
+    // Auto-advance after short delay
+    setTimeout(() => {
+      if (state.currentState === 'boss_fight' && chapter?.boss) {
+        setPhase('boss_fight');
+      } else if (state.currentState === 'chapter_outro') {
+        if (chapter?.decision) {
+          setPhase('decision');
+        } else {
+          setPhase('chapter_outro');
+        }
+      } else {
+        setPhase('challenge');
+      }
+    }, 1800);
+  }, [chapter]);
+
+  // Boss fight complete
+  const handleBossComplete = useCallback((result) => {
+    const xp = result.won ? XP_PER_BOSS : Math.floor(XP_PER_BOSS * 0.2);
+    addXP(xp, 'story_boss');
+    setChapterXP(prev => prev + xp);
+    eventBus.emit('sound:play', { sound: result.won ? 'success' : 'error' });
+
+    const hasDecision = !!chapter?.decision;
+    const state = advanceState('complete_boss', { xp, score: result.score || 0, hasDecision });
+    setGameState(state);
+
+    if (hasDecision) setPhase('decision');
+    else setPhase('chapter_outro');
+  }, [chapter]);
+
+  // Decision made
+  const handleDecision = useCallback((choice) => {
+    const isLastChapter = gameState.currentChapter >= TOTAL_CHAPTERS - 1;
+    const state = advanceState('make_decision', { choiceId: choice.storyFlag, isLastChapter });
+    setGameState(state);
+    if (isLastChapter) setPhase('ending');
+    else setPhase('chapter_outro');
+  }, [gameState]);
+
+  // Next chapter
+  const nextChapter = useCallback(() => {
+    checkAchievements('story_chapter', {
+      chapter: gameState.currentChapter + 1,
+      totalChapters: TOTAL_CHAPTERS,
+      punkte: gameState.chapterScores[gameState.currentChapter] || 0,
+      storyComplete: gameState.currentChapter >= TOTAL_CHAPTERS - 1,
+    });
+
+    if (gameState.currentChapter >= TOTAL_CHAPTERS - 1) {
+      setPhase('ending');
+      return;
+    }
+
+    setChapterXP(0);
+    const state = advanceState('next_chapter');
+    setGameState(state);
+    setPhase('chapter_intro');
+  }, [gameState]);
+
+  // Restart game
+  const restartGame = useCallback(() => {
+    resetStory();
+    setGameState(null);
+    setChapterXP(0);
+    setShowConfetti(false);
+    setPhase('select_character');
+  }, []);
+
+  // Show confetti for ending
+  useEffect(() => {
+    if (phase === 'ending') setShowConfetti(true);
+  }, [phase]);
+
+  // Render challenge component by type
+  const renderChallenge = () => {
+    if (!challenge) return null;
+    const typ = challenge.typ;
+    const props = { challenge, onComplete: handleChallengeComplete };
+
+    if (typ === 'free_text') return <FreeTextChallenge {...props} />;
+    if (typ === 'word_order') return <WordOrderChallenge {...props} />;
+    if (typ === 'fill_blank') return <FillBlankChallenge {...props} />;
+    // multiple_choice and all legacy types (wort_wahl, luecke, synonym, bedeutung, gegenteil, stilmittel, satz_bauen, klimax, meister)
+    return <MultipleChoiceChallenge {...props} />;
   };
 
-  const weiter = () => {
-    setGewaehlt(null);
-    if (challengeIdx < kapitel.challenges.length - 1) {
-      setChallengeIdx(challengeIdx + 1);
-      setPhase('challenge');
-    } else {
-      setPhase('outro');
-    }
-  };
+  // Determine ending
+  const ending = gameState ? determineEnding(gameState.playerChoices) : null;
 
-  const naechstesKapitel = () => {
-    if (kapitelIdx < STORY.kapitel.length - 1) {
-      setKapitelIdx(kapitelIdx + 1);
-      setChallengeIdx(0);
-      setPhase('kapitel');
-    } else {
-      setPhase('ende');
-    }
-  };
+  // Typewriter for intro
+  const introText = useTypewriter(
+    phase === 'story_intro'
+      ? 'In den nebelverhangenen Gassen einer vergessenen Stadt liegt die Akademie der Eloquenz verborgen. Einst der Hort der größten Redner, Dichter und Gelehrten, schweigt sie nun seit Jahrzehnten. Doch heute Nacht flackern die Laternen wieder auf \u2014 denn ein neuer Adept hat den Ruf vernommen\u2026'
+      : '',
+    35
+  );
 
   return (
     <div className={styles.wrapper}>
-      {/* Score Bar */}
-      <div className={styles.scoreBar}>
-        <div className={styles.scoreLeft}>
-          <span className={styles.points}>{punkte} Punkte</span>
-          {streak > 1 && <Badge>{streak}x Streak</Badge>}
-        </div>
-        <span className={styles.wordsLearned}>{gelernt.length} Wörter gelernt</span>
-      </div>
+      <Confetti active={showConfetti} />
 
-      {/* INTRO */}
-      {phase === 'intro' && (
-        <div className="animate-in" style={{ textAlign: 'center' }}>
+      {/* Top Bar — visible during play */}
+      {gameState && phase !== 'select_character' && phase !== 'loading' && (
+        <div className={styles.topBar}>
+          <span className={styles.chapterProgress}>
+            Kapitel {(gameState.currentChapter || 0) + 1}/{TOTAL_CHAPTERS}
+          </span>
+          <div className={styles.xpBar}>
+            <GoldBar value={xpProgress} max={1} />
+          </div>
+          <div className={styles.characterPortrait}>
+            <OrnamentIcon name={ARCHETYPE_ICONS[gameState.characterArchetype] || 'buchOffen'} size="sm" />
+          </div>
+          <span className={styles.points}>{gameState.totalXP || 0} XP</span>
+        </div>
+      )}
+
+      {/* LOADING */}
+      {phase === 'loading' && (
+        <div className="animate-in" style={{ textAlign: 'center', padding: '64px 0' }}>
+          <OrnamentIcon name="buchOffen" size="xl" />
+          <p style={{ color: 'var(--text-muted)', marginTop: 16 }}>Lade Geschichte...</p>
+        </div>
+      )}
+
+      {/* CHARACTER SELECT */}
+      {phase === 'select_character' && (
+        <div className="animate-in">
+          <CharacterSelect archetypes={ARCHETYPES} onSelect={handleCharacterSelect} />
+        </div>
+      )}
+
+      {/* STORY INTRO */}
+      {phase === 'story_intro' && (
+        <div className={`${styles.storyIntro} animate-in`}>
           <OrnamentIcon name="buchOffen" size="xl" style={{ marginBottom: 16 }} />
-          <h1 className={styles.introTitle}>{STORY.titel}</h1>
+          <h1 className={styles.introTitle}>Die Akademie der Eloquenz</h1>
+          <OrnamentDivider />
           <Card>
-            <p className={`${styles.introText} drop-cap`}>{STORY.intro}</p>
+            <p className={`${styles.introText} drop-cap`}>{introText}</p>
           </Card>
           <div style={{ marginTop: 28 }}>
-            <Button variant="gold" onClick={() => setPhase('kapitel')}>Abenteuer beginnen \u2192</Button>
+            <Button variant="gold" onClick={startAdventure}>Abenteuer beginnen &#8594;</Button>
           </div>
         </div>
       )}
 
-      {/* KAPITEL-INTRO */}
-      {phase === 'kapitel' && kapitel && (
+      {/* CHAPTER INTRO */}
+      {phase === 'chapter_intro' && chapter && (
         <div className="animate-in">
-          <Badge>Kapitel {kapitel.id} von {STORY.kapitel.length}</Badge>
-          <h2 className={styles.kapitelTitle}>{kapitel.titel}</h2>
+          <Badge>Kapitel {chapter.id} von {TOTAL_CHAPTERS}</Badge>
+          <h2 className={styles.kapitelTitle}>{chapter.titel}</h2>
           <Card>
-            <p className={styles.szene}>{kapitel.szene}</p>
-            <div className={styles.dialog}>{kapitel.dialog}</div>
+            <p className={styles.szene}>{chapter.szene}</p>
+            <div className={styles.dialog}>{chapter.dialog}</div>
           </Card>
           <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Button variant="gold" onClick={() => setPhase('challenge')}>Prüfung annehmen \u2192</Button>
+            <Button variant="gold" onClick={acceptChallenge}>Pr&uuml;fung annehmen &#8594;</Button>
           </div>
         </div>
       )}
@@ -137,128 +275,99 @@ export function StoryPage({ onNavigate }) {
       {phase === 'challenge' && challenge && (
         <div className="animate-in">
           <div className={styles.challengeBar}>
-            <Badge>Prüfung {challengeIdx + 1}/{kapitel.challenges.length}</Badge>
-            <Badge>Kapitel {kapitel.id}</Badge>
+            <Badge>Pr&uuml;fung {challengeIdx + 1}/{chapter.challenges.length}</Badge>
+            <Badge>Kapitel {chapter.id}</Badge>
           </div>
-          <Card>
-            <p className={styles.frage}>{challenge.frage}</p>
-            <div className={styles.optionen}>
-              {challenge.optionen.map((opt, i) => {
-                const isGewaehlt = gewaehlt === i;
-                const istRichtig = i === challenge.richtig;
-                const zeigeErgebnis = gewaehlt !== null;
-
-                let optClass = styles.option;
-                if (zeigeErgebnis) {
-                  if (istRichtig) optClass = styles.optionRichtig;
-                  else if (isGewaehlt && !istRichtig) optClass = styles.optionFalsch;
-                  else optClass = `${styles.option} ${styles.optionDisabled}`;
-                }
-
-                return (
-                  <div
-                    key={i}
-                    onClick={() => gewaehlt === null && handleAntwort(i)}
-                    className={optClass}
-                    style={isGewaehlt ? { fontWeight: 600 } : undefined}
-                  >
-                    <span className={styles.optionLetter}>{String.fromCharCode(65 + i)}.</span>
-                    {opt}
-                  </div>
-                );
-              })}
-            </div>
-
-            {gewaehlt !== null && (
-              <div className={`${styles.resultBox} animate-in`}>
-                <div className={gewaehlt === challenge.richtig ? styles.resultRichtig : styles.resultFalsch}>
-                  <div className={gewaehlt === challenge.richtig ? styles.resultLabelOk : styles.resultLabelFail}>
-                    {gewaehlt === challenge.richtig ? '\u2713 Richtig!' : '\u2717 Leider falsch'}
-                    {streak > 1 && gewaehlt === challenge.richtig && (
-                      <span className={styles.streakBonus}>{streak}x Streak! (+{streak * 2} Bonus)</span>
-                    )}
-                  </div>
-                  <p className={styles.erklaerung}>{challenge.erklaerung}</p>
-                  <div className={styles.belohnung}>{challenge.belohnung}</div>
-                </div>
-                <div style={{ textAlign: 'center', marginTop: 16 }}>
-                  <Button variant="gold" onClick={weiter}>
-                    {challengeIdx < kapitel.challenges.length - 1 ? 'Nächste Prüfung \u2192' : 'Weiter in der Geschichte \u2192'}
-                  </Button>
-                </div>
-              </div>
-            )}
-          </Card>
+          {renderChallenge()}
         </div>
       )}
 
-      {/* OUTRO */}
-      {phase === 'outro' && kapitel && (
+      {/* BOSS FIGHT */}
+      {phase === 'boss_fight' && chapter?.boss && (
         <div className="animate-in">
-          <h2 className={styles.outroTitle}>{kapitel.titel} \u2014 Abschluss</h2>
+          <BossFight boss={chapter.boss} archetype={gameState.characterArchetype} onComplete={handleBossComplete} />
+        </div>
+      )}
+
+      {/* DECISION */}
+      {phase === 'decision' && chapter?.decision && (
+        <div className="animate-in">
+          <StoryDecision decision={chapter.decision} onChoose={handleDecision} />
+        </div>
+      )}
+
+      {/* CHAPTER OUTRO */}
+      {phase === 'chapter_outro' && chapter && (
+        <div className="animate-in">
+          <h2 className={styles.outroTitle}>{chapter.titel} &mdash; Abschluss</h2>
           <Card>
-            <p className={styles.outroText}>{kapitel.outro}</p>
+            <p className={styles.outroText}>{chapter.outro}</p>
+          </Card>
+          <Card style={{ maxWidth: 400, margin: '20px auto', textAlign: 'center' }}>
+            <div className={styles.statGrid}>
+              <div className={styles.statBox}>
+                <div className={styles.statNumGold}>{gameState.chapterScores[gameState.currentChapter] || 0}</div>
+                <div className={styles.statLabel}>Kapitel-Punkte</div>
+              </div>
+              <div className={styles.statBox}>
+                <div className={styles.statNumGreen}>+{chapterXP}</div>
+                <div className={styles.statLabel}>XP erhalten</div>
+              </div>
+            </div>
           </Card>
           <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Button variant="gold" onClick={naechstesKapitel}>
-              {kapitelIdx < STORY.kapitel.length - 1 ? `Kapitel ${kapitel.id + 1} \u2192` : 'Zum Abschluss \u2192'}
+            <Button variant="gold" onClick={nextChapter}>
+              {gameState.currentChapter < TOTAL_CHAPTERS - 1
+                ? `N\u00E4chstes Kapitel \u2192`
+                : 'Zum Abschluss \u2192'}
             </Button>
           </div>
         </div>
       )}
 
-      {/* ENDE */}
-      {phase === 'ende' && (
-        <div className="animate-in" style={{ textAlign: 'center' }}>
+      {/* ENDING */}
+      {phase === 'ending' && ending && (
+        <div className={`${styles.endingSection} animate-in`}>
           <OrnamentIcon name="lorbeer" size="xl" style={{ marginBottom: 16 }} />
-          <h1 className={styles.endeTitle}>Die Akademie erwacht!</h1>
-          <p className={styles.endeDesc}>
-            Du hast die ersten drei Kapitel gemeistert und die Worte der Akademie befreit.
-            Deine Reise hat gerade erst begonnen\u2026
-          </p>
+          <h1 className={styles.endeTitle}>{ending.titel}</h1>
+          <OrnamentDivider />
+          <Card glow ornate style={{ maxWidth: 520, margin: '0 auto 24px' }}>
+            <p className={styles.outroText}>{ending.text}</p>
+          </Card>
 
-          <Card glow ornate style={{ maxWidth: 400, margin: '0 auto 24px' }}>
+          <Card glow style={{ maxWidth: 400, margin: '0 auto 24px' }}>
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
-              <div className={styles.endScore}>{punkte}</div>
-              <div className={styles.endScoreLabel}>Gesamtpunkte</div>
+              <div className={styles.endScore}>{gameState.totalXP}</div>
+              <div className={styles.endScoreLabel}>Gesamt-XP</div>
               <div className={styles.statGrid}>
                 <div className={styles.statBox}>
-                  <div className={styles.statNumGreen}>{gelernt.length}</div>
-                  <div className={styles.statLabel}>Wörter gelernt</div>
+                  <div className={styles.statNumGold}>
+                    {gameState.chapterScores.reduce((a, b) => a + b, 0)}
+                  </div>
+                  <div className={styles.statLabel}>Gesamtpunkte</div>
                 </div>
                 <div className={styles.statBox}>
-                  <div className={styles.statNumGold}>{streak > 0 ? streak : '\u2014'}</div>
-                  <div className={styles.statLabel}>Beste Streak</div>
+                  <div className={styles.statNumGreen}>{TOTAL_CHAPTERS}</div>
+                  <div className={styles.statLabel}>Kapitel gemeistert</div>
                 </div>
               </div>
             </div>
           </Card>
 
-          {gelernt.length > 0 && (
-            <Card style={{ maxWidth: 400, margin: '0 auto 24px', textAlign: 'left' }}>
-              <div className={styles.gelernteTitle}>
-                <OrnamentIcon name="buchOffen" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-                Gelernte Wörter
-              </div>
-              <div className={styles.gelernteWrap}>
-                {gelernt.map((w, i) => <Badge key={i}>{w}</Badge>)}
-              </div>
-            </Card>
-          )}
-
-          <div className={styles.hinweisBox}>
-            <div className={styles.hinweisText}>
-              {'\u201E'}Weitere Kapitel folgen in kommenden Updates.
-              Bis dahin: Übe deine Eloquenz im Duell- oder Übungsmodus!{'\u201C'}
-            </div>
-          </div>
-
           <div className={styles.finalActions}>
-            <Button variant="gold" onClick={() => {
-              setPhase('intro'); setKapitelIdx(0); setChallengeIdx(0);
-              setPunkte(0); setGelernt([]); setStreak(0);
-            }}>Nochmal spielen</Button>
-            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Menü</Button>
+            <Button variant="gold" onClick={restartGame}>Nochmal spielen</Button>
+            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Men&uuml;</Button>
+          </div>
+        </div>
+      )}
+
+      {/* GAME OVER (failure fallback) */}
+      {phase === 'game_over' && (
+        <div className="animate-in" style={{ textAlign: 'center' }}>
+          <h2 className={styles.endeTitle}>Spiel beendet</h2>
+          <div className={styles.finalActions}>
+            <Button variant="gold" onClick={restartGame}>Nochmal spielen</Button>
+            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Men&uuml;</Button>
           </div>
         </div>
       )}

@@ -1,0 +1,116 @@
+.wrapper {
+  width: 100%;
+}
+
+.frage {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  margin-bottom: 24px;
+  font-weight: 500;
+}
+
+.optionen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 15px;
+  transition: all var(--transition-fast);
+  font-weight: 400;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.option:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-copper);
+}
+
+.optionFaded {
+  cursor: default;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.optionCorrect {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 400;
+  cursor: default;
+  background: rgba(74, 103, 65, 0.08);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.optionWrong {
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 400;
+  cursor: default;
+  background: rgba(139, 58, 58, 0.08);
+  border: 1px solid var(--error);
+  color: var(--error);
+}
+
+.optionLetter {
+  margin-right: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.resultBox {
+  margin-top: 20px;
+}
+
+.resultBanner {
+  padding: 16px;
+  border-radius: var(--radius-md);
+}
+
+.resultCorrect {
+  composes: resultBanner;
+  background: rgba(74, 103, 65, 0.06);
+  border: 1px solid var(--success);
+}
+
+.resultWrong {
+  composes: resultBanner;
+  background: rgba(139, 58, 58, 0.06);
+  border: 1px solid var(--error);
+}
+
+.resultLabelOk {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--success);
+}
+
+.resultLabelFail {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: var(--error);
+}
+
+.erklaerung {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.weiterWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}

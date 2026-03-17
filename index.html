@@ -15,7 +15,7 @@
     <meta property="og:title" content="ELOQUENT — Das Wortduell" />
     <meta property="og:description" content="Trainiere deine Eloquenz in eleganten Rededuellen mit KI-Bewertung." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://eloquent2.vercel.app" />
+    <meta property="og:url" content="https://eloquent-iota.vercel.app" />
     <title>ELOQUENT — Das Wortduell</title>
     <style>
       /* Critical inline styles to prevent FOUC */
@@ -25,5 +25,12 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
