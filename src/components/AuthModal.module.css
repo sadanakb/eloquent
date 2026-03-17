@@ -238,3 +238,17 @@
   font-size: 14px;
   color: var(--text-secondary);
 }
+
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+@media (max-width: 767px) {
+  .modal {
+    align-self: flex-start;
+    margin-top: 10vh;
+    border-radius: var(--radius-lg) var(--radius-lg) var(--radius-lg) var(--radius-lg);
+  }
+}

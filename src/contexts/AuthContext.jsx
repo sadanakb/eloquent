@@ -27,7 +27,23 @@ export function AuthProvider({ children }) {
     if (sessionUser) {
       setUser(sessionUser);
       setIsAuthenticated(true);
-      const p = await fetchProfile(sessionUser.id);
+      let p = await fetchProfile(sessionUser.id);
+      if (!p) {
+        // Auto-create bare profile for new users
+        const { data } = await supabase
+          .from('profiles')
+          .upsert({
+            id: sessionUser.id,
+            elo_rating: 1200,
+            wins: 0,
+            losses: 0,
+            total_games: 0,
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+        p = data || null;
+      }
       setProfile(p);
     } else {
       setUser(null);
@@ -89,8 +105,7 @@ export function AuthProvider({ children }) {
     if (!supabase || !user) return null;
     const { data, error } = await supabase
       .from('profiles')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', user.id)
+      .upsert({ id: user.id, ...updates, updated_at: new Date().toISOString() })
       .select()
       .single();
     if (error) {

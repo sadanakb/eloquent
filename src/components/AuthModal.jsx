@@ -104,6 +104,8 @@ export function AuthModal({ onClose }) {
               </div>
             </div>
 
+            <div className={styles.divider} />
+
             <Button variant="gold" onClick={signIn} style={{ width: '100%', justifyContent: 'center' }}>
               <OrnamentIcon name="stern" size="sm" />
               Mit Google anmelden
