@@ -42,7 +42,15 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Get initial session
+    // Handle OAuth redirect — check for hash params first
+    const hashParams = window.location.hash;
+    if (hashParams && hashParams.includes('access_token')) {
+      // Clean URL immediately to prevent React Router issues
+      const cleanPath = window.location.pathname + window.location.search;
+      window.history.replaceState(null, '', cleanPath);
+    }
+
+    // Get initial session (this also processes OAuth tokens from hash)
     supabase.auth.getSession().then(({ data: { session } }) => {
       handleUserChange(session?.user ?? null).finally(() => setIsLoading(false));
     });

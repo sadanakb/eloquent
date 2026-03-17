@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { EinstellungenModal } from './components/EinstellungenModal.jsx';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext.jsx';
 import { NavBar } from './components/NavBar.jsx';
@@ -48,6 +49,7 @@ function AppRoutes() {
   }, [navigate]);
 
   const [setupDone, setSetupDone] = useState(() => localStorage.getItem('eloquent_setup_done') === '1');
+  const [showSettings, setShowSettings] = useState(false);
 
   if (!setupDone) {
     return <SetupWizard onComplete={() => setSetupDone(true)} />;
@@ -72,7 +74,8 @@ function AppRoutes() {
           <Route path="*" element={<HeroPage onNavigate={onNavigate} />} />
         </Routes>
       </PageTransition>
-      <BottomNav activePage={currentPage} onNavigate={onNavigate} />
+      <BottomNav activePage={currentPage} onNavigate={onNavigate} onOpenSettings={() => setShowSettings(true)} />
+      {showSettings && <EinstellungenModal onClose={() => setShowSettings(false)} />}
     </div>
   );
 }

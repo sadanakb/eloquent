@@ -33,6 +33,8 @@ export function HeroPage({ onNavigate }) {
 
         <DailyChallenge onPlay={() => onNavigate('uebung')} />
 
+        <InstallPrompt />
+
         <div className={styles.navLinks}>
           {[
             { icon: 'buch', label: 'Wörterbücherei', page: 'woerterbuch' },
@@ -49,8 +51,6 @@ export function HeroPage({ onNavigate }) {
             </div>
           ))}
         </div>
-
-        <InstallPrompt />
       </div>
     </div>
   );

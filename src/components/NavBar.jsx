@@ -23,6 +23,7 @@ export function NavBar({ current, onNavigate }) {
   const navItems = [
     { id: 'duell', label: 'Duell' },
     { id: 'online', label: 'Online' },
+    { id: 'story', label: 'Story' },
     { id: 'uebung', label: 'Übung' },
     { id: 'woerterbuch', label: 'Wörter' },
     { id: 'rangliste', label: 'Rangliste' },

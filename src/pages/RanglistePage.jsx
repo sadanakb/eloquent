@@ -24,12 +24,7 @@ export function RanglistePage() {
   const [globalData, setGlobalData] = useState([]);
   const [loadingGlobal, setLoadingGlobal] = useState(false);
 
-  let auth = null;
-  try {
-    auth = useAuth();
-  } catch {
-    // AuthProvider might not be present
-  }
+  const auth = useAuth();
 
   const userId = auth?.user?.id;
 

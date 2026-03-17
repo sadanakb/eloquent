@@ -17,9 +17,10 @@ const DRAWER_ITEMS = [
   { id: 'achievements', label: 'Errungenschaften' },
   { id: 'profil', label: 'Profil' },
   { id: 'regeln', label: 'Regeln' },
+  { id: 'einstellungen', label: 'Einstellungen' },
 ];
 
-export function BottomNav({ activePage, onNavigate }) {
+export function BottomNav({ activePage, onNavigate, onOpenSettings }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleTab = (id) => {
@@ -32,6 +33,11 @@ export function BottomNav({ activePage, onNavigate }) {
   };
 
   const handleDrawerItem = (id) => {
+    if (id === 'einstellungen') {
+      setDrawerOpen(false);
+      onOpenSettings?.();
+      return;
+    }
     setDrawerOpen(false);
     onNavigate(id);
   };

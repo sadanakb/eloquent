@@ -26,7 +26,7 @@ export function AchievementPage({ onNavigate }) {
         {onNavigate && (
           <button
             className={styles.backBtn}
-            onClick={() => onNavigate('hero')}
+            onClick={() => onNavigate('home')}
             aria-label="Zurück"
           >
             &larr; Zurück
