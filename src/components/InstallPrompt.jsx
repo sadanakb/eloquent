@@ -58,8 +58,8 @@ export function InstallPrompt() {
         <Button variant="gold" onClick={handleInstall} className={styles.installBtn}>
           Installieren
         </Button>
-        <button className={styles.dismissBtn} onClick={handleDismiss} aria-label="Schlie\u00dfen">
-          \u2715
+        <button className={styles.dismissBtn} onClick={handleDismiss} aria-label="Schließen">
+          ✕
         </button>
       </div>
     </div>
