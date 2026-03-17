@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, isOnline } from '../lib/supabase.js';
 
 const AuthContext = createContext(null);
@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const initializedRef = useRef(false);
 
   async function fetchProfile(userId) {
     if (!supabase) return null;
@@ -22,17 +23,16 @@ export function AuthProvider({ children }) {
     return data || null;
   }
 
-  const handleUserChange = useCallback(async (sessionUser) => {
-    if (sessionUser) {
-      setUser(sessionUser);
+  const handleSession = useCallback(async (session) => {
+    if (session?.user) {
+      setUser(session.user);
       setIsAuthenticated(true);
-      let p = await fetchProfile(sessionUser.id);
-      if (!p) {
-        // Auto-create bare profile for new users
+      let p = await fetchProfile(session.user.id);
+      if (!p && supabase) {
         const { data } = await supabase
           .from('profiles')
           .upsert({
-            id: sessionUser.id,
+            id: session.user.id,
             elo_rating: 1200,
             wins: 0,
             losses: 0,
@@ -58,24 +58,35 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Supabase v2: onAuthStateChange MUST be registered FIRST.
-    // It fires INITIAL_SESSION automatically (handles OAuth hash too).
+    // 1. Subscribe to auth changes (catches future changes + INITIAL_SESSION)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('[Auth]', event, session?.user?.email);
-        handleUserChange(session?.user ?? null);
-
-        // Clean up OAuth hash fragments from URL after successful sign-in
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          window.history.replaceState(null, '', window.location.pathname);
-        }
+      (_event, session) => {
+        handleSession(session);
       }
     );
+
+    // 2. Also explicitly get session as backup
+    //    This handles the case where INITIAL_SESSION already fired
+    //    before our listener was registered
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!initializedRef.current) {
+        initializedRef.current = true;
+        handleSession(session);
+      }
+    });
+
+    // Clean hash fragments from URL (OAuth redirect leaves them)
+    if (window.location.hash && window.location.hash.includes('access_token')) {
+      // Small delay to let Supabase process the hash first
+      setTimeout(() => {
+        window.history.replaceState(null, '', window.location.pathname);
+      }, 500);
+    }
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [handleUserChange]);
+  }, [handleSession]);
 
   async function signIn() {
     if (!supabase) return;
@@ -109,18 +120,8 @@ export function AuthProvider({ children }) {
     return data;
   }
 
-  const value = {
-    user,
-    profile,
-    isAuthenticated,
-    isLoading,
-    signIn,
-    signOut,
-    updateProfile,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, profile, isAuthenticated, isLoading, signIn, signOut, updateProfile }}>
       {children}
     </AuthContext.Provider>
   );
