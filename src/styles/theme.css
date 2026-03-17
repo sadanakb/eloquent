@@ -1,45 +1,46 @@
 /* ═══════════════════════════════════════════════
-   ELOQUENT — Design Tokens (Retro-Intellektuell)
-   1920er Literatur-Magazin / Wiener Café Ästhetik
+   ELOQUENT — Design Tokens (Modern Literary)
+   Clean, warm, premium aesthetic
    ═══════════════════════════════════════════════ */
 
 :root {
-  /* ── Backgrounds ── */
-  --bg-page:       #F5F0E8;
-  --bg-card:       #FFFDF7;
-  --bg-card-hover: #FBF7EE;
-  --bg-elevated:   #F0EAD6;
-  --bg-inset:      #EDE5D3;
+  /* ── Backgrounds — cleaner, less yellow ── */
+  --bg-page:       #FAFAF7;
+  --bg-card:       #FFFFFF;
+  --bg-card-hover: #F8F7F4;
+  --bg-elevated:   #F3F1EC;
+  --bg-inset:      #EDEAE3;
 
-  /* ── Text ── */
-  --text-primary:  #2C1810;
-  --text-secondary:#5C4A3A;
-  --text-muted:    #8B7B6B;
-  --text-dim:      #8B7B6B;
+  /* ── Text — sharper contrast ── */
+  --text-primary:  #1A1A1A;
+  --text-secondary:#4A4A4A;
+  --text-muted:    #8A8A8A;
+  --text-dim:      #ABABAB;
 
-  /* ── Accents ── */
-  --accent-gold:   #8B6914;
-  --accent-copper: #C4956A;
-  --accent-warm:   #A67C52;
+  /* ── Accents — richer, more modern gold + a new blue accent ── */
+  --accent-gold:   #B8860B;
+  --accent-copper: #D4A574;
+  --accent-warm:   #C49A6C;
+  --accent-blue:   #4A6FA5;
 
-  /* ── Legacy aliases (Kompatibilität während Migration) ── */
-  --bg-deep:       #F5F0E8;
-  --gold:          #8B6914;
-  --gold-bright:   #A67C00;
-  --gold-dim:      #C4956A;
+  /* ── Legacy aliases (updated values) ── */
+  --bg-deep:       #FAFAF7;
+  --gold:          #B8860B;
+  --gold-bright:   #D4A017;
+  --gold-dim:      #D4A574;
   --accent:        #6B4E2E;
-  --green:         #4A6741;
-  --green-dim:     #3A5235;
-  --red:           #8B3A3A;
-  --red-dim:       #6B2A2A;
-  --text:          #2C1810;
-  --border:        #D4C5A9;
-  --border-light:  #E2D6BE;
+  --green:         #2D7A4F;
+  --green-dim:     #1E5E3A;
+  --red:           #C0392B;
+  --red-dim:       #962D22;
+  --text:          #1A1A1A;
+  --border:        #E0DDD6;
+  --border-light:  #ECEAE4;
 
-  /* ── Semantic ── */
-  --error:         #8B3A3A;
-  --success:       #4A6741;
-  --warning:       #8B6914;
+  /* ── Semantic — more vivid ── */
+  --error:         #C0392B;
+  --success:       #2D7A4F;
+  --warning:       #B8860B;
 
   /* ── Spacing ── */
   --space-xs:  4px;
@@ -50,19 +51,19 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
-  /* ── Radii ── */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* ── Radii — slightly more modern ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
 
-  /* ── Shadows ── */
-  --shadow-card:     0 1px 3px rgba(44, 24, 16, 0.06), 0 1px 2px rgba(44, 24, 16, 0.04);
-  --shadow-elevated: 0 4px 12px rgba(44, 24, 16, 0.08), 0 2px 4px rgba(44, 24, 16, 0.04);
-  --shadow-inset:    inset 0 1px 3px rgba(44, 24, 16, 0.06);
+  /* ── Shadows — softer, more modern ── */
+  --shadow-card:     0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-elevated: 0 8px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-inset:    inset 0 1px 2px rgba(0,0,0,0.04);
 
-  /* ── Typography ── */
+  /* ── Typography — cleaner sans-serif for body, keep serif for display ── */
   --font-display:  'Cormorant Garamond', 'Georgia', serif;
-  --font-body:     'Libre Baskerville', 'Georgia', serif;
+  --font-body:     'Inter', -apple-system, 'Segoe UI', sans-serif;
   --font-logo:     'Old Standard TT', 'Georgia', serif;
   --font-mono:     'JetBrains Mono', monospace;
 

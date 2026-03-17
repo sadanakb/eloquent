@@ -32,6 +32,7 @@ export function NavBar({ current, onNavigate }) {
   return (
     <>
       <nav className={styles.nav}>
+        <div className={styles.navInner}>
         <LogoCompact onClick={() => onNavigate('home')} />
 
         <div className={styles.links}>
@@ -72,6 +73,7 @@ export function NavBar({ current, onNavigate }) {
           >
             ⚙
           </button>
+        </div>
         </div>
       </nav>
       {showSettings && (

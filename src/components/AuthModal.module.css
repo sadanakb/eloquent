@@ -5,15 +5,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(44, 24, 16, 0.5);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
 }
 
 .modal {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 32px;
+  padding: 36px;
   max-width: 480px;
   width: 90%;
   box-shadow: var(--shadow-elevated);

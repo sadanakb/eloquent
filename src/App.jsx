@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { EinstellungenModal } from './components/EinstellungenModal.jsx';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext.jsx';
+import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
+import { AuthModal } from './components/AuthModal.jsx';
 import { NavBar } from './components/NavBar.jsx';
 import { SetupWizard } from './components/SetupWizard.jsx';
 import { ToastProvider } from './components/Toast.jsx';
@@ -41,6 +42,7 @@ function AppRoutes() {
   const navigate = useNavigate();
   const location = useLocation();
   const currentPage = routeToPage[location.pathname] || 'home';
+  const { isAuthenticated, profile } = useAuth();
 
   const onNavigate = useCallback((page, state) => {
     const route = pageToRoute[page] || '/';
@@ -57,7 +59,10 @@ function AppRoutes() {
 
   return (
     <div className="texture-paper app-shell">
-      {currentPage !== "home" && <NavBar current={currentPage} onNavigate={onNavigate} />}
+      <NavBar current={currentPage} onNavigate={onNavigate} />
+      {isAuthenticated && profile && !profile.username && (
+        <AuthModal onClose={() => {}} forceOpen />
+      )}
       <PageTransition pageKey={currentPage}>
         <Routes>
           <Route path="/" element={<HeroPage onNavigate={onNavigate} />} />

@@ -24,7 +24,7 @@ const AVATAR_ICON_MAP = {
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/;
 
-export function AuthModal({ onClose }) {
+export function AuthModal({ onClose, forceOpen = false }) {
   const { user, profile, isAuthenticated, isLoading, signIn, signOut, updateProfile } = useAuth();
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState('quill');
@@ -69,9 +69,9 @@ export function AuthModal({ onClose }) {
   };
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay} onClick={forceOpen ? undefined : onClose}>
       <div onClick={e => e.stopPropagation()} className={styles.modal}>
-        <button className={styles.closeX} onClick={onClose} aria-label="Schließen">&times;</button>
+        {!forceOpen && <button className={styles.closeX} onClick={onClose} aria-label="Schließen">&times;</button>}
         {/* Loading state */}
         {isLoading && (
           <div className={styles.loadingWrap}>

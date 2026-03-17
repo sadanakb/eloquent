@@ -1,79 +1,221 @@
-.wrapper {
+.page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
 }
 
-.content {
+.hero {
   text-align: center;
-  position: relative;
-  z-index: 1;
+  padding: 48px 24px 32px;
+  max-width: 600px;
 }
 
 .tagline {
   font-family: var(--font-display);
+  font-size: 22px;
   font-style: italic;
-  font-size: 18px;
   color: var(--text-secondary);
-  max-width: 440px;
-  margin: 0 auto 40px;
-  line-height: 1.6;
+  margin-top: 16px;
+  line-height: 1.5;
 }
 
 .subTagline {
+  font-size: 15px;
   color: var(--text-muted);
+  margin-top: 8px;
+  letter-spacing: 0.05em;
 }
 
-.actions {
+.container {
+  width: 100%;
+  max-width: 960px;
+  padding: 0 24px 64px;
+}
+
+/* Primary action cards */
+.primaryGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  max-width: 480px;
-  margin: 0 auto;
+  margin-bottom: 16px;
 }
 
-.actions > :last-child {
-  grid-column: 1 / -1;
-}
-
-.navLinks {
+.primaryCard {
   display: flex;
-  gap: 32px;
-  justify-content: center;
-  margin-top: 48px;
-  flex-wrap: wrap;
-}
-
-.navItem {
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-  opacity: 0.7;
+  text-align: left;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-card);
 }
 
-.navItem:hover {
-  opacity: 1;
+.primaryCard:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-elevated);
   transform: translateY(-2px);
 }
 
-.navIcon {
-  margin-bottom: 6px;
+.primaryIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--accent-gold);
 }
 
-.navLabel {
-  font-size: 12px;
-  color: var(--text-secondary);
-  letter-spacing: 0.05em;
+.primaryIconAccent {
+  background: rgba(184, 134, 11, 0.08);
+}
+
+.primaryInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.primaryTitle {
   font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
 }
 
-@media (max-width: 768px) {
-  .navLinks {
+.primaryDesc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* Secondary action cards */
+.secondaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.secondaryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  color: var(--text-secondary);
+}
+
+.secondaryCard:hover {
+  border-color: var(--accent-copper);
+  color: var(--accent-gold);
+  background: var(--bg-card-hover);
+}
+
+.secondaryLabel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Quick links — desktop only */
+.quickLinks {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+}
+
+.quickLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.quickLink:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: var(--bg-card);
+}
+
+.greeting {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.greeting strong {
+  color: var(--accent-gold);
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .hero {
+    padding: 32px 20px 24px;
+  }
+
+  .tagline {
+    font-size: 18px;
+  }
+
+  .container {
+    padding: 0 16px 32px;
+  }
+
+  .primaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .secondaryGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .secondaryCard {
+    padding: 16px 8px;
+  }
+
+  .secondaryLabel {
+    font-size: 12px;
+  }
+
+  .quickLinks {
     display: none;
+  }
+
+  .greeting {
+    display: none;
+  }
+}
+
+/* Tablet */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .primaryCard {
+    padding: 20px;
+  }
+
+  .primaryTitle {
+    font-size: 18px;
   }
 }
