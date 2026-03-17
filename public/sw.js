@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eloquent-v1';
+const CACHE_NAME = 'eloquent-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -31,7 +31,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Cache-first for static assets
+  // Network-first for navigation (HTML pages) — always get latest deploy
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Cache-first for static assets (JS/CSS with content hashes)
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetched = fetch(request).then((response) => {

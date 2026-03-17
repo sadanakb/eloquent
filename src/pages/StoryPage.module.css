@@ -402,7 +402,7 @@
 /* ---- Responsive ---- */
 @media (max-width: 600px) {
   .wrapper {
-    padding: 16px 12px;
+    padding: 16px 12px 32px;
   }
 
   .topBar {
