@@ -26,10 +26,17 @@
     <div id="root"></div>
     <script type="module" src="/main.jsx"></script>
     <script>
+      // Unregister any old service workers to prevent stale cache issues
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          registrations.forEach(function(reg) { reg.unregister(); });
         });
+        // Clear all caches
+        if ('caches' in window) {
+          caches.keys().then(function(names) {
+            names.forEach(function(name) { caches.delete(name); });
+          });
+        }
       }
     </script>
   </body>
