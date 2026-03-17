@@ -201,7 +201,7 @@ export function StoryPage({ onNavigate }) {
   // Typewriter for intro
   const introText = useTypewriter(
     phase === 'story_intro'
-      ? 'In den nebelverhangenen Gassen einer vergessenen Stadt liegt die Akademie der Eloquenz verborgen. Einst der Hort der größten Redner, Dichter und Gelehrten, schweigt sie nun seit Jahrzehnten. Doch heute Nacht flackern die Laternen wieder auf \u2014 denn ein neuer Adept hat den Ruf vernommen\u2026'
+      ? 'In den nebelverhangenen Gassen einer vergessenen Stadt liegt die Akademie der Eloquenz verborgen. Einst der Hort der größten Redner, Dichter und Gelehrten, schweigt sie nun seit Jahrzehnten. Doch heute Nacht flackern die Laternen wieder auf — denn ein neuer Adept hat den Ruf vernommen\u2026'
       : '',
     35
   );
@@ -318,8 +318,8 @@ export function StoryPage({ onNavigate }) {
           <div style={{ textAlign: 'center', marginTop: 24 }}>
             <Button variant="gold" onClick={nextChapter}>
               {gameState.currentChapter < TOTAL_CHAPTERS - 1
-                ? `N\u00E4chstes Kapitel \u2192`
-                : 'Zum Abschluss \u2192'}
+                ? `Nächstes Kapitel →`
+                : 'Zum Abschluss →'}
             </Button>
           </div>
         </div>

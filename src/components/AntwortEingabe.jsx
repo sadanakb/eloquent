@@ -153,7 +153,7 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
               {wc} Wörter {wc < 10 ? '(min. 10)' : '\u2713'}
             </span>
             <Button variant="gold" disabled={wc < 10 || timeLeft <= 0} onClick={() => { if (submittedRef.current) return; doSubmit(); }}>
-              Antwort abgeben \u2192
+              Antwort abgeben →
             </Button>
           </div>
         </div>

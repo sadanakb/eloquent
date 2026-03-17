@@ -30,7 +30,7 @@ export function UebungPage() {
     const iv = setInterval(() => {
       const sec = Math.floor((Date.now() - loadingStartRef.current) / 1000);
       setElapsed(sec);
-      document.title = `${sec}s \u2014 Bewertung...`;
+      document.title = `${sec}s — Bewertung...`;
     }, 1000);
     return () => clearInterval(iv);
   }, [loading]);
@@ -69,7 +69,7 @@ export function UebungPage() {
           kreativitaet: { p: 0, f: '' }, textstruktur: { p: 0, f: '' },
         },
         mittel: [], gehobene: [], tipps: ['Nächstes Mal unbedingt eine Antwort abgeben!'],
-        empfehlungen: [], feedback: 'Keine Antwort eingereicht \u2014 0 Punkte.', gaming: false, _methode: 'skip',
+        empfehlungen: [], feedback: 'Keine Antwort eingereicht — 0 Punkte.', gaming: false, _methode: 'skip',
       });
       setPhase('result');
       return;
@@ -133,13 +133,13 @@ export function UebungPage() {
                     <div className={styles.diffLabel}>{o.label}</div>
                     <div className={styles.diffDesc}>{o.desc}</div>
                   </div>
-                  <span className={styles.diffArrow}>\u2192</span>
+                  <span className={styles.diffArrow}>→</span>
                 </div>
               </Card>
             ))}
           </div>
           <div style={{ marginTop: 16 }}>
-            <Button variant="ghost" onClick={() => setPhase('choose')}>\u2190 Zurück</Button>
+            <Button variant="ghost" onClick={() => setPhase('choose')}>← Zurück</Button>
           </div>
         </div>
       )}
@@ -159,7 +159,7 @@ export function UebungPage() {
             </h2>
             <p className={styles.loadingText}>
               {elapsed > 0 && <span className={styles.elapsed}>{elapsed}s </span>}
-              {elapsed >= 15 ? 'Qualität braucht Zeit \u2014 bitte noch kurz Geduld' : 'Bitte warten'}
+              {elapsed >= 15 ? 'Qualität braucht Zeit — bitte noch kurz Geduld' : 'Bitte warten'}
               <span className={styles.dots}>{'.'.repeat((elapsed % 3) + 1)}</span>
             </p>
           </div>

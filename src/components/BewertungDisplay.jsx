@@ -136,7 +136,7 @@ export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
 
         {onWeiter && (
           <div className={styles.weiterBtn}>
-            <Button variant="gold" onClick={onWeiter}>Weiter \u2192</Button>
+            <Button variant="gold" onClick={onWeiter}>Weiter →</Button>
           </div>
         )}
       </Card>

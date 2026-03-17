@@ -23,7 +23,6 @@ export function DailyChallenge({ onPlay }) {
     <Card ornate className={styles.wrapper}>
       {/* Header */}
       <div className={styles.header}>
-        <span className={styles.calendarIcon} aria-hidden="true">&#x1F4C5;</span>
         <h2 className={styles.title}>Tages-Challenge</h2>
         <span className={styles.date}>{date}</span>
       </div>

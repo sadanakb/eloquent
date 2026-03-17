@@ -54,7 +54,7 @@ function AppRoutes() {
   }
 
   return (
-    <div className="texture-paper" style={{ minHeight: "100vh" }}>
+    <div className="texture-paper" style={{ minHeight: "100vh", paddingBottom: 72 }}>
       {currentPage !== "home" && <NavBar current={currentPage} onNavigate={onNavigate} />}
       <PageTransition pageKey={currentPage}>
         <Routes>

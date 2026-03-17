@@ -17,7 +17,6 @@ const DRAWER_ITEMS = [
   { id: 'achievements', label: 'Errungenschaften' },
   { id: 'profil', label: 'Profil' },
   { id: 'regeln', label: 'Regeln' },
-  { id: 'einstellungen', label: 'Einstellungen' },
 ];
 
 export function BottomNav({ activePage, onNavigate }) {

@@ -40,7 +40,7 @@ export function DuellPage({ onNavigate }) {
     const iv = setInterval(() => {
       const sec = Math.floor((Date.now() - loadingStartRef.current) / 1000);
       setElapsed(sec);
-      document.title = `${sec}s \u2014 Bewertung...`;
+      document.title = `${sec}s — Bewertung...`;
     }, 1000);
     return () => clearInterval(iv);
   }, [loading]);
@@ -94,7 +94,7 @@ export function DuellPage({ onNavigate }) {
       kreativitaet: { p: 0, f: '' }, textstruktur: { p: 0, f: '' },
     },
     mittel: [], gehobene: [], tipps: ['Nächstes Mal unbedingt eine Antwort abgeben!'],
-    empfehlungen: [], feedback: 'Keine Antwort eingereicht \u2014 0 Punkte.', gaming: false, _methode: 'skip',
+    empfehlungen: [], feedback: 'Keine Antwort eingereicht — 0 Punkte.', gaming: false, _methode: 'skip',
   };
 
   const handleS1Submit = (text) => {
@@ -189,7 +189,7 @@ export function DuellPage({ onNavigate }) {
             </div>
             <div style={{ textAlign: 'center', marginTop: 28 }}>
               <Button variant="gold" onClick={goToCategory} disabled={!s1.trim() || !s2.trim() || s1.trim().toLowerCase() === s2.trim().toLowerCase()}>
-                Weiter zur Kategorie \u2192
+                Weiter zur Kategorie →
               </Button>
             </div>
           </Card>
@@ -200,7 +200,7 @@ export function DuellPage({ onNavigate }) {
         <div className="animate-in">
           <div className={styles.katHeader}>
             <h2 className={styles.title} style={{ fontSize: 28 }}>Kategorie wählen</h2>
-            <p className={styles.subtitle}>{s1} vs {s2} \u2014 In welchem Feld messt ihr euch?</p>
+            <p className={styles.subtitle}>{s1} vs {s2} — In welchem Feld messt ihr euch?</p>
           </div>
           <div className={styles.katGrid}>
             {(SITUATION_KATEGORIEN || []).map(kat => (
@@ -235,13 +235,13 @@ export function DuellPage({ onNavigate }) {
 
       {phase === 's1_pass' && (
         <div className={`${styles.passScreen} animate-in`}>
-          <div className={styles.passIcon}>\u21C4</div>
+          <div className={styles.passIcon}>⇄</div>
           <h2 className={styles.passTitle}>Gerät weitergeben</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: 32 }}>
             Bitte an <strong className={styles.passPlayer}>{s2}</strong> übergeben.
           </p>
           <Button variant="accent" onClick={() => { setPhase('s2_write'); window.scrollTo(0, 0); }}>
-            {s2} ist bereit \u2192
+            {s2} ist bereit →
           </Button>
         </div>
       )}
@@ -267,23 +267,23 @@ export function DuellPage({ onNavigate }) {
             </h2>
             <p className={styles.loadingText}>
               {elapsed > 0 && <span className={styles.elapsed}>{elapsed}s </span>}
-              {elapsed >= 15 ? 'Qualität braucht Zeit \u2014 bitte noch kurz Geduld' : 'Die Antworten werden analysiert'}
+              {elapsed >= 15 ? 'Qualität braucht Zeit — bitte noch kurz Geduld' : 'Die Antworten werden analysiert'}
               <span className={styles.dots}>{'.'.repeat((elapsed % 3) + 1)}</span>
             </p>
           </div>
         ) : (
           <div>
-            <h2 className={styles.resultTitle}>Runde {runde} \u2014 Ergebnis</h2>
+            <h2 className={styles.resultTitle}>Runde {runde} — Ergebnis</h2>
             <div className={styles.resultGrid}>
               <BewertungDisplay ergebnis={ergebnis1} spielerName={s1} />
-              <div className={styles.vsSep}>\u2014\u2014\u2014 VS \u2014\u2014\u2014</div>
+              <div className={styles.vsSep}>——— VS ———</div>
               <BewertungDisplay ergebnis={ergebnis2} spielerName={s2} />
             </div>
             <div style={{ textAlign: 'center', marginTop: 28 }}>
               <Button variant="gold" onClick={nextRound}>
                 {runde >= 3 ? (
                   <><OrnamentIcon name="lorbeer" size="sm" /> Endergebnis</>
-                ) : `Runde ${runde + 1} \u2192`}
+                ) : `Runde ${runde + 1} →`}
               </Button>
             </div>
           </div>
@@ -304,7 +304,7 @@ export function DuellPage({ onNavigate }) {
                 <div className={styles.finalScoreS1}>{scores.s1.toFixed(1)}</div>
                 <div className={styles.finalRounds}>{scores.r1} Runden</div>
               </div>
-              <div className={styles.finalVs}>\u2694</div>
+              <div className={styles.finalVs}>⚔</div>
               <div>
                 <div className={scores.s2 > scores.s1 ? styles.finalNameWin : styles.finalNameLose}>{s2}</div>
                 <div className={styles.finalScoreS2}>{scores.s2.toFixed(1)}</div>
