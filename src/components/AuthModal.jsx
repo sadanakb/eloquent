@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { Button } from './Button.jsx';
 import { OrnamentIcon } from './Ornament.jsx';
@@ -33,10 +33,18 @@ export function AuthModal({ onClose }) {
 
   const needsSetup = isAuthenticated && profile && !profile.username;
 
+  // Auto-close modal when user signs in with a complete profile
+  // This ensures auth-dependent pages refresh by triggering parent re-render via onClose
+  useEffect(() => {
+    if (isAuthenticated && profile && profile.username) {
+      onClose();
+    }
+  }, [isAuthenticated, profile]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleUsernameChange = (val) => {
     setUsername(val);
     if (val && !USERNAME_RE.test(val)) {
-      setUsernameError('3\u201320 Zeichen, nur Buchstaben, Zahlen und Unterstrich');
+      setUsernameError('3–20 Zeichen, nur Buchstaben, Zahlen und Unterstrich');
     } else {
       setUsernameError('');
     }
@@ -44,7 +52,7 @@ export function AuthModal({ onClose }) {
 
   const handleSaveProfile = async () => {
     if (!USERNAME_RE.test(username)) {
-      setUsernameError('3\u201320 Zeichen, nur Buchstaben, Zahlen und Unterstrich');
+      setUsernameError('3–20 Zeichen, nur Buchstaben, Zahlen und Unterstrich');
       return;
     }
     setSaving(true);
@@ -63,6 +71,7 @@ export function AuthModal({ onClose }) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className={styles.modal}>
+        <button className={styles.closeX} onClick={onClose} aria-label="Schließen">&times;</button>
         {/* Loading state */}
         {isLoading && (
           <div className={styles.loadingWrap}>
@@ -83,7 +92,7 @@ export function AuthModal({ onClose }) {
             <div className={styles.benefitsList}>
               <div className={styles.benefit}>
                 <OrnamentIcon name="federn" size="sm" />
-                <span>Fortschritt geraetuebergreifend speichern</span>
+                <span>Fortschritt geräteübergreifend speichern</span>
               </div>
               <div className={styles.benefit}>
                 <OrnamentIcon name="lorbeer" size="sm" />
@@ -109,7 +118,7 @@ export function AuthModal({ onClose }) {
           <>
             <h2 className={styles.title}>Willkommen bei Eloquent</h2>
             <p className={styles.subtitle}>
-              Waehle einen Benutzernamen und Avatar fuer dein Profil.
+              Wähle einen Benutzernamen und Avatar für dein Profil.
             </p>
 
             <div className={styles.section}>
@@ -186,7 +195,7 @@ export function AuthModal({ onClose }) {
               Abmelden
             </Button>
 
-            <button onClick={onClose} className={styles.closeBtn}>Schliessen</button>
+            <button onClick={onClose} className={styles.closeBtn}>Schließen</button>
           </>
         )}
       </div>

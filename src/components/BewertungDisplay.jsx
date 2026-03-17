@@ -42,11 +42,11 @@ export function BewertungDisplay({ ergebnis, spielerName, onWeiter }) {
           <div>
             {ergebnis._methode === 'ki' ? (
               <span className={styles.methodKi}>
-                KI-Bewertung {ergebnis._provider ? `(${ergebnis._provider}` : ''}{ergebnis._model ? ` / ${ergebnis._model})` : ergebnis._provider ? ')' : ''}{ergebnis._duration ? ` \u00B7 ${ergebnis._duration}s` : ''}
+                KI-Bewertung {ergebnis._provider ? `(${ergebnis._provider}` : ''}{ergebnis._model ? ` / ${ergebnis._model})` : ergebnis._provider ? ')' : ''}{ergebnis._duration ? ` · ${ergebnis._duration}s` : ''}
               </span>
             ) : (
               <span className={styles.methodHeuristik}>
-                Heuristik-Bewertung{ergebnis._duration ? ` \u00B7 ${ergebnis._duration}s` : ''}
+                Heuristik-Bewertung{ergebnis._duration ? ` · ${ergebnis._duration}s` : ''}
               </span>
             )}
           </div>

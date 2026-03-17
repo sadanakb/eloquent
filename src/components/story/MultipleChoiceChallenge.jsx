@@ -65,7 +65,7 @@ export function MultipleChoiceChallenge({ challenge, onComplete }) {
             <div className={styles.weiterWrap}>
               <Badge>{isCorrect ? `+${punkte} Punkte` : '0 Punkte'}</Badge>
               <Button variant="gold" onClick={() => onComplete(isCorrect ? punkte : 0, isCorrect)}>
-                Weiter &rarr;
+                Weiter →
               </Button>
             </div>
           </div>

@@ -70,7 +70,7 @@ export function NavBar({ current, onNavigate }) {
             className={styles.settingsBtn}
             title="Einstellungen"
           >
-            &#9881;
+            ⚙
           </button>
         </div>
       </nav>

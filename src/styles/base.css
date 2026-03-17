@@ -76,6 +76,17 @@ a:hover {
   background: var(--accent-copper);
 }
 
+/* ── App Shell ── */
+.app-shell {
+  min-height: 100vh;
+}
+
+@media (max-width: 767px) {
+  .app-shell {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 /* ── Focus-Ring ── */
 :focus-visible {
   outline: 2px solid var(--accent-gold);

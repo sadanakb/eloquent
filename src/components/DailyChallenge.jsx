@@ -51,7 +51,7 @@ export function DailyChallenge({ onPlay }) {
       {status.completed ? (
         <div className={styles.completed}>
           <span className={styles.scoreLabel}>Dein Ergebnis: <strong>{status.score}</strong></span>
-          <p className={styles.nextHint}>Morgen kommt die n&auml;chste!</p>
+          <p className={styles.nextHint}>Morgen kommt die nächste!</p>
         </div>
       ) : (
         <Button variant="gold" onClick={onPlay} className={styles.playBtn}>

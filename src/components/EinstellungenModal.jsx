@@ -62,13 +62,14 @@ export function EinstellungenModal({ onClose }) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className={styles.modal}>
+        <button className={styles.closeX} onClick={onClose} aria-label="Schließen">&times;</button>
         <h2 className={styles.title}>Einstellungen</h2>
 
         {/* Status Banner */}
         <div className={hasAny ? styles.statusOk : styles.statusWarn}>
           {hasAny
-            ? 'KI-Bewertung aktiv \u2014 Texte werden mit echtem Sprachverständnis bewertet.'
-            : 'Heuristik-Modus \u2014 Bewertung basiert auf Regeln. Für bessere Ergebnisse: KI aktivieren.'}
+            ? 'KI-Bewertung aktiv — Texte werden mit echtem Sprachverständnis bewertet.'
+            : 'Heuristik-Modus — Bewertung basiert auf Regeln. Für bessere Ergebnisse: KI aktivieren.'}
         </div>
 
         {/* Groq Section */}
@@ -78,7 +79,7 @@ export function EinstellungenModal({ onClose }) {
             <span className={styles.recommendBadge}>EMPFOHLEN</span>
           </div>
           <p className={styles.sectionDesc}>
-            Groq nutzt Llama 3.3 70B \u2014 exzellent für Deutsch. Kostenlos, 14.400 Bewertungen/Tag.
+            Groq nutzt Llama 3.3 70B — exzellent für Deutsch. Kostenlos, 14.400 Bewertungen/Tag.
           </p>
 
           <label className={styles.inputLabel}>Groq API-Schlüssel</label>
@@ -113,7 +114,7 @@ export function EinstellungenModal({ onClose }) {
             <ol style={{ margin: '6px 0 0 20px', padding: 0 }}>
               <li>Gehe zu <a href="https://console.groq.com" target="_blank" rel="noopener" style={{ color: 'var(--accent-gold)', textDecoration: 'underline' }}>console.groq.com</a></li>
               <li>Erstelle einen kostenlosen Account (keine Kreditkarte nötig)</li>
-              <li>Klicke &quot;API Keys&quot; &rarr; &quot;Create API Key&quot;</li>
+              <li>Klicke „API Keys" → „Create API Key"</li>
               <li>Kopiere den Schlüssel und füge ihn hier ein</li>
             </ol>
           </div>

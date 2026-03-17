@@ -42,9 +42,9 @@ function AppRoutes() {
   const location = useLocation();
   const currentPage = routeToPage[location.pathname] || 'home';
 
-  const onNavigate = useCallback((page) => {
+  const onNavigate = useCallback((page, state) => {
     const route = pageToRoute[page] || '/';
-    navigate(route);
+    navigate(route, { state });
     window.scrollTo(0, 0);
   }, [navigate]);
 
@@ -56,7 +56,7 @@ function AppRoutes() {
   }
 
   return (
-    <div className="texture-paper" style={{ minHeight: "100vh", paddingBottom: 72 }}>
+    <div className="texture-paper app-shell">
       {currentPage !== "home" && <NavBar current={currentPage} onNavigate={onNavigate} />}
       <PageTransition pageKey={currentPage}>
         <Routes>

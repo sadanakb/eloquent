@@ -1,5 +1,6 @@
 .btn {
   padding: 12px 28px;
+  min-height: 44px;
   border-radius: var(--radius-md);
   border: none;
   cursor: pointer;

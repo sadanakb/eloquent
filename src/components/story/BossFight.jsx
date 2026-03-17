@@ -123,7 +123,7 @@ export function BossFight({ boss, onComplete, archetypeBonus }) {
           </Card>
 
           <Button variant="gold" onClick={handleFight}>
-            Herausfordern &rarr;
+            Herausfordern →
           </Button>
         </div>
       )}
@@ -154,7 +154,7 @@ export function BossFight({ boss, onComplete, archetypeBonus }) {
             <OrnamentIcon name={portrait || 'stern'} size="lg" style={{ color: 'var(--accent-gold)' }} />
           </div>
           <div className={styles.spinner} />
-          <p className={styles.scoringText}>Der Boss pr&uuml;ft eure Worte...</p>
+          <p className={styles.scoringText}>Der Boss prüft eure Worte...</p>
         </div>
       )}
 
@@ -194,7 +194,7 @@ export function BossFight({ boss, onComplete, archetypeBonus }) {
           <div className={styles.resultActions}>
             {won ? (
               <Button variant="gold" onClick={() => onComplete(true, playerScore)}>
-                Weiter &rarr;
+                Weiter →
               </Button>
             ) : (
               <>

@@ -1,56 +1,22 @@
-# Checkpoint — 2026-03-14
+# Checkpoint — 2026-03-17
 
 ## Ziel
-ELOQUENT in 3 Phasen upgraden: Polish → Story RPG → Online Multiplayer
+Comprehensive Frontend Quality Overhaul — production-quality frontend for ELOQUENT
 
-## ALLE 3 PHASEN KOMPLETT
-
-### Phase 1: Polish & Game Feel ✓
-- Storage-Abstraktion + Event Bus (engine/storage.js, engine/event-bus.js)
-- Sound Manager mit howler.js (engine/sound-manager.js)
-- Sound-Trigger in Button, AntwortEingabe, BewertungDisplay, StoryPage, DuellPage
-- Sound-Einstellungen in EinstellungenModal
-- Page Transitions (PageTransition.jsx)
-- Neue Keyframes (animations.css: confetti, countUp, particleFloat, page transitions)
-- Gold-Partikel + Confetti (GoldParticles.jsx, Confetti.jsx)
-- Typewriter-Hook + CountUp-Hook (hooks/)
-- 30 Achievements + Engine + Toast-System + Vitrine
-- Tages-Challenge (daily.js, DailyChallenge.jsx)
-- Mobile Bottom Navigation (BottomNav.jsx)
-- NavBar hidden unter 768px
-- PWA Install Prompt + Service Worker
-
-### Phase 2: Story RPG ✓
-- Story-Engine State Machine (engine/story-engine.js)
-- XP-System mit 11 Leveln (engine/xp-system.js)
-- 3 Charakter-Archetypen (Dichter, Redner, Gelehrter)
-- 10 Kapitel Story-Content mit 4 Challenge-Typen
-- 7 Story-Komponenten (MultipleChoice, FreeText, WordOrder, FillBlank, BossFight, StoryDecision, CharacterSelect)
-- 3 Boss-Kämpfe (Kap. 3/6/10)
-- 3 Entscheidungspunkte → 7 verschiedene Enden
-- StoryPage komplett neu geschrieben
-
-### Phase 3: Online Multiplayer ✓
-- Supabase Client + Auth Context (Google OAuth)
-- React Router Migration (BrowserRouter + Routes)
-- DB Schema: profiles, matches, matchmaking_queue, user_achievements, weekly_leaderboard
-- Elo-System (engine/elo.js)
-- Matchmaking (engine/matchmaking.js)
-- Online-Game Session Manager (engine/online-game.js)
-- Daten-Migration localStorage → Supabase (engine/data-migration.js)
-- Auth Modal + Profil-Seite + Online-Duell-Seite
-- Rangliste mit Lokal/Global Tabs
-- Freunde herausfordern (6-Zeichen Code + Web Share API)
-- Supabase Edge Function für Server-seitiges Scoring
-- Vercel SPA Routing
+## Erledigt (Overhaul)
+- [x] Step 1: Unicode & German Text Fixes — ALL HTML entities replaced with real UTF-8 across 18 files. All ASCII-German replaced with proper umlauts.
+- [x] Step 2: Layout Standardization — All page wrappers unified to max-width: 800px, responsive padding. App.jsx paddingBottom → CSS app-shell class (mobile-only).
+- [x] Step 3: NavBar Desktop Polish — links gap/font-size increased, auth button larger, medium screen breakpoint (768-1024px).
+- [x] Step 4: HeroPage Redesign — CSS Grid for action buttons (Duell + Online side-by-side, Übung full-width below).
+- [x] Step 5: BottomNav Drawer Polish — hover/active states, dividers, max-height scroll.
+- [x] Step 6: Modal Polish — Close (×) button top-right on both modals. Consistent max-width (480px).
+- [x] Step 7: Button/Card Accessibility — min-height: 44px on all buttons.
+- [x] Step 8: Game Screen Polish — larger timer, thicker progress bar, spacious textarea, bigger score display (64px).
 
 ## Build/Test-Status
-- Build: OK (179 Module, 710ms)
-- Bundle: 502KB JS (gzip: 162KB) + 83KB CSS + 37KB howler
-- 56 neue Dateien, 15 modifizierte Dateien
-- Abhängigkeiten: +howler, +@supabase/supabase-js, +react-router-dom
+- Build: OK (179 Module, 941ms)
+- Bundle: 696KB JS (gzip: 214KB) + 85KB CSS + 37KB howler
+- Letzter Commit vor Overhaul: a1792bd
 
-## Offene Punkte
-- Sound-Dateien (.mp3) in public/sounds/ fehlen noch (Manager handled gracefully)
-- Supabase-Projekt muss erstellt und Env-Vars gesetzt werden
-- Chunk-Splitting empfohlen für Performance (502KB Warnung)
+## Nächster Schritt
+Push to GitHub → Vercel auto-deploys

@@ -85,6 +85,8 @@
   border-radius: var(--radius-md) var(--radius-md) 0 0;
   padding: 8px 0;
   animation: slideUp 0.25s ease;
+  max-height: 60vh;
+  overflow-y: auto;
 }
 
 .drawerItem {
@@ -92,18 +94,28 @@
   width: 100%;
   padding: 14px 24px;
   border: none;
+  border-bottom: 1px solid var(--border);
   background: none;
   cursor: pointer;
   text-align: left;
   font-family: var(--font-body);
   font-size: 15px;
   color: var(--text-primary);
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
   -webkit-tap-highlight-color: transparent;
 }
 
-.drawerItem:active {
+.drawerItem:last-child {
+  border-bottom: none;
+}
+
+.drawerItem:hover {
   background: var(--bg-elevated);
+  color: var(--accent-gold);
+}
+
+.drawerItem:active {
+  background: var(--bg-inset);
 }
 
 /* ── Animations ── */

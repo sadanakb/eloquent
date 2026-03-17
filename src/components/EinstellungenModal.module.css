@@ -14,11 +14,35 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 32px;
-  max-width: 560px;
+  max-width: 480px;
   width: 90%;
   box-shadow: var(--shadow-elevated);
   max-height: 90vh;
   overflow-y: auto;
+  position: relative;
+}
+
+.closeX {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.closeX:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
 }
 
 .title {

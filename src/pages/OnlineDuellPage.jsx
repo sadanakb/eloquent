@@ -329,13 +329,13 @@ export function OnlineDuellPage({ onNavigate }) {
       <div className={styles.wrapper}>
         <div className={`${styles.offlineMsg} animate-in`}>
           <OrnamentIcon name="tintenfass" size="xl" className={styles.offlineIcon} />
-          <h2 className={styles.offlineTitle}>Online-Modus nicht verfuegbar</h2>
+          <h2 className={styles.offlineTitle}>Online-Modus nicht verfügbar</h2>
           <p className={styles.offlineText}>
             Die Verbindung zum Server konnte nicht hergestellt werden.
-            Pruefe deine Internetverbindung oder versuche es spaeter erneut.
+            Prüfe deine Internetverbindung oder versuche es später erneut.
           </p>
           <Button variant="ghost" onClick={() => onNavigate('home')}>
-            Zurueck zum Menue
+            Zurück zum Menü
           </Button>
         </div>
       </div>
@@ -453,7 +453,7 @@ export function OnlineDuellPage({ onNavigate }) {
           <h2 className={styles.searchingTitle}>Suche Gegner...</h2>
           <p className={styles.searchingTime}>{searchElapsed}s</p>
           <div className={styles.searchingRange}>
-            Elo-Bereich: {myElo - eloRange} &ndash; {myElo + eloRange}
+            Elo-Bereich: {myElo - eloRange} – {myElo + eloRange}
           </div>
           {searchElapsed >= 30 && (
             <p className={styles.searchingExpanded}>Suchbereich erweitert</p>
@@ -558,7 +558,7 @@ export function OnlineDuellPage({ onNavigate }) {
             <OrnamentDivider />
 
             <div className={styles.eloChangeRow}>
-              <span className={styles.eloChangeLabel}>Elo-Veraenderung:</span>
+              <span className={styles.eloChangeLabel}>Elo-Veränderung:</span>
               <span className={eloChange >= 0 ? styles.eloChangePos : styles.eloChangeNeg}>
                 {eloChange >= 0 ? '+' : ''}{eloChange}
               </span>
@@ -577,7 +577,7 @@ export function OnlineDuellPage({ onNavigate }) {
               Neues Match
             </Button>
             <Button variant="ghost" onClick={() => onNavigate('home')}>
-              Zum Menue
+              Zum Menü
             </Button>
           </div>
         </div>

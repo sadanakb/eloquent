@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { SITUATIONEN, SITUATION_KATEGORIEN, SITUATIONEN_NACH_KATEGORIE } from '../data/situationen.js';
 import { kiBewertung } from '../engine/scoring-engine.js';
 import { Card } from '../components/Card.jsx';
@@ -7,9 +8,14 @@ import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { OrnamentIcon } from '../components/Ornament.jsx';
 import { checkAchievements } from '../engine/achievements.js';
+import { completeDailyChallenge } from '../engine/daily.js';
 import styles from './UebungPage.module.css';
 
 export function UebungPage() {
+  const location = useLocation();
+  const dailyMode = location.state?.dailyMode || false;
+  const dailySituation = location.state?.dailySituation || null;
+
   const [phase, setPhase] = useState('choose');
   const [kategorie, setKategorie] = useState(null);
   const [situation, setSituation] = useState(null);
@@ -18,6 +24,15 @@ export function UebungPage() {
   const [loading, setLoading] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const loadingStartRef = useRef(null);
+
+  // If navigated with daily challenge state, skip selection and go straight to writing
+  useEffect(() => {
+    if (dailyMode && dailySituation) {
+      setSituation(dailySituation);
+      setSchwierigkeit('mittel');
+      setPhase('write');
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!loading) {
@@ -87,6 +102,10 @@ export function UebungPage() {
       mittel: r.mittel || [],
       kategorie: kategorie,
     });
+    // Record daily challenge completion if in daily mode
+    if (dailyMode) {
+      completeDailyChallenge(score);
+    }
   };
 
   const diffOptions = [

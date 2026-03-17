@@ -55,7 +55,7 @@ export function WordOrderChallenge({ challenge, onComplete }) {
           <div className={styles.selectedLabel}>Deine Reihenfolge:</div>
           <div className={styles.tileRow}>
             {selected.length === 0 && (
-              <span className={styles.placeholder}>Tippe auf die W&ouml;rter in der richtigen Reihenfolge</span>
+              <span className={styles.placeholder}>Tippe auf die Wörter in der richtigen Reihenfolge</span>
             )}
             {selected.map((wordIdx, posIdx) => {
               let tileClass = styles.tileSelected;
@@ -106,11 +106,11 @@ export function WordOrderChallenge({ challenge, onComplete }) {
               disabled={!allSelected}
               onClick={handleSubmit}
             >
-              Pr&uuml;fen
+              Prüfen
             </Button>
             {selected.length > 0 && !submitted && (
               <Button variant="ghost" onClick={() => setSelected([])}>
-                Zur&uuml;cksetzen
+                Zurücksetzen
               </Button>
             )}
           </div>
@@ -140,7 +140,7 @@ export function WordOrderChallenge({ challenge, onComplete }) {
             <div className={styles.weiterWrap}>
               <Badge>{isCorrect ? `+${punkte} Punkte` : '0 Punkte'}</Badge>
               <Button variant="gold" onClick={() => onComplete(isCorrect ? punkte : 0, isCorrect)}>
-                Weiter &rarr;
+                Weiter →
               </Button>
             </div>
           </div>

@@ -21,7 +21,7 @@
   font-size: 18px;
   color: var(--text-secondary);
   max-width: 440px;
-  margin: 0 auto 48px;
+  margin: 0 auto 40px;
   line-height: 1.6;
 }
 
@@ -30,10 +30,15 @@
 }
 
 .actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.actions > :last-child {
+  grid-column: 1 / -1;
 }
 
 .navLinks {

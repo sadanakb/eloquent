@@ -87,7 +87,7 @@ export function FreeTextChallenge({ challenge, onComplete }) {
           )}
           <div className={styles.weiterWrap}>
             <Button variant="gold" onClick={handleWeiter}>
-              Weiter &rarr;
+              Weiter →
             </Button>
           </div>
         </div>

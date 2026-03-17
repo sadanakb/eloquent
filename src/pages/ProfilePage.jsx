@@ -126,7 +126,7 @@ export function ProfilePage({ onNavigate }) {
         <GoldBar value={xpData.xpProgress} max={1} />
         <div className={styles.xpFooter}>
           {xpData.xpForNextLevel > 0
-            ? `Noch ${xpData.xpForNextLevel} XP bis zum naechsten Level`
+            ? `Noch ${xpData.xpForNextLevel} XP bis zum nächsten Level`
             : 'Maximales Level erreicht!'}
         </div>
       </Card>

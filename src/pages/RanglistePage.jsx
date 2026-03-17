@@ -112,7 +112,7 @@ export function RanglistePage() {
           {!isOnline() && (
             <div className={styles.globalMsg}>
               <OrnamentIcon name="tintenfass" size="lg" />
-              <p>Online-Rangliste nicht verfuegbar. Keine Serververbindung.</p>
+              <p>Online-Rangliste nicht verfügbar. Keine Serververbindung.</p>
             </div>
           )}
 
@@ -131,7 +131,7 @@ export function RanglistePage() {
 
           {isOnline() && auth?.isAuthenticated && !loadingGlobal && globalData.length === 0 && (
             <div className={styles.globalMsg}>
-              <p>Noch keine Eintraege vorhanden.</p>
+              <p>Noch keine Einträge vorhanden.</p>
             </div>
           )}
 

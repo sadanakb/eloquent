@@ -29,7 +29,7 @@ export function AchievementPage({ onNavigate }) {
             onClick={() => onNavigate('home')}
             aria-label="Zurück"
           >
-            &larr; Zurück
+            ← Zurück
           </button>
         )}
         <h1 className={styles.title}>Erfolge</h1>

@@ -3,6 +3,7 @@ import { Logo } from '../components/Logo.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
 import { DailyChallenge } from '../components/DailyChallenge.jsx';
 import { InstallPrompt } from '../components/InstallPrompt.jsx';
+import { getDailyChallenge } from '../engine/daily.js';
 import styles from './HeroPage.module.css';
 
 export function HeroPage({ onNavigate }) {
@@ -20,18 +21,21 @@ export function HeroPage({ onNavigate }) {
         </p>
 
         <div className={styles.actions}>
-          <Button variant="gold" onClick={() => onNavigate('duell')} style={{ fontSize: 17, padding: '16px 40px' }}>
+          <Button variant="gold" onClick={() => onNavigate('duell')} style={{ fontSize: 17, padding: '16px 0', justifyContent: 'center' }}>
             <OrnamentIcon name="federn" size="sm" /> Duell starten
           </Button>
-          <Button variant="accent" onClick={() => onNavigate('online')} style={{ fontSize: 17, padding: '16px 40px' }}>
+          <Button variant="accent" onClick={() => onNavigate('online')} style={{ fontSize: 17, padding: '16px 0', justifyContent: 'center' }}>
             <OrnamentIcon name="lorbeer" size="sm" /> Online Match
           </Button>
-          <Button variant="default" onClick={() => onNavigate('uebung')} style={{ fontSize: 17, padding: '16px 40px' }}>
+          <Button variant="default" onClick={() => onNavigate('uebung')} style={{ fontSize: 17, padding: '16px 0', justifyContent: 'center' }}>
             <OrnamentIcon name="ziel" size="sm" /> Übungsmodus
           </Button>
         </div>
 
-        <DailyChallenge onPlay={() => onNavigate('uebung')} />
+        <DailyChallenge onPlay={() => {
+          const daily = getDailyChallenge();
+          onNavigate('uebung', { dailyMode: true, dailySituation: daily.situation });
+        }} />
 
         <InstallPrompt />
 

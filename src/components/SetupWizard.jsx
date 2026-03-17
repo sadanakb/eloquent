@@ -109,7 +109,7 @@ export function SetupWizard({ onComplete }) {
                     Gehe zu <a href="https://console.groq.com" target="_blank" rel="noopener" style={{ color: 'var(--accent-gold)', textDecoration: 'underline' }}>console.groq.com</a>
                   </li>
                   <li style={{ marginBottom: 4 }}>Erstelle einen kostenlosen Account (keine Kreditkarte)</li>
-                  <li style={{ marginBottom: 4 }}>Klicke &quot;API Keys&quot; &rarr; &quot;Create API Key&quot;</li>
+                  <li style={{ marginBottom: 4 }}>Klicke „API Keys" → „Create API Key"</li>
                   <li>Kopiere den Schlüssel und füge ihn unten ein</li>
                 </ol>
               </div>

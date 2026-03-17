@@ -42,23 +42,29 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Handle OAuth redirect — check for hash params first
-    const hashParams = window.location.hash;
-    if (hashParams && hashParams.includes('access_token')) {
-      // Clean URL immediately to prevent React Router issues
-      const cleanPath = window.location.pathname + window.location.search;
-      window.history.replaceState(null, '', cleanPath);
-    }
+    // Supabase v2 automatically detects hash fragments from OAuth redirects
+    // when getSession() is called. We must:
+    // 1. Let Supabase process any hash params via getSession()
+    // 2. Clean the URL AFTER processing (not before!)
+    // 3. Show loading state until resolved
 
-    // Get initial session (this also processes OAuth tokens from hash)
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) console.error('getSession error:', error.message);
+      // Clean up OAuth hash params from URL after Supabase has processed them
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
       handleUserChange(session?.user ?? null).finally(() => setIsLoading(false));
     });
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         handleUserChange(session?.user ?? null);
+        // After sign in, clean up any remaining hash params as backup
+        if (event === 'SIGNED_IN' && window.location.hash) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
       }
     );
 

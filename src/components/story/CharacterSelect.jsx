@@ -26,9 +26,9 @@ export function CharacterSelect({ archetypes, onSelect }) {
 
   return (
     <div className={`${styles.wrapper} animate-in`}>
-      <h1 className={styles.title}>W&auml;hle deinen Archetyp</h1>
+      <h1 className={styles.title}>Wähle deinen Archetyp</h1>
       <p className={styles.subtitle}>
-        Dein Archetyp bestimmt deine St&auml;rken auf dem Weg durch die Akademie.
+        Dein Archetyp bestimmt deine Stärken auf dem Weg durch die Akademie.
       </p>
 
       <div className={styles.cardsRow}>
@@ -89,7 +89,7 @@ export function CharacterSelect({ archetypes, onSelect }) {
       {selected && !confirmed && (
         <div className={`${styles.confirmWrap} animate-in`}>
           <Button variant="gold" onClick={handleConfirm}>
-            Abenteuer beginnen &rarr;
+            Abenteuer beginnen →
           </Button>
         </div>
       )}

@@ -201,7 +201,7 @@ export function StoryPage({ onNavigate }) {
   // Typewriter for intro
   const introText = useTypewriter(
     phase === 'story_intro'
-      ? 'In den nebelverhangenen Gassen einer vergessenen Stadt liegt die Akademie der Eloquenz verborgen. Einst der Hort der größten Redner, Dichter und Gelehrten, schweigt sie nun seit Jahrzehnten. Doch heute Nacht flackern die Laternen wieder auf — denn ein neuer Adept hat den Ruf vernommen\u2026'
+      ? 'In den nebelverhangenen Gassen einer vergessenen Stadt liegt die Akademie der Eloquenz verborgen. Einst der Hort der größten Redner, Dichter und Gelehrten, schweigt sie nun seit Jahrzehnten. Doch heute Nacht flackern die Laternen wieder auf — denn ein neuer Adept hat den Ruf vernommen…'
       : '',
     35
   );
@@ -251,7 +251,7 @@ export function StoryPage({ onNavigate }) {
             <p className={`${styles.introText} drop-cap`}>{introText}</p>
           </Card>
           <div style={{ marginTop: 28 }}>
-            <Button variant="gold" onClick={startAdventure}>Abenteuer beginnen &#8594;</Button>
+            <Button variant="gold" onClick={startAdventure}>Abenteuer beginnen →</Button>
           </div>
         </div>
       )}
@@ -266,7 +266,7 @@ export function StoryPage({ onNavigate }) {
             <div className={styles.dialog}>{chapter.dialog}</div>
           </Card>
           <div style={{ textAlign: 'center', marginTop: 24 }}>
-            <Button variant="gold" onClick={acceptChallenge}>Pr&uuml;fung annehmen &#8594;</Button>
+            <Button variant="gold" onClick={acceptChallenge}>Prüfung annehmen →</Button>
           </div>
         </div>
       )}
@@ -275,7 +275,7 @@ export function StoryPage({ onNavigate }) {
       {phase === 'challenge' && challenge && (
         <div className="animate-in">
           <div className={styles.challengeBar}>
-            <Badge>Pr&uuml;fung {challengeIdx + 1}/{chapter.challenges.length}</Badge>
+            <Badge>Prüfung {challengeIdx + 1}/{chapter.challenges.length}</Badge>
             <Badge>Kapitel {chapter.id}</Badge>
           </div>
           {renderChallenge()}
@@ -299,7 +299,7 @@ export function StoryPage({ onNavigate }) {
       {/* CHAPTER OUTRO */}
       {phase === 'chapter_outro' && chapter && (
         <div className="animate-in">
-          <h2 className={styles.outroTitle}>{chapter.titel} &mdash; Abschluss</h2>
+          <h2 className={styles.outroTitle}>{chapter.titel} — Abschluss</h2>
           <Card>
             <p className={styles.outroText}>{chapter.outro}</p>
           </Card>
@@ -356,7 +356,7 @@ export function StoryPage({ onNavigate }) {
 
           <div className={styles.finalActions}>
             <Button variant="gold" onClick={restartGame}>Nochmal spielen</Button>
-            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Men&uuml;</Button>
+            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Menü</Button>
           </div>
         </div>
       )}
@@ -367,7 +367,7 @@ export function StoryPage({ onNavigate }) {
           <h2 className={styles.endeTitle}>Spiel beendet</h2>
           <div className={styles.finalActions}>
             <Button variant="gold" onClick={restartGame}>Nochmal spielen</Button>
-            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Men&uuml;</Button>
+            <Button variant="ghost" onClick={() => onNavigate('home')}>Zum Menü</Button>
           </div>
         </div>
       )}
