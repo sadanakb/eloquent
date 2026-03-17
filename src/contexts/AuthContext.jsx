@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase, isOnline } from '../lib/supabase.js';
 
 const AuthContext = createContext(null);
@@ -16,14 +16,13 @@ export function AuthProvider({ children }) {
       .select('*')
       .eq('id', userId)
       .single();
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Failed to fetch profile:', error.message);
-      return null;
     }
-    return data;
+    return data || null;
   }
 
-  async function handleUserChange(sessionUser) {
+  const handleUserChange = useCallback(async (sessionUser) => {
     if (sessionUser) {
       setUser(sessionUser);
       setIsAuthenticated(true);
@@ -50,7 +49,8 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setIsAuthenticated(false);
     }
-  }
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
     if (!isOnline()) {
@@ -58,27 +58,15 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Supabase v2 automatically detects hash fragments from OAuth redirects
-    // when getSession() is called. We must:
-    // 1. Let Supabase process any hash params via getSession()
-    // 2. Clean the URL AFTER processing (not before!)
-    // 3. Show loading state until resolved
-
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) console.error('getSession error:', error.message);
-      // Clean up OAuth hash params from URL after Supabase has processed them
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-      handleUserChange(session?.user ?? null).finally(() => setIsLoading(false));
-    });
-
-    // Subscribe to auth changes
+    // Supabase v2: onAuthStateChange MUST be registered FIRST.
+    // It fires INITIAL_SESSION automatically (handles OAuth hash too).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('[Auth]', event, session?.user?.email);
         handleUserChange(session?.user ?? null);
-        // After sign in, clean up any remaining hash params as backup
-        if (event === 'SIGNED_IN' && window.location.hash) {
+
+        // Clean up OAuth hash fragments from URL after successful sign-in
+        if (window.location.hash && window.location.hash.includes('access_token')) {
           window.history.replaceState(null, '', window.location.pathname);
         }
       }
@@ -87,11 +75,16 @@ export function AuthProvider({ children }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [handleUserChange]);
 
   async function signIn() {
     if (!supabase) return;
-    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
     if (error) console.error('Sign-in failed:', error.message);
   }
 
