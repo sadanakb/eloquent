@@ -78,7 +78,7 @@ export function ProfilePage({ onNavigate }) {
       {/* Header */}
       <div className={`${styles.header} animate-in`}>
         <div className={styles.avatarLarge}>
-          <OrnamentIcon name={AVATAR_ICON_MAP[profile?.avatar] || 'feder'} size="xl" />
+          <OrnamentIcon name={AVATAR_ICON_MAP[profile?.avatar_url] || 'feder'} size="xl" />
         </div>
         <h1 className={styles.username}>{profile?.username || 'Spieler'}</h1>
         <div className={styles.rankRow}>

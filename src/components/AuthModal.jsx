@@ -56,7 +56,7 @@ export function AuthModal({ onClose }) {
       return;
     }
     setSaving(true);
-    const result = await updateProfile({ username, avatar: selectedAvatar });
+    const result = await updateProfile({ username, avatar_url: selectedAvatar });
     setSaving(false);
     if (result) {
       onClose();
@@ -170,7 +170,7 @@ export function AuthModal({ onClose }) {
 
             <div className={styles.profileSummary}>
               <div className={styles.profileAvatar}>
-                <OrnamentIcon name={AVATAR_ICON_MAP[profile.avatar] || 'feder'} size="xl" />
+                <OrnamentIcon name={AVATAR_ICON_MAP[profile.avatar_url] || 'feder'} size="xl" />
               </div>
               <div className={styles.profileInfo}>
                 <div className={styles.profileName}>{profile.username}</div>
