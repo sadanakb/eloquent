@@ -193,14 +193,33 @@ export function OnlineDuellPage({ onNavigate }) {
   const performScoring = async (text) => {
     setPhase('scoring');
     try {
+      // Score the player's text with KI (or heuristic fallback)
       const result = await kiBewertung(situation, text || scoringText);
       setPlayerResult(result);
       const pScore = Object.values(result.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
       setPlayerScore(pScore);
 
-      // In a real implementation the server would handle this.
-      // For now, simulate opponent score
-      const oScore = Math.round(Math.random() * 40 + 30);
+      // Try to get opponent's text from DB and score it too
+      let oScore;
+      if (match?.id) {
+        const { data: matchData } = await supabase
+          .from('matches')
+          .select('player1_id, player1_text, player2_text')
+          .eq('id', match.id)
+          .single();
+        const opponentText = matchData?.player1_id === user?.id
+          ? matchData?.player2_text
+          : matchData?.player1_text;
+        if (opponentText) {
+          const opResult = await kiBewertung(situation, opponentText);
+          oScore = Object.values(opResult.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
+        }
+      }
+      // Fallback if opponent text unavailable
+      if (oScore == null) {
+        oScore = Math.round(pScore * (0.7 + Math.random() * 0.6));
+        oScore = Math.min(oScore, 100);
+      }
       setOpponentScore(oScore);
 
       // Calculate Elo
