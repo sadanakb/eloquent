@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eloquent-v3';
+const CACHE_NAME = 'eloquent-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -22,6 +22,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+
+  // Never intercept cross-origin requests (e.g. api.groq.com, supabase)
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
   // Network-first for API calls
   if (request.url.includes('/api/')) {
