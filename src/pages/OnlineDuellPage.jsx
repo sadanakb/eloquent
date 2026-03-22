@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { supabase, isOnline } from '../lib/supabase.js';
+import { supabase, isOnline, isSupabaseReady } from '../lib/supabase.js';
 import { joinQueue, leaveQueue } from '../engine/matchmaking.js';
 import {
   subscribeToMatch,
@@ -364,20 +364,39 @@ export function OnlineDuellPage({ onNavigate }) {
     setShowCodeInput(false);
   };
 
-  // Not online
+  // No internet connection
   if (!isOnline()) {
     return (
       <div className={styles.page}>
         <div className={styles.container}>
           <div className={`${styles.stateWrap} animate-in`}>
             <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
-            <h2 className={styles.stateTitle}>Online-Modus nicht verfügbar</h2>
+            <h2 className={styles.stateTitle}>Keine Internetverbindung</h2>
             <p className={styles.stateText}>
-              Die Verbindung zum Server konnte nicht hergestellt werden.
-              Prüfe deine Internetverbindung oder versuche es später erneut.
+              Bitte prüfe deine Internetverbindung und versuche es erneut.
             </p>
             <Button variant="secondary" onClick={() => onNavigate('home')}>
               Zurück zum Menü
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Supabase not initialized (stale cache — user needs to reload)
+  if (!isSupabaseReady()) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={`${styles.stateWrap} animate-in`}>
+            <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
+            <h2 className={styles.stateTitle}>Veraltete Version</h2>
+            <p className={styles.stateText}>
+              Bitte lade die Seite neu, um die aktuelle Version zu laden.
+            </p>
+            <Button variant="primary" onClick={() => window.location.reload()}>
+              Neu laden
             </Button>
           </div>
         </div>
