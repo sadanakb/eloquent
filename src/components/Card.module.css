@@ -1,34 +1,39 @@
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 28px;
-  transition: all var(--transition-base);
+  background: var(--bg-parchment-light);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: var(--space-lg);
   box-shadow: var(--shadow-card);
-  position: relative;
 }
 
-.card:hover {
-  border-color: var(--accent-copper);
-  background: var(--bg-card-hover);
-  box-shadow: var(--shadow-elevated);
+.featured {
+  background: linear-gradient(135deg, var(--gold-50), var(--gold-100));
+  border: 1px solid rgba(197, 150, 12, 0.2);
+  border-left: 3px solid var(--gold-500);
 }
 
 .clickable {
   cursor: pointer;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+.clickable:active {
+  transform: translateY(0);
 }
 
 .glow {
   border-color: var(--accent-gold);
   box-shadow: var(--shadow-card);
 }
-
 .glow:hover {
   border-color: var(--accent-gold);
   box-shadow: var(--shadow-elevated);
 }
 
-/* ── Ornate variant — now cleaner, just a subtle accent border ── */
+/* Ornate variant — subtle accent border */
 .ornate {
   composes: card;
   border-left: 3px solid var(--accent-copper);
