@@ -62,7 +62,7 @@ export function BottomNav({ activePage, onNavigate, onOpenSettings }) {
       )}
 
       {/* Bottom navigation bar */}
-      <nav className={styles.nav}>
+      <nav className={styles.bottomNav}>
         {TABS.map((tab) => {
           const isActive = tab.id === activePage || (tab.id === 'mehr' && drawerOpen);
           return (
@@ -75,7 +75,7 @@ export function BottomNav({ activePage, onNavigate, onOpenSettings }) {
                 {tab.useOrnament ? (
                   <OrnamentIcon name={tab.icon} size="sm" />
                 ) : (
-                  <span className={styles.textIcon}>{tab.icon}</span>
+                  <span>{tab.icon}</span>
                 )}
               </span>
               <span className={styles.tabLabel}>{tab.label}</span>

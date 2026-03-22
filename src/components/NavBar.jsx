@@ -31,16 +31,15 @@ export function NavBar({ current, onNavigate }) {
 
   return (
     <>
-      <nav className={styles.nav}>
-        <div className={styles.navInner}>
+      <nav className={styles.navbar}>
         <LogoCompact onClick={() => onNavigate('home')} />
 
-        <div className={styles.links}>
+        <div className={styles.nav}>
           {navItems.map(n => (
             <button
               key={n.id}
               onClick={() => onNavigate(n.id)}
-              className={current === n.id ? styles.linkActive : styles.link}
+              className={`${styles.navLink}${current === n.id ? ` ${styles.navLinkActive}` : ''}`}
             >
               {n.label}
             </button>
@@ -48,11 +47,11 @@ export function NavBar({ current, onNavigate }) {
         </div>
 
         <div className={styles.right}>
-          {aiActive && <span className={styles.kiBadge}>KI</span>}
+          {aiActive && <span className={styles.aiBadge}>KI</span>}
           {isAuthenticated ? (
             <button
               onClick={() => onNavigate('profil')}
-              className={styles.profileBtn}
+              className={styles.avatarBtn}
               title="Profil"
             >
               {user?.user_metadata?.full_name?.[0] || '?'}
@@ -60,20 +59,19 @@ export function NavBar({ current, onNavigate }) {
           ) : (
             <button
               onClick={() => setShowAuth(true)}
-              className={styles.authBtn}
+              className={styles.avatarBtn}
               title="Anmelden"
             >
-              Anmelden
+              ?
             </button>
           )}
           <button
             onClick={() => setShowSettings(true)}
-            className={styles.settingsBtn}
+            className={styles.iconBtn}
             title="Einstellungen"
           >
             ⚙
           </button>
-        </div>
         </div>
       </nav>
       {showSettings && (
