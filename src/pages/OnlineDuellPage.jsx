@@ -22,6 +22,8 @@ import { GoldBar } from '../components/GoldBar.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
 import { Confetti } from '../components/Confetti.jsx';
 import { AuthModal } from '../components/AuthModal.jsx';
+import { Input } from '../components/Input.jsx';
+import { GlobeNetwork, BoltIcon } from '../components/icons/Icons.jsx';
 import styles from './OnlineDuellPage.module.css';
 
 function getRandomSituation() {
@@ -276,8 +278,11 @@ export function OnlineDuellPage({ onNavigate }) {
     }
   };
 
+  const [joinError, setJoinError] = useState('');
+
   const handleJoinChallenge = async () => {
     if (!user || !friendCodeInput.trim()) return;
+    setJoinError('');
     const m = await joinFriendChallenge(friendCodeInput.trim().toUpperCase(), user.id);
     if (m) {
       setMatch(m);
@@ -292,6 +297,8 @@ export function OnlineDuellPage({ onNavigate }) {
         setOpponent(data);
       }
       setPhase('matched');
+    } else {
+      setJoinError('Code ungültig oder Spiel nicht mehr verfügbar.');
     }
   };
 
@@ -345,17 +352,19 @@ export function OnlineDuellPage({ onNavigate }) {
   // Not online
   if (!isOnline()) {
     return (
-      <div className={styles.wrapper}>
-        <div className={`${styles.offlineMsg} animate-in`}>
-          <OrnamentIcon name="tintenfass" size="xl" className={styles.offlineIcon} />
-          <h2 className={styles.offlineTitle}>Online-Modus nicht verfügbar</h2>
-          <p className={styles.offlineText}>
-            Die Verbindung zum Server konnte nicht hergestellt werden.
-            Prüfe deine Internetverbindung oder versuche es später erneut.
-          </p>
-          <Button variant="ghost" onClick={() => onNavigate('home')}>
-            Zurück zum Menü
-          </Button>
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={`${styles.stateWrap} animate-in`}>
+            <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
+            <h2 className={styles.stateTitle}>Online-Modus nicht verfügbar</h2>
+            <p className={styles.stateText}>
+              Die Verbindung zum Server konnte nicht hergestellt werden.
+              Prüfe deine Internetverbindung oder versuche es später erneut.
+            </p>
+            <Button variant="secondary" onClick={() => onNavigate('home')}>
+              Zurück zum Menü
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -364,243 +373,266 @@ export function OnlineDuellPage({ onNavigate }) {
   // Not authenticated
   if (!isLoading && !isAuthenticated) {
     return (
-      <div className={styles.wrapper}>
-        <div className={`${styles.offlineMsg} animate-in`}>
-          <OrnamentIcon name="federn" size="xl" className={styles.offlineIcon} />
-          <h2 className={styles.offlineTitle}>Anmeldung erforderlich</h2>
-          <p className={styles.offlineText}>
-            Um Online-Duelle zu spielen, musst du dich zuerst anmelden.
-          </p>
-          <Button variant="gold" onClick={() => setShowAuth(true)}>
-            Anmelden
-          </Button>
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <Card className={`animate-in`}>
+            <div className={styles.authCard}>
+              <OrnamentIcon name="federn" size="lg" className={styles.authIcon} />
+              <h2 className={styles.stateTitle}>Anmeldung erforderlich</h2>
+              <p className={styles.stateText}>
+                Bitte melde dich an, um online zu spielen.
+              </p>
+              <Button variant="primary" onClick={() => setShowAuth(true)}>
+                Anmelden
+              </Button>
+            </div>
+          </Card>
+          {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
         </div>
-        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </div>
     );
   }
 
   return (
-    <div className={styles.wrapper}>
-      {/* ── MENU ── */}
-      {phase === 'menu' && (
-        <div className="animate-in">
-          <div className={styles.header}>
-            <h1 className={styles.title}>
-              <OrnamentIcon name="federn" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
-              Online-Duell
-            </h1>
-            <p className={styles.subtitle}>Miss dich mit Eloquenz-Meistern aus aller Welt</p>
-          </div>
+    <div className={styles.page}>
+      <div className={styles.container}>
 
-          <div className={styles.menuOptions}>
-            <Card className={styles.menuCard}>
-              <div className={styles.menuCardInner}>
-                <OrnamentIcon name="lorbeer" size="lg" />
-                <h3 className={styles.menuCardTitle}>Quick Match</h3>
-                <p className={styles.menuCardDesc}>
-                  Tritt gegen einen Gegner in deiner Elo-Klasse an
-                </p>
-                <Button variant="gold" onClick={handleQuickMatch}>
-                  Gegner suchen
-                </Button>
+        {/* ── MENU ── */}
+        {phase === 'menu' && (
+          <div className="animate-in">
+            {/* Page header */}
+            <div className={styles.header}>
+              <h1 className={styles.pageTitle}>ONLINE MATCH</h1>
+              <p className={styles.pageSubtitle}>Spiele gegen Gegner aus aller Welt</p>
+            </div>
+
+            {/* Quick Match Card */}
+            <Card className={styles.matchCard}>
+              <div className={styles.cardHeader}>
+                <GlobeNetwork size={24} color="var(--gold-500)" />
+                <h3 className={styles.cardTitle}>Schnelles Match</h3>
               </div>
+              <p className={styles.cardDesc}>
+                Wir finden automatisch einen Gegner für dich.
+              </p>
+              <Button variant="primary" size="md" onClick={handleQuickMatch} className={styles.fullWidth}>
+                Match suchen
+              </Button>
             </Card>
 
-            <Card className={styles.menuCard}>
-              <div className={styles.menuCardInner}>
-                <OrnamentIcon name="buchOffen" size="lg" />
-                <h3 className={styles.menuCardTitle}>Freund herausfordern</h3>
-                <p className={styles.menuCardDesc}>
-                  Erstelle einen Code und teile ihn mit einem Freund
-                </p>
-                <Button variant="accent" onClick={handleCreateChallenge}>
-                  Code erstellen
-                </Button>
+            {/* Friend Challenge Card */}
+            <Card className={styles.matchCard}>
+              <div className={styles.cardHeader}>
+                <BoltIcon size={24} color="var(--gold-500)" />
+                <h3 className={styles.cardTitle}>Freunde herausfordern</h3>
               </div>
-            </Card>
 
-            {!showCodeInput ? (
-              <button className={styles.codeToggle} onClick={() => setShowCodeInput(true)}>
-                Code eingeben
-              </button>
-            ) : (
-              <Card>
-                <div className={styles.codeInputWrap}>
-                  <input
-                    type="text"
-                    value={friendCodeInput}
-                    onChange={e => setFriendCodeInput(e.target.value.toUpperCase())}
-                    placeholder="ABC123"
-                    className={styles.codeInput}
-                    maxLength={6}
-                  />
-                  <Button variant="gold" onClick={handleJoinChallenge} disabled={friendCodeInput.length < 6}>
-                    Beitreten
+              <Button variant="secondary" size="md" onClick={handleCreateChallenge} className={styles.fullWidth}>
+                Code erstellen
+              </Button>
+
+              <div className={styles.orDivider}>
+                <span className={styles.orText}>oder</span>
+              </div>
+
+              {!showCodeInput ? (
+                <div className={styles.centerAction}>
+                  <Button variant="tertiary" size="md" onClick={() => setShowCodeInput(true)}>
+                    Code eingeben
                   </Button>
                 </div>
+              ) : (
+                <div className={styles.codeInputArea}>
+                  <Input
+                    placeholder="ABC123"
+                    value={friendCodeInput}
+                    onChange={e => setFriendCodeInput(e.target.value.toUpperCase())}
+                    className={styles.codeInput}
+                  />
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={handleJoinChallenge}
+                    disabled={friendCodeInput.length < 6}
+                    className={styles.fullWidth}
+                  >
+                    Beitreten
+                  </Button>
+                  {joinError && <p className={styles.joinError}>{joinError}</p>}
+                </div>
+              )}
+            </Card>
+
+            {/* Friend waiting state */}
+            {friendWaiting && (
+              <Card className={styles.matchCard} style={{ textAlign: 'center' }}>
+                <h3 className={styles.friendCodeTitle}>Dein Einladungs-Code</h3>
+                <div className={styles.friendCodeDisplay}>{friendCode}</div>
+                <p className={styles.friendCodeHint}>Teile diesen Code mit deinem Mitspieler</p>
+                <div className={styles.friendCodeActions}>
+                  <Button variant="primary" onClick={handleShare}>
+                    Teilen
+                  </Button>
+                  <Button variant="secondary" onClick={() => { setFriendWaiting(false); setFriendCode(''); }}>
+                    Abbrechen
+                  </Button>
+                </div>
+                <p className={styles.waitingDots}>Warte auf Mitspieler...</p>
               </Card>
             )}
           </div>
+        )}
 
-          {/* Friend waiting state */}
-          {friendWaiting && (
-            <Card glow style={{ marginTop: 16, textAlign: 'center' }}>
-              <h3 className={styles.friendCodeTitle}>Dein Einladungs-Code</h3>
-              <div className={styles.friendCodeDisplay}>{friendCode}</div>
-              <p className={styles.friendCodeHint}>Teile diesen Code mit deinem Mitspieler</p>
-              <div className={styles.friendCodeActions}>
-                <Button variant="gold" onClick={handleShare}>
-                  Teilen
-                </Button>
-                <Button variant="ghost" onClick={() => { setFriendWaiting(false); setFriendCode(''); }}>
-                  Abbrechen
-                </Button>
+        {/* ── SEARCHING ── */}
+        {phase === 'searching' && (
+          <div className={`${styles.searchingWrap} animate-in`}>
+            <Card className={styles.searchingCard}>
+              <div className={styles.cardHeader}>
+                <GlobeNetwork size={24} color="var(--gold-500)" />
+                <h3 className={styles.cardTitle}>Schnelles Match</h3>
               </div>
-              <p className={styles.waitingDots}>Warte auf Mitspieler...</p>
+              <p className={styles.cardDesc}>
+                Wir finden automatisch einen Gegner für dich.
+              </p>
+              <Button variant="primary" size="md" disabled className={`${styles.fullWidth} ${styles.searchingButton}`}>
+                Suche läuft...
+              </Button>
+              <div className={styles.searchMeta}>
+                <span className={styles.searchTime}>{searchElapsed}s</span>
+                <span className={styles.searchRange}>Elo: {myElo - eloRange} – {myElo + eloRange}</span>
+              </div>
+              {searchElapsed >= 30 && (
+                <p className={styles.searchExpanded}>Suchbereich erweitert</p>
+              )}
             </Card>
-          )}
-        </div>
-      )}
-
-      {/* ── SEARCHING ── */}
-      {phase === 'searching' && (
-        <div className={`${styles.searchingWrap} animate-in`}>
-          <div className={styles.searchingPulse}>
-            <OrnamentIcon name="ziel" size="xl" />
-          </div>
-          <h2 className={styles.searchingTitle}>Suche Gegner...</h2>
-          <p className={styles.searchingTime}>{searchElapsed}s</p>
-          <div className={styles.searchingRange}>
-            Elo-Bereich: {myElo - eloRange} – {myElo + eloRange}
-          </div>
-          {searchElapsed >= 30 && (
-            <p className={styles.searchingExpanded}>Suchbereich erweitert</p>
-          )}
-          <Button variant="ghost" onClick={handleCancelSearch} style={{ marginTop: 24 }}>
-            Abbrechen
-          </Button>
-        </div>
-      )}
-
-      {/* ── MATCHED ── */}
-      {phase === 'matched' && (
-        <div className={`${styles.matchedWrap} animate-in`}>
-          <h2 className={styles.matchedTitle}>Gegner gefunden!</h2>
-          <div className={styles.vsScreen}>
-            <div className={styles.vsPlayer}>
-              <OrnamentIcon name="feder" size="lg" />
-              <div className={styles.vsName}>{profile?.username || 'Du'}</div>
-              <Badge>{getRankTitle(myElo)}</Badge>
-              <div className={styles.vsElo}>{myElo} Elo</div>
-            </div>
-            <div className={styles.vsCenter}>VS</div>
-            <div className={styles.vsPlayer}>
-              <OrnamentIcon name="feder" size="lg" />
-              <div className={styles.vsName}>{opponent?.username || 'Gegner'}</div>
-              <Badge>{getRankTitle(opponent?.elo_rating || 1200)}</Badge>
-              <div className={styles.vsElo}>{opponent?.elo_rating || 1200} Elo</div>
+            <div className={styles.cancelWrap}>
+              <Button variant="tertiary" onClick={handleCancelSearch}>
+                Abbrechen
+              </Button>
             </div>
           </div>
-          <div className={styles.matchedCountdown}>
-            Startet in {countdown}...
-          </div>
-          <Button variant="gold" onClick={startWriting}>
-            Los geht's!
-          </Button>
-        </div>
-      )}
+        )}
 
-      {/* ── WRITING ── */}
-      {phase === 'writing' && situation && (
-        <div>
-          <div className={styles.writingHeader}>
-            <Badge>Online-Duell</Badge>
-            <span className={opponentStatus === 'submitted' ? styles.opponentDone : styles.opponentWriting}>
-              {opponentStatus === 'submitted' ? 'Gegner hat abgegeben' : 'Gegner schreibt...'}
-            </span>
-          </div>
-          <AntwortEingabe
-            situation={situation}
-            spielerName={profile?.username}
-            onSubmit={handleWritingSubmit}
-            schwierigkeit="mittel"
-          />
-        </div>
-      )}
-
-      {/* ── WAITING ── */}
-      {phase === 'waiting' && (
-        <div className={`${styles.waitingWrap} animate-in`}>
-          <OrnamentIcon name="tintenfass" size="xl" />
-          <h2 className={styles.waitingTitle}>Warte auf Gegner...</h2>
-          <p className={styles.waitingText}>
-            Du hast deine Antwort abgegeben. Warte, bis dein Gegner fertig ist.
-          </p>
-        </div>
-      )}
-
-      {/* ── SCORING ── */}
-      {phase === 'scoring' && (
-        <div className={`${styles.scoringWrap} animate-in`}>
-          <div className={styles.scoringPulse}>
-            <OrnamentIcon name="tintenfass" size="xl" />
-          </div>
-          <h2 className={styles.scoringTitle}>KI bewertet beide Antworten...</h2>
-          <p className={styles.scoringText}>Die Eloquenz wird analysiert</p>
-        </div>
-      )}
-
-      {/* ── RESULT ── */}
-      {phase === 'result' && (
-        <div className="animate-in">
-          {winner === 'player' && <Confetti active={true} />}
-
-          <h2 className={styles.resultMainTitle}>
-            <OrnamentIcon name="lorbeer" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
-            {winner === 'player' ? 'Du hast gewonnen!' : winner === 'opponent' ? 'Niederlage' : 'Unentschieden'}
-          </h2>
-
-          <Card glow={winner === 'player'} ornate style={{ marginBottom: 16 }}>
-            <div className={styles.resultVs}>
-              <div className={styles.resultPlayerCol}>
-                <div className={styles.resultPlayerName}>{profile?.username || 'Du'}</div>
-                <div className={styles.resultScoreNum}>{playerScore != null ? playerScore.toFixed(1) : '--'}</div>
+        {/* ── MATCHED ── */}
+        {phase === 'matched' && (
+          <div className={`${styles.matchedWrap} animate-in`}>
+            <h2 className={styles.matchedTitle}>Gegner gefunden!</h2>
+            <div className={styles.vsScreen}>
+              <div className={styles.vsPlayer}>
+                <OrnamentIcon name="feder" size="lg" />
+                <div className={styles.vsName}>{profile?.username || 'Du'}</div>
+                <Badge>{getRankTitle(myElo)}</Badge>
+                <div className={styles.vsElo}>{myElo} Elo</div>
               </div>
-              <div className={styles.resultVsCenter}>VS</div>
-              <div className={styles.resultPlayerCol}>
-                <div className={styles.resultPlayerName}>{opponent?.username || 'Gegner'}</div>
-                <div className={styles.resultScoreNum}>{opponentScore != null ? opponentScore.toFixed(1) : '--'}</div>
+              <div className={styles.vsCenter}>VS</div>
+              <div className={styles.vsPlayer}>
+                <OrnamentIcon name="feder" size="lg" />
+                <div className={styles.vsName}>{opponent?.username || 'Gegner'}</div>
+                <Badge>{getRankTitle(opponent?.elo_rating || 1200)}</Badge>
+                <div className={styles.vsElo}>{opponent?.elo_rating || 1200} Elo</div>
               </div>
             </div>
+            <div className={styles.matchedCountdown}>
+              Startet in {countdown}...
+            </div>
+            <Button variant="primary" onClick={startWriting}>
+              Los geht's!
+            </Button>
+          </div>
+        )}
 
-            <OrnamentDivider />
-
-            <div className={styles.eloChangeRow}>
-              <span className={styles.eloChangeLabel}>Elo-Veränderung:</span>
-              <span className={eloChange >= 0 ? styles.eloChangePos : styles.eloChangeNeg}>
-                {eloChange >= 0 ? '+' : ''}{eloChange}
+        {/* ── WRITING ── */}
+        {phase === 'writing' && situation && (
+          <div>
+            <div className={styles.writingHeader}>
+              <Badge>Online-Duell</Badge>
+              <span className={opponentStatus === 'submitted' ? styles.opponentDone : styles.opponentWriting}>
+                {opponentStatus === 'submitted' ? 'Gegner hat abgegeben' : 'Gegner schreibt...'}
               </span>
             </div>
-          </Card>
-
-          {playerResult && (
-            <BewertungDisplay ergebnis={playerResult} spielerName={profile?.username} />
-          )}
-
-          <div className={styles.resultActions}>
-            <Button variant="gold" onClick={handleRematch}>
-              Rematch
-            </Button>
-            <Button variant="ghost" onClick={handleNewMatch}>
-              Neues Match
-            </Button>
-            <Button variant="ghost" onClick={() => onNavigate('home')}>
-              Zum Menü
-            </Button>
+            <AntwortEingabe
+              situation={situation}
+              spielerName={profile?.username}
+              onSubmit={handleWritingSubmit}
+              schwierigkeit="mittel"
+            />
           </div>
-        </div>
-      )}
+        )}
+
+        {/* ── WAITING ── */}
+        {phase === 'waiting' && (
+          <div className={`${styles.stateWrap} animate-in`}>
+            <OrnamentIcon name="tintenfass" size="xl" />
+            <h2 className={styles.stateTitle}>Warte auf Gegner...</h2>
+            <p className={styles.stateText}>
+              Du hast deine Antwort abgegeben. Warte, bis dein Gegner fertig ist.
+            </p>
+          </div>
+        )}
+
+        {/* ── SCORING ── */}
+        {phase === 'scoring' && (
+          <div className={`${styles.stateWrap} animate-in`}>
+            <div className={styles.scoringPulse}>
+              <OrnamentIcon name="tintenfass" size="xl" />
+            </div>
+            <h2 className={styles.stateTitle}>KI bewertet beide Antworten...</h2>
+            <p className={styles.stateText}>Die Eloquenz wird analysiert</p>
+          </div>
+        )}
+
+        {/* ── RESULT ── */}
+        {phase === 'result' && (
+          <div className="animate-in">
+            {winner === 'player' && <Confetti active={true} />}
+
+            <h2 className={styles.resultMainTitle}>
+              <OrnamentIcon name="lorbeer" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
+              {winner === 'player' ? 'Du hast gewonnen!' : winner === 'opponent' ? 'Niederlage' : 'Unentschieden'}
+            </h2>
+
+            <Card glow={winner === 'player'} ornate style={{ marginBottom: 16 }}>
+              <div className={styles.resultVs}>
+                <div className={styles.resultPlayerCol}>
+                  <div className={styles.resultPlayerName}>{profile?.username || 'Du'}</div>
+                  <div className={styles.resultScoreNum}>{playerScore != null ? playerScore.toFixed(1) : '--'}</div>
+                </div>
+                <div className={styles.resultVsCenter}>VS</div>
+                <div className={styles.resultPlayerCol}>
+                  <div className={styles.resultPlayerName}>{opponent?.username || 'Gegner'}</div>
+                  <div className={styles.resultScoreNum}>{opponentScore != null ? opponentScore.toFixed(1) : '--'}</div>
+                </div>
+              </div>
+
+              <OrnamentDivider />
+
+              <div className={styles.eloChangeRow}>
+                <span className={styles.eloChangeLabel}>Elo-Veränderung:</span>
+                <span className={eloChange >= 0 ? styles.eloChangePos : styles.eloChangeNeg}>
+                  {eloChange >= 0 ? '+' : ''}{eloChange}
+                </span>
+              </div>
+            </Card>
+
+            {playerResult && (
+              <BewertungDisplay ergebnis={playerResult} spielerName={profile?.username} />
+            )}
+
+            <div className={styles.resultActions}>
+              <Button variant="primary" onClick={handleRematch}>
+                Rematch
+              </Button>
+              <Button variant="secondary" onClick={handleNewMatch}>
+                Neues Match
+              </Button>
+              <Button variant="tertiary" onClick={() => onNavigate('home')}>
+                Zum Menü
+              </Button>
+            </div>
+          </div>
+        )}
+
+      </div>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>

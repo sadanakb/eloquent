@@ -1,309 +1,335 @@
-.wrapper {
-  max-width: 960px;
+/* OnlineDuellPage — Editorial/Literary Design */
+
+.page {
+  background: var(--bg-parchment);
+  min-height: 100vh;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.container {
+  max-width: 480px;
   margin: 0 auto;
-  padding: 32px 24px 48px;
 }
 
-@media (max-width: 767px) {
-  .wrapper {
-    padding: 20px 16px 32px;
-  }
-}
-
+/* ── Page Header ── */
 .header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-xl);
 }
 
-.title {
+.pageTitle {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
-  color: var(--text-primary);
+  letter-spacing: 0.08em;
+  color: var(--ink-900);
+  margin: 0 0 var(--space-xs) 0;
 }
 
-.subtitle {
-  color: var(--text-secondary);
-  margin-top: 4px;
+.pageSubtitle {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-style: italic;
+  color: var(--ink-600);
+  margin: 0;
 }
 
-/* ── Menu ── */
-.menuOptions {
+/* ── Cards ── */
+.matchCard {
+  margin-bottom: var(--space-md);
+}
+
+.cardHeader {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
 }
 
-.menuCard {
-  cursor: default;
-}
-
-.menuCardInner {
-  text-align: center;
-  padding: 8px 0;
-}
-
-.menuCardTitle {
+.cardTitle {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin: 10px 0 6px;
+  color: var(--ink-900);
+  margin: 0;
 }
 
-.menuCardDesc {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 14px;
+.cardDesc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink-600);
+  margin: 0 0 var(--space-md) 0;
   line-height: 1.5;
 }
 
-.codeToggle {
-  background: none;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 14px;
-  color: var(--accent-gold);
-  cursor: pointer;
-  padding: 8px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.fullWidth {
+  width: 100%;
 }
 
-.codeToggle:hover {
-  color: var(--accent-warm);
-}
-
-.codeInputWrap {
+/* ── "oder" divider inside friend challenge card ── */
+.orDivider {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
+}
+
+.orDivider::before,
+.orDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--ink-200);
+}
+
+.orText {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-400);
+  white-space: nowrap;
+}
+
+.centerAction {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Code input area ── */
+.codeInputArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .codeInput {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-size: 18px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-align: center;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  outline: none;
-  text-transform: uppercase;
+  width: 100%;
 }
 
-.codeInput:focus {
-  border-color: var(--accent-copper);
+.joinError {
+  font-size: 13px;
+  color: #c0392b;
+  margin: 0;
 }
 
-/* Friend challenge */
+/* ── Friend code waiting state ── */
 .friendCodeTitle {
   font-family: var(--font-display);
   font-size: 17px;
-  color: var(--text-primary);
-  margin-bottom: 12px;
+  font-weight: 700;
+  color: var(--ink-900);
+  margin: 0 0 var(--space-sm) 0;
 }
 
 .friendCodeDisplay {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 36px;
   font-weight: 700;
   letter-spacing: 8px;
-  color: var(--accent-gold);
-  margin-bottom: 8px;
+  color: var(--gold-600);
+  margin-bottom: var(--space-sm);
 }
 
 .friendCodeHint {
   font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 14px;
+  color: var(--ink-400);
+  margin-bottom: var(--space-md);
 }
 
 .friendCodeActions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-sm);
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-md);
 }
 
 .waitingDots {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--ink-600);
   font-style: italic;
+  margin: 0;
   animation: pulse 2s ease-in-out infinite;
 }
 
-/* ── Searching ── */
+/* ── Searching state ── */
 .searchingWrap {
-  text-align: center;
-  padding: 48px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
 
-.searchingPulse {
-  color: var(--accent-gold);
-  margin-bottom: 16px;
-  animation: pulse 2s ease-in-out infinite;
+.searchingCard {
+  margin-bottom: var(--space-sm);
+  animation: searchPulse 1.8s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.05); }
+@keyframes searchPulse {
+  0%, 100% { box-shadow: var(--shadow-card), 0 0 0 0 rgba(197, 150, 12, 0.4); }
+  50%       { box-shadow: var(--shadow-card), 0 0 0 8px rgba(197, 150, 12, 0); }
 }
 
-.searchingTitle {
-  font-family: var(--font-display);
+.searchingButton {
+  /* button stays visually in searching state — handled by disabled prop */
+}
+
+.searchMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--ink-200);
+}
+
+.searchTime {
+  font-family: var(--font-body);
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
+  color: var(--gold-600);
+  font-variant-numeric: tabular-nums;
 }
 
-.searchingTime {
-  font-family: var(--font-mono);
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--accent-gold);
-  margin-bottom: 8px;
-}
-
-.searchingRange {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.searchingExpanded {
+.searchRange {
   font-size: 12px;
-  color: var(--accent-copper);
-  margin-top: 4px;
+  color: var(--ink-400);
+}
+
+.searchExpanded {
+  font-size: 12px;
+  color: var(--gold-700);
+  margin: var(--space-xs) 0 0 0;
+  font-style: italic;
+}
+
+.cancelWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-sm);
 }
 
 /* ── Matched / VS Screen ── */
 .matchedWrap {
   text-align: center;
-  padding: 32px 0;
+  padding: var(--space-xl) 0;
 }
 
 .matchedTitle {
   font-family: var(--font-display);
   font-size: 26px;
   font-weight: 700;
-  color: var(--accent-gold);
-  margin-bottom: 24px;
+  color: var(--gold-600);
+  margin-bottom: var(--space-lg);
 }
 
 .vsScreen {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
 }
 
 .vsPlayer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  color: var(--accent-gold);
+  gap: var(--space-xs);
+  color: var(--gold-600);
 }
 
 .vsName {
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
 }
 
 .vsElo {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-400);
 }
 
 .vsCenter {
   font-family: var(--font-display);
   font-size: 36px;
   font-weight: 700;
-  color: var(--accent-copper);
-  padding: 0 8px;
+  color: var(--gold-500);
+  padding: 0 var(--space-sm);
 }
 
 .matchedCountdown {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 18px;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
+  color: var(--ink-600);
+  margin-bottom: var(--space-md);
 }
 
-/* ── Writing ── */
+/* ── Writing header ── */
 .writingHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-md);
 }
 
 .opponentWriting {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--ink-400);
   font-style: italic;
   animation: pulse 2s ease-in-out infinite;
 }
 
 .opponentDone {
   font-size: 13px;
-  color: var(--success);
+  color: #27ae60;
   font-weight: 600;
 }
 
-/* ── Waiting ── */
-.waitingWrap {
+/* ── Generic state views (waiting, scoring, offline) ── */
+.stateWrap {
   text-align: center;
-  padding: 48px 0;
-  color: var(--accent-gold);
+  padding: var(--space-xl) 0;
+  color: var(--gold-600);
 }
 
-.waitingTitle {
+.stateIcon {
+  color: var(--ink-400);
+  margin-bottom: var(--space-md);
+}
+
+.stateTitle {
   font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-top: 16px;
-  margin-bottom: 8px;
+  color: var(--ink-900);
+  margin: var(--space-md) 0 var(--space-sm) 0;
 }
 
-.waitingText {
+.stateText {
   font-size: 14px;
-  color: var(--text-secondary);
-}
-
-/* ── Scoring ── */
-.scoringWrap {
-  text-align: center;
-  padding: 48px 0;
+  color: var(--ink-600);
+  line-height: 1.6;
+  margin: 0 0 var(--space-lg) 0;
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .scoringPulse {
-  color: var(--accent-gold);
-  margin-bottom: 16px;
+  display: inline-block;
   animation: pulse 2s ease-in-out infinite;
 }
 
-.scoringTitle {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
+/* ── Auth card ── */
+.authCard {
+  text-align: center;
+  padding: var(--space-lg) 0;
 }
 
-.scoringText {
-  font-size: 14px;
-  color: var(--text-secondary);
+.authIcon {
+  color: var(--ink-400);
+  margin-bottom: var(--space-md);
 }
 
 /* ── Result ── */
@@ -311,17 +337,17 @@
   font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--space-lg);
 }
 
 .resultVs {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
-  padding: 16px 0;
+  gap: var(--space-md);
+  padding: var(--space-md) 0;
 }
 
 .resultPlayerCol {
@@ -333,92 +359,73 @@
   font-family: var(--font-display);
   font-size: 17px;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 6px;
+  color: var(--ink-900);
+  margin-bottom: var(--space-xs);
 }
 
 .resultScoreNum {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 32px;
   font-weight: 700;
-  color: var(--accent-gold);
+  color: var(--gold-600);
+  font-variant-numeric: tabular-nums;
 }
 
 .resultVsCenter {
   font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
-  color: var(--accent-copper);
+  color: var(--gold-500);
 }
 
 .eloChangeRow {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
-  padding: 12px 0 4px;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0 var(--space-xs);
 }
 
 .eloChangeLabel {
   font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--ink-600);
 }
 
 .eloChangePos {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 18px;
   font-weight: 700;
-  color: var(--success);
+  color: #27ae60;
+  font-variant-numeric: tabular-nums;
 }
 
 .eloChangeNeg {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 18px;
   font-weight: 700;
-  color: var(--error);
+  color: #c0392b;
+  font-variant-numeric: tabular-nums;
 }
 
 .resultActions {
   display: flex;
-  gap: 10px;
+  gap: var(--space-sm);
   justify-content: center;
-  margin-top: 24px;
+  margin-top: var(--space-lg);
   flex-wrap: wrap;
 }
 
-/* ── Offline / Auth messages ── */
-.offlineMsg {
-  text-align: center;
-  padding: 48px 24px;
+/* ── Pulse keyframe (local fallback) ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
 }
 
-.offlineIcon {
-  color: var(--text-muted);
-  margin-bottom: 16px;
-}
-
-.offlineTitle {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-}
-
-.offlineText {
-  font-size: 14px;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 24px;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
+/* ── Responsive ── */
 @media (max-width: 480px) {
   .vsScreen {
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-sm);
   }
 
   .vsCenter {
@@ -427,6 +434,6 @@
 
   .resultVs {
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-sm);
   }
 }
