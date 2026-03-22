@@ -41,25 +41,19 @@ export function EinstellungenModal({ onClose }) {
 
   const handleTestGroq = async () => {
     if (!groqKey) return;
-    // Auto-save before testing so the key is persisted
-    setGroqKey(groqKey);
+    setGroqKey(groqKey.trim());
     setTestingGroq(true);
     setGroqResult(null);
     try {
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${groqKey.trim()}`,
-        },
-        body: JSON.stringify({
-          model: 'llama-3.3-70b-versatile',
-          messages: [{ role: 'user', content: 'Antworte nur mit: OK' }],
-          max_tokens: 5,
-        }),
+      // GET /models — simplest key validation, no model dependency
+      const res = await fetch('https://api.groq.com/openai/v1/models', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${groqKey.trim()}` },
       });
       if (res.ok) {
-        setGroqResult({ ok: true, msg: 'Groq API funktioniert! (Llama 3.3 70B)' });
+        const data = await res.json();
+        const count = data?.data?.length ?? '?';
+        setGroqResult({ ok: true, msg: `Groq API aktiv — ${count} Modelle verfügbar` });
       } else {
         const errText = await res.text();
         let errMsg = `Fehler ${res.status}`;
@@ -72,7 +66,7 @@ export function EinstellungenModal({ onClose }) {
         setGroqResult({ ok: false, msg: errMsg });
       }
     } catch (e) {
-      setGroqResult({ ok: false, msg: `Verbindungsfehler: ${e.message}` });
+      setGroqResult({ ok: false, msg: `Netzwerkfehler: ${e.message}` });
     }
     setTestingGroq(false);
   };
