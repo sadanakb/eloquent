@@ -46,7 +46,7 @@ export function EinstellungenModal({ onClose }) {
     setGroqResult(null);
     try {
       // GET /models — simplest key validation, no model dependency
-      const res = await fetch('https://api.groq.com/openai/v1/models', {
+      const res = await fetch('/api/groq/models', {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${groqKey.trim()}` },
       });
