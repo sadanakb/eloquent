@@ -177,3 +177,49 @@
 .animate-count-pulse {
   animation: countUpPulse 300ms ease-out;
 }
+
+/* ── ELOQUENT Design Overhaul — neue Animationen ── */
+
+@keyframes scaleXIn {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+@keyframes progressFill {
+  from { width: 0%; }
+}
+
+@keyframes goldPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(197, 150, 12, 0.5); }
+  50%  { box-shadow: 0 0 20px 8px rgba(197, 150, 12, 0.2); }
+  100% { box-shadow: 0 0 0 0 rgba(197, 150, 12, 0); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+@keyframes searchPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 150, 12, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(197, 150, 12, 0); }
+}
+
+/* Utility classes */
+.animate-scale-x-in {
+  animation: scaleXIn 400ms ease-out forwards;
+}
+.animate-gold-pulse {
+  animation: goldPulse 600ms ease-out 1;
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-parchment-dark) 25%,
+    var(--bg-parchment-light) 50%,
+    var(--bg-parchment-dark) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm);
+}
