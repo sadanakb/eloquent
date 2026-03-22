@@ -1,48 +1,69 @@
-/* ═══════════════════════════════════════════════
-   ELOQUENT — Design Tokens (Modern Literary)
-   Clean, warm, premium aesthetic
-   ═══════════════════════════════════════════════ */
-
 :root {
-  /* ── Backgrounds — cleaner, less yellow ── */
-  --bg-page:       #FAFAF7;
-  --bg-card:       #FFFFFF;
-  --bg-card-hover: #F8F7F4;
-  --bg-elevated:   #F3F1EC;
-  --bg-inset:      #EDEAE3;
+  /* ── NEW: Parchment backgrounds ── */
+  --bg-parchment:       #F5F0E8;
+  --bg-parchment-light: #FAF7F2;
+  --bg-parchment-dark:  #EDE7DB;
 
-  /* ── Text — sharper contrast ── */
-  --text-primary:  #1A1A1A;
-  --text-secondary:#4A4A4A;
-  --text-muted:    #8A8A8A;
-  --text-dim:      #ABABAB;
+  /* ── Aliases: old names → new (keeps existing code working) ── */
+  --bg-page:       var(--bg-parchment);
+  --bg-card:       var(--bg-parchment-light);
+  --bg-card-hover: var(--gold-50);
+  --bg-elevated:   var(--bg-parchment-light);
+  --bg-inset:      var(--bg-parchment-dark);
+  --bg-deep:       var(--bg-parchment-dark);
 
-  /* ── Accents — richer, more modern gold + a new blue accent ── */
-  --accent-gold:   #B8860B;
-  --accent-copper: #D4A574;
-  --accent-warm:   #C49A6C;
-  --accent-blue:   #4A6FA5;
+  /* ── NEW: Gold scale ── */
+  --gold-50:  #FDF8ED;
+  --gold-100: #F9EDCC;
+  --gold-300: #E5C458;
+  --gold-500: #C5960C;
+  --gold-600: #A67C0B;
+  --gold-700: #8A6609;
+  --gold-800: #6B4F07;
 
-  /* ── Legacy aliases (updated values) ── */
-  --bg-deep:       #FAFAF7;
-  --gold:          #B8860B;
-  --gold-bright:   #D4A017;
-  --gold-dim:      #D4A574;
-  --accent:        #6B4E2E;
-  --green:         #2D7A4F;
-  --green-dim:     #1E5E3A;
-  --red:           #C0392B;
-  --red-dim:       #962D22;
-  --text:          #1A1A1A;
-  --border:        #E0DDD6;
-  --border-light:  #ECEAE4;
+  /* ── Aliases: old gold names ── */
+  --accent-gold:       var(--gold-500);
+  --accent-gold-light: var(--gold-300);
+  --accent-copper:     var(--gold-300);
+  --accent-warm:       var(--gold-100);
+  --gold:              var(--gold-500);
+  --gold-bright:       var(--gold-300);
+  --gold-dark:         var(--gold-700);
+  --gold-dim:          var(--gold-100);
+  --warning:           var(--gold-500);
 
-  /* ── Semantic — more vivid ── */
-  --error:         #C0392B;
-  --success:       #2D7A4F;
-  --warning:       #B8860B;
+  /* ── NEW: Ink scale ── */
+  --ink-900: #1A1612;
+  --ink-800: #2D2822;
+  --ink-600: #5C554B;
+  --ink-400: #8C8478;
+  --ink-200: #C7C0B5;
 
-  /* ── Spacing ── */
+  /* ── Aliases: old text names ── */
+  --text-primary:   var(--ink-900);
+  --text-secondary: var(--ink-600);
+  --text-muted:     var(--ink-400);
+  --text-dim:       var(--ink-400);
+  --text:           var(--ink-900);
+  --border:         var(--ink-200);
+  --border-light:   var(--ink-200);
+  --border-gold:    var(--gold-300);
+
+  /* ── NEW: Semantic ── */
+  --accent-success: #4A7C59;
+  --accent-error:   #9C4040;
+  --accent-info:    #4A6B8A;
+
+  /* ── Aliases: old semantic ── */
+  --success:     var(--accent-success);
+  --error:       var(--accent-error);
+  --green:       var(--accent-success);
+  --green-dim:   var(--accent-success);
+  --red:         var(--accent-error);
+  --red-dim:     var(--accent-error);
+  --accent-blue: var(--accent-info);
+
+  /* ── UNCHANGED: Spacing, radius, shadow, transitions, fonts ── */
   --space-xs:  4px;
   --space-sm:  8px;
   --space-md:  16px;
@@ -51,24 +72,44 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
-  /* ── Radii — slightly more modern ── */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
 
-  /* ── Shadows — softer, more modern ── */
   --shadow-card:     0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
-  --shadow-elevated: 0 8px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-elevated: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
   --shadow-inset:    inset 0 1px 2px rgba(0,0,0,0.04);
 
-  /* ── Typography — cleaner sans-serif for body, keep serif for display ── */
-  --font-display:  'Cormorant Garamond', 'Georgia', serif;
-  --font-body:     'Inter', -apple-system, 'Segoe UI', sans-serif;
-  --font-logo:     'Old Standard TT', 'Georgia', serif;
-  --font-mono:     'JetBrains Mono', monospace;
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
+  --font-body:    'Inter', -apple-system, 'Segoe UI', sans-serif;
+  --font-logo:    'Old Standard TT', 'Georgia', serif;
+  --font-mono:    'JetBrains Mono', monospace;
 
-  /* ── Transitions ── */
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
+
+  /* ── Typography scale ── */
+  --text-hero:     clamp(3.5rem, 8vw, 6rem);
+  --text-h1:       clamp(2rem, 4vw, 3rem);
+  --text-h2:       clamp(1.5rem, 2.5vw, 2rem);
+  --text-h3:       clamp(1.125rem, 1.5vw, 1.5rem);
+  --text-body:     1rem;
+  --text-small:    0.875rem;
+  --text-caption:  0.75rem;
+  --text-overline: 0.6875rem;
+}
+
+/* ── Dark Mode ── */
+[data-theme="dark"] {
+  --bg-parchment:       #141210;
+  --bg-parchment-light: #1E1B17;
+  --bg-parchment-dark:  #282420;
+  --gold-300: #D4A844;
+  --gold-500: #E5BC4A;
+  --ink-900:  #F0EBE2;
+  --ink-800:  #D4CFC8;
+  --ink-600:  #B5AFA5;
+  --ink-400:  #8C8478;
+  --ink-200:  #3A3530;
 }
