@@ -1,16 +1,16 @@
 /* ============================================================
-   StoryPage — RPG Story Mode Styles
+   StoryPage — RPG Story Mode Styles — editorial/literary aesthetic
    ============================================================ */
 
 .wrapper {
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 24px 48px;
+  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
 }
 
 @media (max-width: 767px) {
   .wrapper {
-    padding: 20px 16px 32px;
+    padding: var(--space-md) var(--space-md) var(--space-xl);
   }
 }
 
@@ -21,21 +21,23 @@
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: var(--bg-card);
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-parchment-light);
   border-radius: var(--radius-md);
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--ink-200);
   backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-card);
 }
 
 .chapterProgress {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--ink-600);
   white-space: nowrap;
+  letter-spacing: 0.5px;
 }
 
 .xpBar {
@@ -50,379 +52,300 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--accent-gold);
+  background: var(--gold-100);
+  border: 1px solid var(--gold-300);
   flex-shrink: 0;
-}
-
-/* ---- Score Bar (legacy / top bar points) ---- */
-.scoreBar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 16px;
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
-}
-
-.scoreLeft {
-  display: flex;
-  gap: 16px;
-  align-items: center;
 }
 
 .points {
   font-family: var(--font-mono);
   font-size: 13px;
-  color: var(--accent-gold);
+  color: var(--gold-600);
   white-space: nowrap;
 }
 
-.wordsLearned {
-  font-size: 12px;
-  color: var(--text-muted);
-}
-
-/* ---- Story Intro ---- */
-.storyIntro {
+/* ---- Chapter Header ---- */
+.chapterHeader {
+  background: linear-gradient(180deg, var(--bg-parchment-dark) 0%, transparent 100%);
+  padding: var(--space-lg) var(--space-xl);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   text-align: center;
+  margin-bottom: var(--space-lg);
 }
 
-.introTitle {
-  font-family: var(--font-display);
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 12px;
+.chapterOverline {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-600);
+  margin-bottom: var(--space-xs);
 }
 
-.introText {
-  font-size: 16px;
-  line-height: 1.8;
-  color: var(--text-secondary);
-  font-style: italic;
-  padding: 8px 0;
-}
-
-/* ---- Chapter Intro ---- */
 .kapitelTitle {
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 2.2rem;
   font-weight: 700;
-  color: var(--accent-gold);
-  margin-top: 12px;
-  margin-bottom: 20px;
+  color: var(--ink-900);
+  margin: 0 0 var(--space-md);
+  line-height: 1.2;
+}
+
+.progressDots {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: var(--space-sm);
+}
+
+.dotFilled {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gold-500);
+}
+
+.dotEmpty {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ink-200);
+}
+
+/* ---- Scene / Dialog ---- */
+.settingLabel {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--ink-400);
+  margin-bottom: var(--space-md);
+  letter-spacing: 0.3px;
+}
+
+.dialog {
+  border-left: 3px solid var(--gold-300);
+  padding-left: var(--space-md);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--ink-800);
+  margin-bottom: var(--space-md);
 }
 
 .szene {
   font-size: 15px;
   line-height: 1.8;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
+  color: var(--ink-600);
+  margin-bottom: var(--space-md);
 }
 
-.dialog {
-  padding: 16px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--accent-gold);
+/* ---- Reputation Bar ---- */
+.reputationBar {
+  margin: var(--space-md) 0;
+}
+
+.reputationRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--ink-600);
+  margin-bottom: 6px;
+  font-family: var(--font-body);
+}
+
+.reputationLabel {
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+}
+
+.reputationValue {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--gold-600);
+}
+
+.reputationTrack {
+  background: var(--ink-200);
+  border-radius: 4px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.reputationFill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-success) 0%, var(--gold-500) 100%);
+  transition: width 0.6s ease;
+}
+
+/* ---- Story Intro ---- */
+.storyIntro {
+  text-align: center;
+  animation: fadeInUp 0.5s ease both;
+}
+
+.introTitle {
+  font-family: var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--ink-900);
+  margin-bottom: var(--space-sm);
+  line-height: 1.15;
+}
+
+.introText {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--ink-600);
   font-style: italic;
-  font-size: 15px;
-  line-height: 1.7;
-  color: var(--text-primary);
+  padding: var(--space-sm) 0;
 }
 
 /* ---- Challenge Bar ---- */
 .challengeBar {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.frage {
-  font-size: 16px;
-  line-height: 1.7;
-  color: var(--text-primary);
-  margin-bottom: 24px;
-  font-weight: 500;
-}
-
-/* ---- Options (multiple choice) ---- */
-.optionen {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.option {
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: 15px;
-  transition: all var(--transition-fast);
-  font-weight: 400;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.option:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--accent-copper);
-}
-
-.optionDisabled {
-  cursor: default;
-  color: var(--text-muted);
-}
-
-.optionRichtig {
-  composes: optionDisabled;
-  background: rgba(74, 103, 65, 0.08);
-  border: 1px solid var(--success);
-  color: var(--success);
-}
-
-.optionFalsch {
-  composes: optionDisabled;
-  background: rgba(139, 58, 58, 0.08);
-  border: 1px solid var(--error);
-  color: var(--error);
-}
-
-.optionLetter {
-  margin-right: 10px;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-/* ---- Result Box ---- */
-.resultBox {
-  margin-top: 20px;
-}
-
-.resultBanner {
-  padding: 16px;
-  border-radius: var(--radius-md);
-}
-
-.resultRichtig {
-  composes: resultBanner;
-  background: rgba(74, 103, 65, 0.06);
-  border: 1px solid var(--success);
-}
-
-.resultFalsch {
-  composes: resultBanner;
-  background: rgba(139, 58, 58, 0.06);
-  border: 1px solid var(--error);
-}
-
-.resultLabel {
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.resultLabelOk {
-  composes: resultLabel;
-  color: var(--success);
-}
-
-.resultLabelFail {
-  composes: resultLabel;
-  color: var(--error);
-}
-
-.streakBonus {
-  margin-left: 8px;
-  color: var(--accent-gold);
-}
-
-.erklaerung {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-.belohnung {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  color: var(--accent-gold);
-  font-style: italic;
+  align-items: center;
+  margin-bottom: var(--space-md);
 }
 
 /* ---- Outro ---- */
 .outroTitle {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: var(--accent-gold);
-  margin-bottom: 20px;
+  color: var(--gold-600);
+  margin-bottom: var(--space-lg);
   text-align: center;
 }
 
 .outroText {
+  font-family: var(--font-display);
   font-size: 15px;
-  line-height: 1.8;
-  color: var(--text-secondary);
+  line-height: 1.9;
+  color: var(--ink-600);
   font-style: italic;
 }
 
-/* ---- Ende / Ending Section ---- */
+/* ---- Ending ---- */
 .endingSection {
   text-align: center;
+  animation: fadeInUp 0.5s ease both;
 }
 
 .endeTitle {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 2.4rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px;
-}
-
-.endeDesc {
-  color: var(--text-secondary);
-  margin-bottom: 32px;
-  font-size: 15px;
-  line-height: 1.7;
+  color: var(--ink-900);
+  margin-bottom: var(--space-sm);
+  line-height: 1.2;
 }
 
 .endScore {
   font-family: var(--font-mono);
-  font-size: 42px;
+  font-size: 3rem;
   font-weight: 900;
-  color: var(--accent-gold);
+  color: var(--gold-500);
+  line-height: 1;
 }
 
 .endScoreLabel {
   font-size: 13px;
-  color: var(--text-muted);
-  margin-bottom: 16px;
+  color: var(--ink-400);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 /* ---- Stat Grid ---- */
 .statGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: var(--space-sm);
 }
 
 .statBox {
-  padding: 12px;
-  background: var(--bg-elevated);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-parchment-dark);
   border-radius: var(--radius-md);
+  text-align: center;
 }
 
 .statNum {
   font-family: var(--font-mono);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
 }
 
 .statNumGreen {
   composes: statNum;
-  color: var(--success);
+  color: var(--accent-success);
 }
 
 .statNumGold {
   composes: statNum;
-  color: var(--accent-gold);
+  color: var(--gold-500);
 }
 
 .statLabel {
   font-size: 11px;
-  color: var(--text-muted);
-}
-
-/* ---- Gelernte / Learned Words ---- */
-.gelernteTitle {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-gold);
-  margin-bottom: 10px;
-  font-family: var(--font-display);
-}
-
-.gelernteWrap {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* ---- Hinweis / Info Box ---- */
-.hinweisBox {
-  padding: 16px;
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
-  max-width: 400px;
-  margin: 0 auto 24px;
-  border: 1px solid var(--border);
-}
-
-.hinweisText {
-  font-size: 14px;
-  color: var(--text-secondary);
-  font-style: italic;
-  line-height: 1.6;
-}
-
-/* ---- Resume Banner ---- */
-.resumeBanner {
-  padding: 16px 20px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--accent-gold);
-  border-radius: var(--radius-md);
-  margin-bottom: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.resumeBanner p {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary);
+  color: var(--ink-400);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 2px;
 }
 
 /* ---- Final Actions ---- */
 .finalActions {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   justify-content: center;
+  margin-top: var(--space-lg);
+}
+
+/* ---- Score Bar / legacy ---- */
+.scoreBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-parchment-light);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--ink-200);
 }
 
 /* ---- Responsive ---- */
 @media (max-width: 600px) {
   .wrapper {
-    padding: 16px 12px 32px;
+    padding: var(--space-md) var(--space-sm) var(--space-xl);
   }
 
   .topBar {
-    gap: 8px;
+    gap: var(--space-xs);
     padding: 6px 10px;
     font-size: 12px;
   }
 
   .introTitle,
   .endeTitle {
-    font-size: 24px;
+    font-size: 1.8rem;
   }
 
   .kapitelTitle {
-    font-size: 20px;
+    font-size: 1.6rem;
   }
 
   .statGrid {
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: var(--space-xs);
   }
 
   .finalActions {

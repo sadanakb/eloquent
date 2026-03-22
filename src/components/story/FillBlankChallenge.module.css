@@ -1,25 +1,31 @@
+/* FillBlankChallenge — editorial/literary aesthetic */
+
 .wrapper {
   width: 100%;
 }
 
 /* ── Sentence display ── */
 .satzWrap {
-  font-size: 18px;
-  line-height: 1.8;
-  color: var(--text-primary);
-  margin-bottom: 28px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--ink-900);
+  margin-bottom: var(--space-xl);
   font-weight: 400;
   text-align: center;
-  padding: 16px 0;
+  padding: var(--space-md) 0;
 }
 
+/* ── Inline blank: bottom-border only, Cormorant font ── */
 .blank {
   display: inline-block;
   min-width: 80px;
-  padding: 2px 12px;
-  border-bottom: 2.5px solid var(--accent-gold);
-  color: var(--accent-gold);
+  padding: 2px 8px;
+  border-bottom: 2px solid var(--gold-500);
+  font-family: var(--font-display);
+  color: var(--gold-600);
   font-weight: 600;
+  font-style: italic;
   margin: 0 4px;
   text-align: center;
   transition: all var(--transition-fast);
@@ -27,18 +33,18 @@
 
 .blankCorrect {
   composes: blank;
-  border-bottom-color: var(--success);
-  color: var(--success);
-  background: rgba(74, 103, 65, 0.06);
-  border-radius: var(--radius-sm, 4px);
+  border-bottom-color: var(--accent-success);
+  color: var(--accent-success);
+  background: rgba(74, 124, 89, 0.06);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .blankWrong {
   composes: blank;
-  border-bottom-color: var(--error);
-  color: var(--error);
-  background: rgba(139, 58, 58, 0.06);
-  border-radius: var(--radius-sm, 4px);
+  border-bottom-color: var(--accent-error);
+  color: var(--accent-error);
+  background: rgba(156, 64, 64, 0.06);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   text-decoration: line-through;
 }
 
@@ -48,15 +54,15 @@
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-sm);
 }
 
 .optionBtn {
-  padding: 12px 24px;
+  padding: 10px 22px;
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  border: 1.5px solid var(--ink-200);
+  background: var(--bg-parchment-light);
+  color: var(--ink-900);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
@@ -66,8 +72,8 @@
 }
 
 .optionBtn:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--accent-gold);
+  background: var(--gold-50);
+  border-color: var(--gold-300);
   transform: translateY(-1px);
   box-shadow: var(--shadow-elevated);
 }
@@ -78,18 +84,18 @@
 
 .optionCorrect {
   composes: optionBtn;
-  background: rgba(74, 103, 65, 0.1);
-  border-color: var(--success);
-  color: var(--success);
+  background: rgba(74, 124, 89, 0.1);
+  border-color: var(--accent-success);
+  color: var(--accent-success);
   cursor: default;
   pointer-events: none;
 }
 
 .optionWrong {
   composes: optionBtn;
-  background: rgba(139, 58, 58, 0.1);
-  border-color: var(--error);
-  color: var(--error);
+  background: rgba(156, 64, 64, 0.1);
+  border-color: var(--accent-error);
+  color: var(--accent-error);
   cursor: default;
   pointer-events: none;
 }
@@ -103,55 +109,56 @@
 
 /* ── Result ── */
 .resultBox {
-  margin-top: 20px;
+  margin-top: var(--space-lg);
 }
 
 .resultBanner {
-  padding: 16px;
+  padding: var(--space-md);
   border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
 }
 
 .resultCorrect {
   composes: resultBanner;
-  background: rgba(74, 103, 65, 0.06);
-  border: 1px solid var(--success);
+  background: rgba(74, 124, 89, 0.06);
+  border: 1px solid var(--accent-success);
 }
 
 .resultWrong {
   composes: resultBanner;
-  background: rgba(139, 58, 58, 0.06);
-  border: 1px solid var(--error);
+  background: rgba(156, 64, 64, 0.06);
+  border: 1px solid var(--accent-error);
 }
 
 .resultLabelOk {
   font-weight: 700;
   font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--success);
+  margin-bottom: var(--space-xs);
+  color: var(--accent-success);
 }
 
 .resultLabelFail {
   font-weight: 700;
   font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--error);
+  margin-bottom: var(--space-xs);
+  color: var(--accent-error);
 }
 
 .correctAnswer {
   font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
+  color: var(--ink-600);
+  margin-bottom: var(--space-sm);
 }
 
 .erklaerung {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--text-secondary);
+  color: var(--ink-600);
 }
 
 .weiterWrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }

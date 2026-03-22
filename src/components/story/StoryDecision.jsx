@@ -30,10 +30,13 @@ export function StoryDecision({ decision, onChoose }) {
               onClick={() => handleChoose(choice)}
               className={styles.choiceCard}
             >
-              <div className={styles.choiceLabel}>{choice.label}</div>
-              {choice.hint && (
-                <div className={styles.choiceHint}>{choice.hint}</div>
-              )}
+              <div className={styles.choiceLetter}>{String.fromCharCode(65 + i)}</div>
+              <div className={styles.choiceContent}>
+                <div className={styles.choiceLabel}>{choice.label}</div>
+                {choice.hint && (
+                  <div className={styles.choiceHint}>{choice.hint}</div>
+                )}
+              </div>
             </Card>
           ))}
         </div>

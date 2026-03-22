@@ -46,8 +46,8 @@ export function MultipleChoiceChallenge({ challenge, onComplete }) {
                 className={optClass}
                 style={isThis ? { fontWeight: 600 } : undefined}
               >
-                <span className={styles.optionLetter}>{String.fromCharCode(65 + i)}.</span>
-                {opt}
+                <div className={styles.optionLetter}>{String.fromCharCode(65 + i)}</div>
+                <span>{opt}</span>
               </div>
             );
           })}

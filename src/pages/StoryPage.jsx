@@ -86,11 +86,12 @@ export function StoryPage({ onNavigate }) {
   }, []);
 
   // Challenge complete handler
-  const handleChallengeComplete = useCallback((result) => {
-    const score = result.score || 0;
-    const xp = result.correct ? XP_PER_CHALLENGE : Math.floor(XP_PER_CHALLENGE * 0.3);
+  // Components call onComplete(score, isCorrect) with 2 positional args
+  const handleChallengeComplete = useCallback((score, correct) => {
+    const finalScore = score || 0;
+    const xp = correct ? XP_PER_CHALLENGE : Math.floor(XP_PER_CHALLENGE * 0.3);
 
-    if (result.correct) {
+    if (correct) {
       eventBus.emit('sound:play', { sound: 'success' });
     } else {
       eventBus.emit('sound:play', { sound: 'error' });
@@ -101,7 +102,7 @@ export function StoryPage({ onNavigate }) {
 
     const hasBoss = !!chapter?.boss;
     const state = advanceState('complete_challenge', {
-      score,
+      score: finalScore,
       xp,
       maxChallenges: chapter?.challenges?.length || 3,
       hasBoss,
@@ -125,14 +126,15 @@ export function StoryPage({ onNavigate }) {
   }, [chapter]);
 
   // Boss fight complete
-  const handleBossComplete = useCallback((result) => {
-    const xp = result.won ? XP_PER_BOSS : Math.floor(XP_PER_BOSS * 0.2);
+  // BossFight calls onComplete(won, playerScore) with 2 positional args
+  const handleBossComplete = useCallback((won, bossScore) => {
+    const xp = won ? XP_PER_BOSS : Math.floor(XP_PER_BOSS * 0.2);
     addXP(xp, 'story_boss');
     setChapterXP(prev => prev + xp);
-    eventBus.emit('sound:play', { sound: result.won ? 'success' : 'error' });
+    eventBus.emit('sound:play', { sound: won ? 'success' : 'error' });
 
     const hasDecision = !!chapter?.decision;
-    const state = advanceState('complete_boss', { xp, score: result.score || 0, hasDecision });
+    const state = advanceState('complete_boss', { xp, score: bossScore || 0, hasDecision });
     setGameState(state);
 
     if (hasDecision) setPhase('decision');
@@ -199,7 +201,7 @@ export function StoryPage({ onNavigate }) {
   const ending = gameState ? determineEnding(gameState.playerChoices) : null;
 
   // Typewriter for intro
-  const introText = useTypewriter(
+  const { displayText: introText } = useTypewriter(
     phase === 'story_intro'
       ? 'In den nebelverhangenen Gassen einer vergessenen Stadt liegt die Akademie der Eloquenz verborgen. Einst der Hort der größten Redner, Dichter und Gelehrten, schweigt sie nun seit Jahrzehnten. Doch heute Nacht flackern die Laternen wieder auf — denn ein neuer Adept hat den Ruf vernommen…'
       : '',
@@ -259,11 +261,18 @@ export function StoryPage({ onNavigate }) {
       {/* CHAPTER INTRO */}
       {phase === 'chapter_intro' && chapter && (
         <div className="animate-in">
-          <Badge>Kapitel {chapter.id} von {TOTAL_CHAPTERS}</Badge>
-          <h2 className={styles.kapitelTitle}>{chapter.titel}</h2>
+          <div className={styles.chapterHeader}>
+            <div className={styles.chapterOverline}>Kapitel {chapter.id} von {TOTAL_CHAPTERS}</div>
+            <h2 className={styles.kapitelTitle}>{chapter.titel}</h2>
+            <div className={styles.progressDots}>
+              {chapter.challenges && chapter.challenges.map((_, i) => (
+                <span key={i} className={i < challengeIdx ? styles.dotFilled : styles.dotEmpty} />
+              ))}
+            </div>
+          </div>
           <Card>
-            <p className={styles.szene}>{chapter.szene}</p>
-            <div className={styles.dialog}>{chapter.dialog}</div>
+            {chapter.szene && <p className={styles.settingLabel}>{chapter.szene}</p>}
+            <blockquote className={styles.dialog}>{chapter.dialog}</blockquote>
           </Card>
           <div style={{ textAlign: 'center', marginTop: 24 }}>
             <Button variant="gold" onClick={acceptChallenge}>Prüfung annehmen →</Button>

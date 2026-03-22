@@ -1,116 +1,167 @@
+/* MultipleChoiceChallenge — editorial/literary aesthetic */
+
 .wrapper {
   width: 100%;
 }
 
 .frage {
+  font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.7;
-  color: var(--text-primary);
-  margin-bottom: 24px;
+  color: var(--ink-900);
+  margin-bottom: var(--space-lg);
   font-weight: 500;
 }
 
+/* ── Options list ── */
 .optionen {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* ── Choice row ── */
 .option {
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--ink-200);
+  border-radius: 8px;
   cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  background: var(--bg-parchment-light);
+  color: var(--ink-900);
   font-size: 15px;
-  transition: all var(--transition-fast);
-  font-weight: 400;
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-primary);
+  line-height: 1.5;
 }
 
 .option:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--accent-copper);
+  background: var(--gold-50);
+  border-color: var(--gold-300);
 }
 
 .optionFaded {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--ink-200);
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1.5;
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.45;
   pointer-events: none;
+  color: var(--ink-600);
+  background: var(--bg-parchment-light);
 }
 
 .optionCorrect {
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--accent-success);
+  border-radius: 8px;
   font-size: 15px;
-  font-weight: 400;
+  line-height: 1.5;
   cursor: default;
-  background: rgba(74, 103, 65, 0.08);
-  border: 1px solid var(--success);
-  color: var(--success);
+  background: rgba(74, 124, 89, 0.06);
+  color: var(--accent-success);
 }
 
 .optionWrong {
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--accent-error);
+  border-radius: 8px;
   font-size: 15px;
-  font-weight: 400;
+  line-height: 1.5;
   cursor: default;
-  background: rgba(139, 58, 58, 0.08);
-  border: 1px solid var(--error);
-  color: var(--error);
+  background: rgba(156, 64, 64, 0.06);
+  color: var(--accent-error);
 }
 
+/* ── Letter pill ── */
 .optionLetter {
-  margin-right: 10px;
-  font-weight: 600;
-  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--gold-100);
+  border: 1px solid var(--gold-300);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-700);
+  margin-right: 0;
+  margin-top: 1px;
 }
 
+.optionCorrect .optionLetter {
+  background: rgba(74, 124, 89, 0.12);
+  border-color: var(--accent-success);
+  color: var(--accent-success);
+}
+
+.optionWrong .optionLetter {
+  background: rgba(156, 64, 64, 0.12);
+  border-color: var(--accent-error);
+  color: var(--accent-error);
+}
+
+/* ── Result ── */
 .resultBox {
-  margin-top: 20px;
+  margin-top: var(--space-lg);
 }
 
 .resultBanner {
-  padding: 16px;
+  padding: var(--space-md);
   border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
 }
 
 .resultCorrect {
   composes: resultBanner;
-  background: rgba(74, 103, 65, 0.06);
-  border: 1px solid var(--success);
+  background: rgba(74, 124, 89, 0.06);
+  border: 1px solid var(--accent-success);
 }
 
 .resultWrong {
   composes: resultBanner;
-  background: rgba(139, 58, 58, 0.06);
-  border: 1px solid var(--error);
+  background: rgba(156, 64, 64, 0.06);
+  border: 1px solid var(--accent-error);
 }
 
 .resultLabelOk {
   font-weight: 700;
   font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--success);
+  margin-bottom: var(--space-xs);
+  color: var(--accent-success);
 }
 
 .resultLabelFail {
   font-weight: 700;
   font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--error);
+  margin-bottom: var(--space-xs);
+  color: var(--accent-error);
 }
 
 .erklaerung {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--text-secondary);
+  color: var(--ink-600);
 }
 
 .weiterWrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }

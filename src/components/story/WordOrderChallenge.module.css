@@ -1,3 +1,5 @@
+/* WordOrderChallenge — editorial/literary aesthetic */
+
 .wrapper {
   width: 100%;
 }
@@ -5,39 +7,39 @@
 .anweisung {
   font-size: 16px;
   line-height: 1.7;
-  color: var(--text-primary);
-  margin-bottom: 24px;
+  color: var(--ink-900);
+  margin-bottom: var(--space-lg);
   font-weight: 500;
 }
 
 /* ── Selected area ── */
 .selectedArea {
-  margin-bottom: 20px;
-  padding: 16px;
-  background: var(--bg-elevated);
+  margin-bottom: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-parchment-dark);
   border-radius: var(--radius-md);
-  border: 1px dashed var(--accent-gold);
+  border: 1px dashed var(--gold-300);
   min-height: 72px;
 }
 
 .selectedLabel {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--accent-gold);
+  color: var(--gold-600);
   margin-bottom: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
 }
 
 .placeholder {
   font-size: 14px;
-  color: var(--text-muted);
+  color: var(--ink-400);
   font-style: italic;
 }
 
 /* ── Available area ── */
 .availableArea {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-lg);
 }
 
 /* ── Tile row ── */
@@ -47,25 +49,27 @@
   gap: 8px;
 }
 
-/* ── Tiles ── */
+/* ── Word chips ── */
 .tile {
   min-width: 44px;
-  min-height: 44px;
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--accent-gold);
-  background: var(--bg-card);
-  color: var(--text-primary);
+  min-height: 36px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--gold-300);
+  background: var(--gold-100);
+  color: var(--ink-900);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: var(--font-body);
+  display: inline-flex;
+  align-items: center;
 }
 
 .tile:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--accent-warm);
+  background: var(--gold-50);
+  border-color: var(--gold-500);
   transform: translateY(-1px);
   box-shadow: var(--shadow-elevated);
 }
@@ -83,41 +87,41 @@
 
 .tileSelected {
   composes: tile;
-  background: var(--accent-gold);
-  color: var(--bg-card);
-  border-color: var(--accent-gold);
+  background: var(--gold-500);
+  color: var(--bg-parchment-light);
+  border-color: var(--gold-600);
 }
 
 .tileSelected:hover {
-  background: var(--accent-warm);
-  border-color: var(--accent-warm);
-  color: var(--bg-card);
+  background: var(--gold-600);
+  border-color: var(--gold-700);
+  color: var(--bg-parchment-light);
 }
 
 .tileCorrect {
   composes: tile;
-  background: rgba(74, 103, 65, 0.1);
-  border-color: var(--success);
-  color: var(--success);
+  background: rgba(74, 124, 89, 0.1);
+  border-color: var(--accent-success);
+  color: var(--accent-success);
   cursor: default;
 }
 
 .tileWrong {
   composes: tile;
-  background: rgba(139, 58, 58, 0.1);
-  border-color: var(--error);
-  color: var(--error);
+  background: rgba(156, 64, 64, 0.1);
+  border-color: var(--accent-error);
+  color: var(--accent-error);
   cursor: default;
 }
 
 .tileCorrectSmall {
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--success);
-  background: rgba(74, 103, 65, 0.06);
-  color: var(--success);
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-success);
+  background: rgba(74, 124, 89, 0.06);
+  color: var(--accent-success);
   font-size: 14px;
   font-weight: 500;
 }
@@ -125,68 +129,69 @@
 /* ── Actions ── */
 .actionRow {
   display: flex;
-  gap: 12px;
+  gap: var(--space-sm);
   align-items: center;
 }
 
 /* ── Result ── */
 .resultBox {
-  margin-top: 20px;
+  margin-top: var(--space-lg);
 }
 
 .resultBanner {
-  padding: 16px;
+  padding: var(--space-md);
   border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
 }
 
 .resultCorrect {
   composes: resultBanner;
-  background: rgba(74, 103, 65, 0.06);
-  border: 1px solid var(--success);
+  background: rgba(74, 124, 89, 0.06);
+  border: 1px solid var(--accent-success);
 }
 
 .resultWrong {
   composes: resultBanner;
-  background: rgba(139, 58, 58, 0.06);
-  border: 1px solid var(--error);
+  background: rgba(156, 64, 64, 0.06);
+  border: 1px solid var(--accent-error);
 }
 
 .resultLabelOk {
   font-weight: 700;
   font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--success);
+  margin-bottom: var(--space-xs);
+  color: var(--accent-success);
 }
 
 .resultLabelFail {
   font-weight: 700;
   font-size: 14px;
-  margin-bottom: 6px;
-  color: var(--error);
+  margin-bottom: var(--space-xs);
+  color: var(--accent-error);
 }
 
 .correctOrder {
-  margin: 12px 0;
+  margin: var(--space-sm) 0;
 }
 
 .correctOrderLabel {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--ink-400);
   font-weight: 500;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-sm);
 }
 
 .erklaerung {
   font-size: 14px;
   line-height: 1.6;
-  color: var(--text-secondary);
-  margin-top: 12px;
+  color: var(--ink-600);
+  margin-top: var(--space-sm);
 }
 
 .weiterWrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
+  margin-top: var(--space-md);
 }
