@@ -364,39 +364,22 @@ export function OnlineDuellPage({ onNavigate }) {
     setShowCodeInput(false);
   };
 
-  // No internet connection
+  // No internet or supabase not initialized
   if (!isOnline()) {
     return (
       <div className={styles.page}>
         <div className={styles.container}>
           <div className={`${styles.stateWrap} animate-in`}>
             <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
-            <h2 className={styles.stateTitle}>Keine Internetverbindung</h2>
+            <h2 className={styles.stateTitle}>Online-Modus nicht verfügbar</h2>
             <p className={styles.stateText}>
-              Bitte prüfe deine Internetverbindung und versuche es erneut.
+              Bitte prüfe deine Internetverbindung und lade die Seite neu.
             </p>
+            <Button variant="primary" onClick={() => window.location.reload()} className={styles.fullWidth}>
+              Neu laden
+            </Button>
             <Button variant="secondary" onClick={() => onNavigate('home')}>
               Zurück zum Menü
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Supabase not initialized (stale cache — user needs to reload)
-  if (!isSupabaseReady()) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.container}>
-          <div className={`${styles.stateWrap} animate-in`}>
-            <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
-            <h2 className={styles.stateTitle}>Veraltete Version</h2>
-            <p className={styles.stateText}>
-              Bitte lade die Seite neu, um die aktuelle Version zu laden.
-            </p>
-            <Button variant="primary" onClick={() => window.location.reload()}>
-              Neu laden
             </Button>
           </div>
         </div>

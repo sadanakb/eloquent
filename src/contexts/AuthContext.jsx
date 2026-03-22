@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { supabase, isOnline } from '../lib/supabase.js';
+import { supabase, isSupabaseReady } from '../lib/supabase.js';
 
 const AuthContext = createContext(null);
 
@@ -53,7 +53,7 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    if (!isOnline()) {
+    if (!isSupabaseReady()) {
       setIsLoading(false);
       return;
     }

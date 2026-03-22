@@ -14,8 +14,7 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
   : null;
 
 export function isOnline() {
-  // Check actual network connectivity, not just whether the client was initialized
-  return navigator.onLine !== false;
+  return supabase !== null && navigator.onLine !== false;
 }
 
 export function isSupabaseReady() {
