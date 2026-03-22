@@ -3,10 +3,9 @@ import { getRang } from '../data/raenge.js';
 import { supabase, isOnline } from '../lib/supabase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { getRankTitle } from '../engine/elo.js';
-import { Card } from '../components/Card.jsx';
 import { Badge } from '../components/Badge.jsx';
-import { Button } from '../components/Button.jsx';
-import { OrnamentIcon } from '../components/Ornament.jsx';
+import { Ornament } from '../components/Ornament.jsx';
+import { CrownIcon, ShieldIcon } from '../components/icons/Icons.jsx';
 import styles from './RanglistePage.module.css';
 
 const demo = [
@@ -17,15 +16,70 @@ const demo = [
   { name: 'Sadan', pokale: 5, siege: 0, gespielt: 1 },
 ];
 
-const rankLabels = ['I', 'II', 'III'];
+function AvatarCircle({ avatarUrl, username, size = 48, isFirst = false }) {
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={username}
+        className={`${styles.avatar} ${isFirst ? styles.avatarFirst : ''}`}
+        style={{ width: size, height: size }}
+      />
+    );
+  }
+  return (
+    <div
+      className={`${styles.avatarPlaceholder} ${isFirst ? styles.avatarFirst : ''}`}
+      style={{ width: size, height: size }}
+    >
+      <ShieldIcon size={size * 0.5} color="var(--gold-500)" />
+    </div>
+  );
+}
+
+function PodiumColumn({ entry, rank, isDemo = false }) {
+  const isFirst = rank === 1;
+  const isSecond = rank === 2;
+  const username = isDemo ? entry.name : (entry.username || 'Anonym');
+  const elo = isDemo ? entry.pokale : (entry.elo_rating || 1200);
+  const avatarUrl = isDemo ? null : entry.avatar_url;
+
+  const pedestalHeightClass = isFirst
+    ? styles.pedestalFirst
+    : isSecond
+    ? styles.pedestalSecond
+    : styles.pedestalThird;
+
+  const avatarSize = isFirst ? 56 : 44;
+
+  return (
+    <div className={`${styles.podiumCol} ${isFirst ? styles.podiumColFirst : ''}`}>
+      {isFirst && (
+        <div className={styles.crownWrapper}>
+          <CrownIcon size={24} color="var(--gold-500)" />
+        </div>
+      )}
+      <AvatarCircle
+        avatarUrl={avatarUrl}
+        username={username}
+        size={avatarSize}
+        isFirst={isFirst}
+      />
+      <div className={styles.podiumUsername}>{username}</div>
+      <div className={styles.podiumElo}>{elo}</div>
+      <div className={`${styles.pedestal} ${pedestalHeightClass}`}>
+        <span className={styles.pedestalRank}>{rank}</span>
+      </div>
+    </div>
+  );
+}
 
 export function RanglistePage() {
-  const [tab, setTab] = useState('lokal');
+  const [tab, setTab] = useState('global');
   const [globalData, setGlobalData] = useState([]);
   const [loadingGlobal, setLoadingGlobal] = useState(false);
 
   const auth = useAuth();
-
   const userId = auth?.user?.id;
 
   useEffect(() => {
@@ -49,135 +103,180 @@ export function RanglistePage() {
       });
   }, [tab]);
 
+  // Determine the current data set to render
+  const isLokal = tab === 'lokal';
+  const isFriends = tab === 'freunde';
+  const isGlobal = tab === 'global';
+
+  // For lokal tab use demo data, for global use fetched data
+  const activeData = isLokal ? demo.map(d => ({
+    user_id: d.name,
+    username: d.name,
+    elo_rating: d.pokale,
+    wins: d.siege,
+    losses: d.gespielt - d.siege,
+    avatar_url: null,
+  })) : globalData;
+
+  const top3 = activeData.slice(0, 3);
+  const rest = activeData.slice(3);
+
+  // podium order: [2nd, 1st, 3rd]
+  const podiumOrder = [
+    top3[1] ? { entry: top3[1], rank: 2 } : null,
+    top3[0] ? { entry: top3[0], rank: 1 } : null,
+    top3[2] ? { entry: top3[2], rank: 3 } : null,
+  ].filter(Boolean);
+
+  // Find own rank
+  const ownIndex = isGlobal
+    ? globalData.findIndex(e => e.user_id === userId)
+    : -1;
+  const ownEntry = ownIndex >= 0 ? globalData[ownIndex] : null;
+  const ownRank = ownIndex + 1;
+
+  // Milestone CTA
+  let milestoneCta = null;
+  if (ownEntry) {
+    const milestones = [1, 3, 10, 25, 50, 100];
+    const nextMilestone = milestones.find(m => m > ownRank);
+    if (nextMilestone && nextMilestone - ownRank <= 5) {
+      milestoneCta = `Noch ${nextMilestone - ownRank} Plätze bis Rang ${nextMilestone} →`;
+    }
+  }
+
+  const showPodium = (isLokal || (isGlobal && auth?.isAuthenticated && !loadingGlobal)) && activeData.length >= 1;
+
   return (
-    <div className={styles.wrapper}>
-      <div className={`${styles.header} animate-in`}>
-        <h1 className={styles.title}>
-          <OrnamentIcon name="lorbeer" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
-          Rangliste
-        </h1>
-        <p className={styles.subtitle}>Die eloquentesten Redner</p>
-      </div>
-
-      {/* Tab Switcher */}
-      <div className={styles.tabBar}>
-        <button
-          onClick={() => setTab('lokal')}
-          className={tab === 'lokal' ? styles.tabActive : styles.tab}
-        >
-          Lokal
-        </button>
-        <button
-          onClick={() => setTab('global')}
-          className={tab === 'global' ? styles.tabActive : styles.tab}
-        >
-          Global
-        </button>
-      </div>
-
-      {/* Lokal Tab */}
-      {tab === 'lokal' && (
-        <div className={styles.list}>
-          {demo.map((sp, i) => {
-            const rang = getRang(sp.pokale);
-            const quote = sp.gespielt > 0 ? Math.round(sp.siege / sp.gespielt * 100) : 0;
-            return (
-              <Card key={sp.name} style={{ animation: `textReveal 0.4s ease-out ${i * 0.08}s both`, padding: 16 }}>
-                <div className={styles.row}>
-                  <div className={i < 3 ? styles.rankGold : styles.rank}>{rankLabels[i] || `${i + 1}.`}</div>
-                  <div className={styles.info}>
-                    <div className={styles.nameRow}>
-                      <span className={i === 0 ? styles.nameTop : styles.name}>{sp.name}</span>
-                      <span className={styles.rangLabel}>{rang.name}</span>
-                    </div>
-                    <div className={styles.stats}>
-                      <span className={styles.stat}>{sp.siege}W / {sp.gespielt - sp.siege}L</span>
-                      <span className={styles.stat}>{quote}% Quote</span>
-                    </div>
-                  </div>
-                  <div className={styles.scoreCol}>
-                    <div className={styles.scoreNum}>{sp.pokale}</div>
-                    <div className={styles.scoreLabel}>Pokale</div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+    <div className={styles.page}>
+      <div className={styles.container}>
+        {/* Page Header */}
+        <div className={styles.header}>
+          <h1 className={styles.title}>RANGLISTE</h1>
+          <Ornament type="divider" className={styles.ornament} />
         </div>
-      )}
 
-      {/* Global Tab */}
-      {tab === 'global' && (
-        <div className={styles.list}>
-          {!isOnline() && (
-            <div className={styles.globalMsg}>
-              <OrnamentIcon name="tintenfass" size="lg" />
-              <p>Online-Rangliste nicht verfügbar. Keine Serververbindung.</p>
-            </div>
-          )}
-
-          {isOnline() && !auth?.isAuthenticated && (
-            <div className={styles.globalMsg}>
-              <OrnamentIcon name="federn" size="lg" />
-              <p>Melde dich an, um die globale Rangliste zu sehen.</p>
-            </div>
-          )}
-
-          {isOnline() && auth?.isAuthenticated && loadingGlobal && (
-            <div className={styles.globalMsg}>
-              <p>Lade Rangliste...</p>
-            </div>
-          )}
-
-          {isOnline() && auth?.isAuthenticated && !loadingGlobal && globalData.length === 0 && (
-            <div className={styles.globalMsg}>
-              <p>Noch keine Einträge vorhanden.</p>
-            </div>
-          )}
-
-          {isOnline() && auth?.isAuthenticated && !loadingGlobal && globalData.map((entry, i) => {
-            const isMe = entry.user_id === userId;
-            const wins = entry.wins || 0;
-            const losses = entry.losses || 0;
-            const elo = entry.elo_rating || 1200;
-            const rankTitle = getRankTitle(elo);
-
-            return (
-              <Card
-                key={entry.user_id || i}
-                glow={isMe}
-                style={{
-                  animation: `textReveal 0.4s ease-out ${i * 0.05}s both`,
-                  padding: 16,
-                  ...(isMe ? { border: '1px solid var(--accent-gold)' } : {}),
-                }}
-              >
-                <div className={styles.row}>
-                  <div className={i < 3 ? styles.rankGold : styles.rank}>
-                    {rankLabels[i] || `${i + 1}.`}
-                  </div>
-                  <div className={styles.info}>
-                    <div className={styles.nameRow}>
-                      <span className={i === 0 ? styles.nameTop : isMe ? styles.nameMe : styles.name}>
-                        {entry.username || 'Anonym'}
-                      </span>
-                      <span className={styles.rangLabel}>{rankTitle}</span>
-                      {isMe && <Badge>Du</Badge>}
-                    </div>
-                    <div className={styles.stats}>
-                      <span className={styles.stat}>{wins}W / {losses}L</span>
-                    </div>
-                  </div>
-                  <div className={styles.scoreCol}>
-                    <div className={styles.scoreNum}>{elo}</div>
-                    <div className={styles.scoreLabel}>Elo</div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+        {/* Filter Tabs */}
+        <div className={styles.tabBar}>
+          <button
+            className={tab === 'global' ? styles.tabActive : styles.tab}
+            onClick={() => setTab('global')}
+          >
+            Global
+          </button>
+          <button
+            className={tab === 'freunde' ? styles.tabActive : styles.tab}
+            onClick={() => setTab('freunde')}
+          >
+            Freunde
+          </button>
+          <button
+            className={tab === 'lokal' ? styles.tabActive : styles.tab}
+            onClick={() => setTab('lokal')}
+          >
+            Diese Woche
+          </button>
         </div>
-      )}
+
+        {/* Messages */}
+        {isGlobal && !isOnline() && (
+          <div className={styles.message}>
+            <p>Online-Rangliste nicht verfügbar. Keine Serververbindung.</p>
+          </div>
+        )}
+
+        {isGlobal && isOnline() && !auth?.isAuthenticated && (
+          <div className={styles.message}>
+            <p>Melde dich an, um die globale Rangliste zu sehen.</p>
+          </div>
+        )}
+
+        {isGlobal && isOnline() && auth?.isAuthenticated && loadingGlobal && (
+          <div className={styles.message}>
+            <p>Lade Rangliste…</p>
+          </div>
+        )}
+
+        {isGlobal && isOnline() && auth?.isAuthenticated && !loadingGlobal && globalData.length === 0 && (
+          <div className={styles.message}>
+            <p>Noch keine Einträge vorhanden.</p>
+          </div>
+        )}
+
+        {isFriends && (
+          <div className={styles.message}>
+            <p>Freundesliste noch nicht verfügbar.</p>
+          </div>
+        )}
+
+        {/* Podium */}
+        {showPodium && podiumOrder.length > 0 && (
+          <div className={styles.podium}>
+            {podiumOrder.map(({ entry, rank }) => (
+              <PodiumColumn
+                key={rank}
+                entry={entry}
+                rank={rank}
+                isDemo={isLokal}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Ranked list (rank 4+) */}
+        {showPodium && rest.length > 0 && (
+          <div className={styles.list}>
+            {rest.map((entry, i) => {
+              const idx = i + 3; // 0-based index in full list
+              const rank = idx + 1;
+              const isMe = isGlobal && entry.user_id === userId;
+              const username = isLokal ? entry.username : (entry.username || 'Anonym');
+              const elo = entry.elo_rating || 1200;
+              const avatarUrl = isLokal ? null : entry.avatar_url;
+
+              return (
+                <div
+                  key={entry.user_id || i}
+                  className={`${styles.listRow} ${isMe ? styles.listRowMe : ''}`}
+                  style={{ animationDelay: `${i * 0.04}s` }}
+                >
+                  <span className={styles.listRank}>{rank}</span>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={username} className={styles.listAvatar} />
+                  ) : (
+                    <div className={styles.listAvatarPlaceholder}>
+                      <ShieldIcon size={12} color="var(--gold-500)" />
+                    </div>
+                  )}
+                  <span className={`${styles.listUsername} ${isMe ? styles.listUsernameMe : ''}`}>
+                    {username}
+                    {isMe && <Badge>Du</Badge>}
+                  </span>
+                  <span className={styles.listElo}>{elo}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Sticky own rank */}
+        {ownEntry && ownRank > 3 && (
+          <div className={styles.ownRank}>
+            <span className={styles.listRank}>{ownRank}</span>
+            <div className={styles.listAvatarPlaceholder}>
+              <ShieldIcon size={12} color="var(--gold-500)" />
+            </div>
+            <span className={`${styles.listUsername} ${styles.listUsernameMe}`}>
+              {ownEntry.username || 'Du'}
+              <Badge>Du</Badge>
+            </span>
+            <span className={styles.listElo}>{ownEntry.elo_rating || 1200}</span>
+            {milestoneCta && (
+              <span className={styles.milestoneCta}>{milestoneCta}</span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
