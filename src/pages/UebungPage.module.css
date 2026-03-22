@@ -1,28 +1,70 @@
-.wrapper {
-  max-width: 960px;
+/* ── Page shell ── */
+.page {
+  background: var(--bg-parchment);
+  min-height: 100vh;
+  padding: var(--space-xl) var(--space-md);
+}
+
+.container {
+  max-width: 900px;
   margin: 0 auto;
-  padding: 32px 24px 48px;
 }
 
-@media (max-width: 767px) {
-  .wrapper {
-    padding: 20px 16px 32px;
-  }
+/* ── Streak strip ── */
+.streakStrip {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-bottom: var(--space-lg);
+  padding-bottom: 4px;
 }
 
-.title {
+.streakPillActive {
+  background: var(--gold-500);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: var(--transition-fast);
+}
+
+.streakPillInactive {
+  background: transparent;
+  color: var(--ink-400);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--ink-200);
+  white-space: nowrap;
+  transition: var(--transition-fast);
+}
+
+/* ── Centered phases (choose / difficulty) ── */
+.centeredPhase {
+  text-align: center;
+}
+
+.pageTitle {
   font-family: var(--font-display);
   font-size: 32px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
   margin-bottom: 8px;
 }
 
-.subtitle {
-  color: var(--text-secondary);
+.pageSubtitle {
+  color: var(--ink-600);
   margin-bottom: 28px;
 }
 
+/* ── Category grid ── */
 .katGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -44,9 +86,10 @@
 .katLabel {
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ink-900);
 }
 
+/* ── Difficulty grid ── */
 .diffGrid {
   display: grid;
   gap: 12px;
@@ -63,19 +106,97 @@
 .diffLabel {
   font-weight: 600;
   font-size: 16px;
-  color: var(--text-primary);
+  color: var(--ink-900);
 }
 
 .diffDesc {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
 
 .diffArrow {
   font-size: 20px;
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
 
+/* ── Write layout: 2-col desktop, stacked mobile ── */
+.writeLayout {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: var(--space-md);
+  align-items: start;
+}
+
+.taskColumn {
+  min-width: 0;
+}
+
+/* Desktop sidebar */
+.skillSidebarDesktop {
+  background: var(--bg-parchment-light);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-card);
+  display: block;
+}
+
+/* Mobile sidebar: hidden on desktop */
+.skillSidebarMobile {
+  display: none;
+}
+
+/* ── Skill sidebar content ── */
+.skillHeading {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink-900);
+  margin-bottom: var(--space-md);
+}
+
+.skillBars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.skillItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skillLabel {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--ink-600);
+  font-weight: 500;
+}
+
+.skillTrack {
+  background: var(--bg-parchment-dark);
+  border-radius: 3px;
+  height: 6px;
+  overflow: hidden;
+}
+
+.skillFill {
+  background: var(--gold-500);
+  height: 6px;
+  border-radius: 3px;
+  transition: width var(--transition-slow);
+}
+
+.focusHint {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--ink-400);
+  margin-top: var(--space-md);
+  line-height: 1.4;
+}
+
+/* ── Loading state ── */
 .loadingWrap {
   text-align: center;
   padding: 80px 20px;
@@ -86,27 +207,79 @@
   animation: pulse 1.5s infinite;
   margin-bottom: 16px;
   font-family: var(--font-display);
-  color: var(--accent-gold);
+  color: var(--gold-500);
 }
 
 .loadingTitle {
   font-family: var(--font-display);
   font-size: 24px;
-  color: var(--accent-gold);
+  color: var(--gold-500);
 }
 
 .loadingText {
-  color: var(--text-secondary);
+  color: var(--ink-600);
   margin-top: 8px;
 }
 
 .elapsed {
   font-family: var(--font-mono);
-  color: var(--accent-copper);
+  color: var(--gold-300);
 }
 
 .dots {
   display: inline-block;
   width: 24px;
   text-align: left;
+}
+
+/* ── Responsive: mobile ── */
+@media (max-width: 767px) {
+  .page {
+    padding: var(--space-lg) var(--space-md);
+  }
+
+  /* Switch write layout to stacked */
+  .writeLayout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  /* Hide desktop sidebar on mobile */
+  .skillSidebarDesktop {
+    display: none;
+  }
+
+  /* Show mobile collapsible sidebar */
+  .skillSidebarMobile {
+    display: block;
+    background: var(--bg-parchment-light);
+    border: 1px solid var(--ink-200);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .skillSummary {
+    padding: var(--space-sm) var(--space-md);
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink-800);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .skillSummary::-webkit-details-marker {
+    display: none;
+  }
+
+  .skillMobileContent {
+    padding: 0 var(--space-md) var(--space-md);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
