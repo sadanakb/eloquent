@@ -6,10 +6,10 @@ import { getProgress, getUnlocked } from '../engine/achievements.js';
 import { ACHIEVEMENTS } from '../data/achievements.js';
 import { Card } from '../components/Card.jsx';
 import { Badge } from '../components/Badge.jsx';
-import { GoldBar } from '../components/GoldBar.jsx';
 import { Button } from '../components/Button.jsx';
-import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
+import { OrnamentDivider } from '../components/Ornament.jsx';
 import { AuthModal } from '../components/AuthModal.jsx';
+import { ShieldIcon, TrophyIcon, StarIcon } from '../components/icons/Icons.jsx';
 import styles from './ProfilePage.module.css';
 
 const AVATAR_ICON_MAP = {
@@ -28,10 +28,12 @@ export function ProfilePage({ onNavigate }) {
 
   if (isLoading) {
     return (
-      <div className={styles.wrapper}>
-        <div className={styles.loadingWrap}>
-          <OrnamentIcon name="tintenfass" size="lg" />
-          <p className={styles.loadingText}>Profil wird geladen...</p>
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={styles.loadingWrap}>
+            <ShieldIcon size={40} color="var(--gold-500)" />
+            <p className={styles.loadingText}>Profil wird geladen…</p>
+          </div>
         </div>
       </div>
     );
@@ -39,17 +41,19 @@ export function ProfilePage({ onNavigate }) {
 
   if (!isAuthenticated) {
     return (
-      <div className={styles.wrapper}>
-        <div className={`${styles.loginPrompt} animate-in`}>
-          <OrnamentIcon name="federn" size="xl" className={styles.loginIcon} />
-          <h2 className={styles.loginTitle}>Anmeldung erforderlich</h2>
-          <p className={styles.loginText}>
-            Melde dich an, um dein Profil zu sehen, Online-Duelle zu spielen
-            und deinen Fortschritt zu verfolgen.
-          </p>
-          <Button variant="gold" onClick={() => setShowAuth(true)}>
-            Jetzt anmelden
-          </Button>
+      <div className={styles.page}>
+        <div className={styles.container}>
+          <div className={`${styles.loginPrompt} animate-in`}>
+            <ShieldIcon size={56} color="var(--gold-500)" />
+            <h2 className={styles.loginTitle}>Anmeldung erforderlich</h2>
+            <p className={styles.loginText}>
+              Melde dich an, um dein Profil zu sehen, Online-Duelle zu spielen
+              und deinen Fortschritt zu verfolgen.
+            </p>
+            <Button variant="primary" onClick={() => setShowAuth(true)}>
+              Jetzt anmelden
+            </Button>
+          </div>
         </div>
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </div>
@@ -67,6 +71,8 @@ export function ProfilePage({ onNavigate }) {
   const achievementProgress = getProgress();
   const unlockedIds = getUnlocked();
 
+  const xpPercent = Math.round(xpData.xpProgress * 100);
+
   // Get top 5 most recently unlocked achievements
   const unlockedAchievements = ACHIEVEMENTS
     .filter(a => unlockedIds.includes(a.id))
@@ -74,108 +80,125 @@ export function ProfilePage({ onNavigate }) {
     .reverse();
 
   return (
-    <div className={styles.wrapper}>
-      {/* Header */}
-      <div className={`${styles.header} animate-in`}>
-        <div className={styles.avatarLarge}>
-          <OrnamentIcon name={AVATAR_ICON_MAP[profile?.avatar_url] || 'feder'} size="xl" />
-        </div>
-        <h1 className={styles.username}>{profile?.username || 'Spieler'}</h1>
-        <div className={styles.rankRow}>
-          <Badge>{rankTitle}</Badge>
-          <span className={styles.eloNum}>{elo} Elo</span>
-        </div>
-      </div>
+    <div className={styles.page}>
+      <div className={styles.container}>
 
-      {/* Stats grid */}
-      <Card style={{ marginBottom: 16 }}>
-        <h3 className={styles.sectionTitle}>
-          <OrnamentIcon name="ziel" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-          Statistiken
-        </h3>
-        <div className={styles.statsGrid}>
-          <div className={styles.statCell}>
-            <span className={styles.statValue}>{wins}</span>
-            <span className={styles.statLabel}>Siege</span>
-          </div>
-          <div className={styles.statCell}>
-            <span className={styles.statValue}>{losses}</span>
-            <span className={styles.statLabel}>Niederlagen</span>
-          </div>
-          <div className={styles.statCell}>
-            <span className={styles.statValue}>{totalGames}</span>
-            <span className={styles.statLabel}>Spiele</span>
-          </div>
-          <div className={styles.statCell}>
-            <span className={styles.statValue}>{winRate}%</span>
-            <span className={styles.statLabel}>Siegquote</span>
-          </div>
-        </div>
-      </Card>
-
-      {/* XP section */}
-      <Card style={{ marginBottom: 16 }}>
-        <h3 className={styles.sectionTitle}>
-          <OrnamentIcon name="stern" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-          Erfahrung
-        </h3>
-        <div className={styles.xpHeader}>
-          <span className={styles.xpLevel}>Lv. {xpData.level} {xpData.levelName}</span>
-          <span className={styles.xpTotal}>{xpData.totalXP} XP</span>
-        </div>
-        <GoldBar value={xpData.xpProgress} max={1} />
-        <div className={styles.xpFooter}>
-          {xpData.xpForNextLevel > 0
-            ? `Noch ${xpData.xpForNextLevel} XP bis zum nächsten Level`
-            : 'Maximales Level erreicht!'}
-        </div>
-      </Card>
-
-      {/* Achievements */}
-      <Card style={{ marginBottom: 16 }}>
-        <h3 className={styles.sectionTitle}>
-          <OrnamentIcon name="lorbeer" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-          Errungenschaften ({achievementProgress.unlocked}/{achievementProgress.total})
-        </h3>
-        {unlockedAchievements.length > 0 ? (
-          <div className={styles.achievementList}>
-            {unlockedAchievements.map(ach => (
-              <div key={ach.id} className={styles.achievementRow}>
-                <span className={styles.achievementIcon}>{ach.icon || ''}</span>
-                <div className={styles.achievementInfo}>
-                  <span className={styles.achievementName}>{ach.name}</span>
-                  <span className={styles.achievementDesc}>{ach.description}</span>
-                </div>
+        {/* Profile Header */}
+        <Card className={`${styles.headerCard} animate-in`}>
+          <div className={styles.avatarArea}>
+            {profile?.avatar_url && !AVATAR_ICON_MAP[profile.avatar_url] ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile?.username || 'Avatar'}
+                className={styles.avatarImg}
+              />
+            ) : (
+              <div className={styles.avatarIcon}>
+                <ShieldIcon size={64} color="var(--gold-500)" />
               </div>
-            ))}
+            )}
           </div>
-        ) : (
-          <p className={styles.emptyText}>Noch keine Errungenschaften freigeschaltet.</p>
-        )}
-        <div className={styles.linkRow}>
-          <Button variant="ghost" onClick={() => onNavigate('achievements')}>
-            Alle Errungenschaften
+          <h1 className={styles.username}>{profile?.username || 'Spieler'}</h1>
+          <div className={styles.rankRow}>
+            <Badge type="rank">{rankTitle}</Badge>
+            <span className={styles.eloNum}>{elo} Elo</span>
+          </div>
+        </Card>
+
+        {/* Stats Grid */}
+        <Card className={styles.statsCard}>
+          <h2 className={styles.sectionHeading}>Statistiken</h2>
+          <OrnamentDivider />
+          <div className={styles.statsGrid}>
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{wins}</span>
+              <span className={styles.statLabel}>Siege</span>
+            </div>
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{losses}</span>
+              <span className={styles.statLabel}>Niederlagen</span>
+            </div>
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{winRate}%</span>
+              <span className={styles.statLabel}>Siegquote</span>
+            </div>
+            <div className={styles.statBox}>
+              <span className={styles.statValue}>{totalGames}</span>
+              <span className={styles.statLabel}>Spiele gesamt</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* XP Progress */}
+        <Card className={styles.xpCard}>
+          <h2 className={styles.sectionHeading}>Erfahrung</h2>
+          <OrnamentDivider />
+          <div className={styles.xpMeta}>
+            <span className={styles.xpLevel}>Lv. {xpData.level} — {xpData.levelName}</span>
+            <span className={styles.xpTotal}>{xpData.totalXP} XP</span>
+          </div>
+          <div className={styles.progressTrack}>
+            <div
+              className={styles.progressFill}
+              style={{ width: `${xpPercent}%` }}
+            />
+          </div>
+          <div className={styles.xpFooter}>
+            {xpData.xpForNextLevel > 0
+              ? `Noch ${xpData.xpForNextLevel} XP bis zum nächsten Level`
+              : 'Maximales Level erreicht!'}
+          </div>
+        </Card>
+
+        {/* Achievements */}
+        <Card className={styles.achievementsCard}>
+          <h2 className={styles.sectionHeading}>
+            Errungenschaften ({achievementProgress.unlocked}/{achievementProgress.total})
+          </h2>
+          <OrnamentDivider />
+          {unlockedAchievements.length > 0 ? (
+            <div className={styles.achievementList}>
+              {unlockedAchievements.map((ach, idx) => (
+                <div
+                  key={ach.id}
+                  className={styles.achievementRow}
+                  style={{ animationDelay: `${idx * 0.05}s` }}
+                >
+                  <span className={styles.achievementIcon}>{ach.icon || <StarIcon size={18} color="var(--gold-500)" />}</span>
+                  <div className={styles.achievementInfo}>
+                    <span className={styles.achievementName}>{ach.name}</span>
+                    <span className={styles.achievementDesc}>{ach.description}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyText}>Noch keine Errungenschaften freigeschaltet.</p>
+          )}
+          <div className={styles.linkRow}>
+            <Button variant="tertiary" onClick={() => onNavigate('achievements')}>
+              Alle Errungenschaften ansehen
+            </Button>
+          </div>
+        </Card>
+
+        {/* Match History */}
+        <Card className={styles.historyCard}>
+          <h2 className={styles.sectionHeading}>Letzte Spiele</h2>
+          <OrnamentDivider />
+          <p className={styles.emptyText}>Noch keine Online-Matches gespielt.</p>
+        </Card>
+
+        {/* Actions */}
+        <div className={styles.actions}>
+          <Button variant="secondary" onClick={() => setShowEditAuth(true)}>
+            Profil bearbeiten
+          </Button>
+          <Button variant="secondary" onClick={signOut}>
+            Abmelden
           </Button>
         </div>
-      </Card>
 
-      {/* Match history placeholder */}
-      <Card style={{ marginBottom: 16 }}>
-        <h3 className={styles.sectionTitle}>
-          <OrnamentIcon name="buchOffen" size="sm" style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
-          Match-Verlauf
-        </h3>
-        <p className={styles.emptyText}>Noch keine Online-Matches gespielt.</p>
-      </Card>
-
-      {/* Actions */}
-      <div className={styles.actions}>
-        <Button variant="ghost" onClick={() => setShowEditAuth(true)}>
-          Profil bearbeiten
-        </Button>
-        <Button variant="danger" onClick={signOut}>
-          Abmelden
-        </Button>
       </div>
 
       {showEditAuth && <AuthModal onClose={() => setShowEditAuth(false)} />}
