@@ -10,64 +10,81 @@
   }
 }
 
+/* ── Setup Phase ── */
+
+.setupContainer {
+  background: var(--bg-parchment);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-xl) var(--space-md);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 .setupHeader {
   text-align: center;
-  margin-bottom: 40px;
+  margin: var(--space-lg) 0;
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 36px;
+  font-size: var(--text-display, 48px);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
+  letter-spacing: 0.05em;
+  margin: 0;
 }
 
 .subtitle {
-  color: var(--text-secondary);
-  margin-top: 8px;
   font-family: var(--font-display);
   font-style: italic;
+  color: var(--ink-600);
+  margin-top: var(--space-sm);
+  font-size: 1.1rem;
 }
 
 .playerGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-
-.playerLabel {
-  font-size: 13px;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 8px;
-  font-family: var(--font-display);
-}
-
-.playerLabelS1 {
-  composes: playerLabel;
-  color: var(--accent-gold);
-}
-
-.playerLabelS2 {
-  composes: playerLabel;
-  color: var(--accent-copper);
-}
-
-.playerInput {
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: var(--space-md);
   width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 15px;
-  font-family: var(--font-body);
-  outline: none;
+  margin: var(--space-xl) 0 var(--space-lg);
 }
 
-.playerInput:focus {
-  border-color: var(--accent-copper);
+.vsCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gold-100);
+  border: 1px solid var(--gold-300);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
 }
+
+.startButton {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .playerGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-sm);
+  }
+
+  .vsCircle {
+    margin: var(--space-sm) auto;
+  }
+}
+
+/* ── Category Phase ── */
 
 .katHeader {
   text-align: center;
@@ -95,8 +112,10 @@
 .katLabel {
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--ink-900);
 }
+
+/* ── Round Bar ── */
 
 .roundBar {
   display: flex;
@@ -111,23 +130,25 @@
   gap: 32px;
   margin-bottom: 20px;
   padding: 12px;
-  background: var(--bg-card);
+  background: var(--bg-parchment-dark);
   border-radius: var(--radius-md);
 }
 
 .scoreS1 {
-  color: var(--accent-gold);
+  color: var(--gold-600);
   font-weight: 700;
 }
 
 .scoreVs {
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
 
 .scoreS2 {
-  color: var(--accent-copper);
+  color: var(--gold-700);
   font-weight: 700;
 }
+
+/* ── Pass Screen ── */
 
 .passScreen {
   text-align: center;
@@ -138,20 +159,22 @@
   font-size: 48px;
   margin-bottom: 16px;
   font-family: var(--font-display);
-  color: var(--accent-copper);
+  color: var(--gold-500);
 }
 
 .passTitle {
   font-family: var(--font-display);
   font-size: 28px;
-  color: var(--text-primary);
+  color: var(--ink-900);
   margin-bottom: 12px;
 }
 
 .passPlayer {
-  color: var(--accent-copper);
+  color: var(--gold-600);
   font-weight: 700;
 }
+
+/* ── Loading ── */
 
 .loadingWrap {
   text-align: center;
@@ -163,23 +186,23 @@
   animation: pulse 1.5s infinite;
   margin-bottom: 16px;
   font-family: var(--font-display);
-  color: var(--accent-gold);
+  color: var(--gold-500);
 }
 
 .loadingTitle {
   font-family: var(--font-display);
   font-size: 24px;
-  color: var(--accent-gold);
+  color: var(--gold-600);
 }
 
 .loadingText {
-  color: var(--text-secondary);
+  color: var(--ink-600);
   margin-top: 8px;
 }
 
 .elapsed {
-  font-family: var(--font-mono);
-  color: var(--accent-copper);
+  font-family: var(--font-body);
+  color: var(--gold-700);
 }
 
 .dots {
@@ -188,10 +211,12 @@
   text-align: left;
 }
 
+/* ── Result ── */
+
 .resultTitle {
   font-family: var(--font-display);
   font-size: 28px;
-  color: var(--accent-gold);
+  color: var(--gold-600);
   text-align: center;
   margin-bottom: 24px;
 }
@@ -204,16 +229,18 @@
 .vsSep {
   text-align: center;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-400);
   letter-spacing: 3px;
   font-family: var(--font-display);
 }
+
+/* ── Final ── */
 
 .finalTitle {
   font-family: var(--font-display);
   font-size: 40px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
   margin-bottom: 32px;
 }
 
@@ -233,44 +260,44 @@
 
 .finalNameWin {
   composes: finalName;
-  color: var(--accent-gold);
+  color: var(--gold-600);
 }
 
 .finalNameLose {
   composes: finalName;
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
 
 .finalScore {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 36px;
   font-weight: 900;
 }
 
 .finalScoreS1 {
   composes: finalScore;
-  color: var(--accent-gold);
+  color: var(--gold-600);
 }
 
 .finalScoreS2 {
   composes: finalScore;
-  color: var(--accent-copper);
+  color: var(--gold-700);
 }
 
 .finalRounds {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
 
 .finalVs {
   font-size: 28px;
-  color: var(--text-muted);
+  color: var(--ink-400);
   font-family: var(--font-display);
 }
 
 .winnerBox {
   padding: 16px;
-  background: var(--bg-elevated);
+  background: var(--bg-parchment-dark);
   border-radius: var(--radius-md);
   margin-top: 16px;
 }
@@ -283,17 +310,17 @@
 
 .winnerS1 {
   composes: winnerText;
-  color: var(--accent-gold);
+  color: var(--gold-600);
 }
 
 .winnerS2 {
   composes: winnerText;
-  color: var(--accent-copper);
+  color: var(--gold-700);
 }
 
 .winnerDraw {
   composes: winnerText;
-  color: var(--text-primary);
+  color: var(--ink-900);
 }
 
 .finalActions {

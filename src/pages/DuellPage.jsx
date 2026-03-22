@@ -6,9 +6,11 @@ import { kiBewertung } from '../engine/scoring-engine.js';
 import { Button } from '../components/Button.jsx';
 import { Card } from '../components/Card.jsx';
 import { Badge } from '../components/Badge.jsx';
+import { Input } from '../components/Input.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
+import { BoltIcon } from '../components/icons/Icons.jsx';
 import { checkAchievements } from '../engine/achievements.js';
 import styles from './DuellPage.module.css';
 
@@ -168,31 +170,39 @@ export function DuellPage({ onNavigate }) {
   return (
     <div className={styles.wrapper}>
       {phase === 'setup' && (
-        <div className="animate-in">
+        <div className={`${styles.setupContainer} animate-in`}>
+          <OrnamentDivider />
           <div className={styles.setupHeader}>
-            <h1 className={styles.title}>
-              <OrnamentIcon name="federn" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
-              Duell-Modus
-            </h1>
-            <p className={styles.subtitle}>Zwei Meister der Eloquenz. Drei Runden. Ein Gewinner.</p>
+            <h1 className={styles.title}>DUELL</h1>
+            <p className={styles.subtitle}>Zwei Spieler. Eine Sprache. Ein Sieger.</p>
           </div>
-          <Card>
-            <div className={styles.playerGrid}>
-              <div>
-                <label className={styles.playerLabelS1}>Spieler 1</label>
-                <input value={s1} onChange={e => setS1(e.target.value)} placeholder="Name eingeben..." className={styles.playerInput} />
-              </div>
-              <div>
-                <label className={styles.playerLabelS2}>Spieler 2</label>
-                <input value={s2} onChange={e => setS2(e.target.value)} placeholder="Name eingeben..." className={styles.playerInput} />
-              </div>
+          <OrnamentDivider />
+          <div className={styles.playerGrid}>
+            <Input
+              label="Spieler 1"
+              placeholder="Name eingeben..."
+              value={s1}
+              onChange={e => setS1(e.target.value)}
+            />
+            <div className={styles.vsCircle}>
+              <BoltIcon size={24} color="var(--gold-500)" />
             </div>
-            <div style={{ textAlign: 'center', marginTop: 28 }}>
-              <Button variant="gold" onClick={goToCategory} disabled={!s1.trim() || !s2.trim() || s1.trim().toLowerCase() === s2.trim().toLowerCase()}>
-                Weiter zur Kategorie →
-              </Button>
-            </div>
-          </Card>
+            <Input
+              label="Spieler 2"
+              placeholder="Name eingeben..."
+              value={s2}
+              onChange={e => setS2(e.target.value)}
+            />
+          </div>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={goToCategory}
+            disabled={!s1.trim() || !s2.trim()}
+            className={styles.startButton}
+          >
+            Duell starten →
+          </Button>
         </div>
       )}
 
