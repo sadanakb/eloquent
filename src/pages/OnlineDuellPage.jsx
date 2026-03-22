@@ -27,7 +27,9 @@ import { GlobeNetwork, BoltIcon } from '../components/icons/Icons.jsx';
 import styles from './OnlineDuellPage.module.css';
 
 function getRandomSituation() {
-  const pool = SITUATIONEN.mittel || SITUATIONEN.leicht || [];
+  const pool = SITUATIONEN.mittel?.length ? SITUATIONEN.mittel
+    : SITUATIONEN.leicht?.length ? SITUATIONEN.leicht
+    : [];
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
@@ -113,7 +115,7 @@ export function OnlineDuellPage({ onNavigate }) {
       if (supabase && opponentId) {
         const { data } = await supabase
           .from('profiles')
-          .select('username, avatar, elo_rating')
+          .select('username, avatar_url, elo_rating')
           .eq('id', opponentId)
           .single();
         setOpponent(data);
@@ -268,9 +270,22 @@ export function OnlineDuellPage({ onNavigate }) {
       setSituation(getRandomSituation());
 
       // Subscribe to match for when friend joins
-      const unsub = subscribeToMatch(result.matchId, (event) => {
-        if (event.type === 'opponent_submitted' || event.match?.player2_id) {
+      const unsub = subscribeToMatch(result.matchId, async (event) => {
+        if (event.type === 'friend_joined') {
+          const m = event.match;
+          const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
+          if (supabase && opponentId) {
+            const { data } = await supabase
+              .from('profiles')
+              .select('username, avatar_url, elo_rating')
+              .eq('id', opponentId)
+              .single();
+            setOpponent(data);
+          }
+          setFriendWaiting(false);
+          setMatch(m);
           setPhase('matched');
+          return;
         }
         handleMatchEvent(event);
       });
@@ -291,7 +306,7 @@ export function OnlineDuellPage({ onNavigate }) {
       if (supabase && opponentId) {
         const { data } = await supabase
           .from('profiles')
-          .select('username, avatar, elo_rating')
+          .select('username, avatar_url, elo_rating')
           .eq('id', opponentId)
           .single();
         setOpponent(data);

@@ -45,6 +45,9 @@ export function subscribeToMatch(matchId, callback) {
           callback({ type: 'opponent_disconnected', match });
         } else if (match.status === 'completed' && match.player1_score != null && match.player2_score != null) {
           callback({ type: 'scores_ready', match });
+        } else if (match.status === 'active' && !old.player2_id && match.player2_id) {
+          // Friend joined the waiting challenge
+          callback({ type: 'friend_joined', match });
         } else if (
           (match.player1_text && !old.player1_text) ||
           (match.player2_text && !old.player2_text)
