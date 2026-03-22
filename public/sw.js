@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eloquent-v5';
+const CACHE_NAME = 'eloquent-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -13,9 +13,16 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      )
+      .then(() =>
+        // Force all open tabs to reload so they get fresh JS immediately
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) =>
+          Promise.all(clients.map((client) => client.navigate(client.url)))
+        )
+      )
   );
   self.clients.claim();
 });
@@ -23,7 +30,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Never intercept cross-origin requests (e.g. api.groq.com, supabase)
+  // Never intercept cross-origin requests (e.g. supabase, groq)
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
@@ -35,29 +42,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Network-first for navigation (HTML pages) — always get latest deploy
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // Cache-first for static assets (JS/CSS with content hashes)
+  // Network-first for everything — always serve fresh content
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetched = fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         return response;
-      }).catch(() => cached);
-      return cached || fetched;
-    })
+      })
+      .catch(() => caches.match(request))
   );
 });
