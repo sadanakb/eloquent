@@ -1,40 +1,281 @@
-.wrapper {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 32px 24px 48px;
+/* RegelnPage — editorial/literary aesthetic */
+
+.page {
+  background: var(--bg-parchment);
+  min-height: 100vh;
+  padding: var(--space-xl) var(--space-md) var(--space-3xl);
 }
 
-@media (max-width: 767px) {
-  .wrapper {
-    padding: 20px 16px 32px;
-  }
+.container {
+  max-width: 720px;
+  margin: 0 auto;
 }
+
+/* ── Header ── */
 
 .header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-xl);
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: clamp(2.5rem, 6vw, 4rem);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
+  letter-spacing: 0.15em;
+  margin: var(--space-md) 0 var(--space-xs);
+  line-height: 1.1;
 }
 
-.sectionTitle {
+.subtitle {
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: var(--text-primary);
+  font-style: italic;
+  font-size: var(--text-title, 1.25rem);
+  color: var(--ink-600);
+  margin: var(--space-xs) 0 var(--space-md);
 }
 
-.ruleItem {
-  font-size: 14px;
-  color: var(--text-secondary);
-  padding: 6px 0 6px 16px;
-  border-left: 2px solid var(--border);
-  margin-bottom: 4px;
-  line-height: 1.5;
+/* ── Tab Bar ── */
+
+.tabBar {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--ink-200);
+  margin-bottom: var(--space-xl);
+  padding-bottom: 0;
+  /* hide scrollbar but keep functionality */
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-200) transparent;
+  -webkit-overflow-scrolling: touch;
+  /* reset button defaults for the container */
+  list-style: none;
+  padding-left: 0;
+}
+
+.tabBar::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tabBar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tabBar::-webkit-scrollbar-thumb {
+  background: var(--ink-200);
+  border-radius: 2px;
+}
+
+.tab {
+  /* reset button styles */
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  /* layout */
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  white-space: nowrap;
+  /* typography */
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--ink-600);
+  /* transitions */
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  /* position tab border flush with container border */
+  margin-bottom: -1px;
+  flex-shrink: 0;
+}
+
+.tab:hover {
+  color: var(--ink-900);
+}
+
+.tabActive {
+  color: var(--gold-600);
+  border-bottom-color: var(--gold-500);
+  font-weight: 500;
+}
+
+/* ── Tab Content ── */
+
+.tabContent {
+  animation: fadeInUp 0.25s ease both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Blockquote ── */
+
+.blockquote {
+  border-left: 3px solid var(--gold-300);
+  padding-left: var(--space-md);
+  margin: 0 0 var(--space-lg);
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--ink-700);
+  font-size: var(--text-title, 1.25rem);
+  line-height: 1.6;
+}
+
+/* ── Body text ── */
+
+.para {
+  line-height: 1.8;
+  color: var(--ink-800);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  margin: var(--space-md) 0 0;
+}
+
+/* ── Numbered list with gold numbers ── */
+
+.numberedList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-md);
+  counter-reset: rules-counter;
+}
+
+.numberedList li {
+  counter-increment: rules-counter;
+  display: flex;
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding: var(--space-xs) 0;
+  line-height: 1.8;
+  color: var(--ink-800);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+}
+
+.numberedList li::before {
+  content: counter(rules-counter);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--gold-600);
+  font-weight: 600;
+  min-width: 1.5rem;
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+
+/* ── Score grid (Wertung) ── */
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+}
+
+.scoreCell {
+  background: var(--bg-parchment-light);
+  border: 1px solid var(--ink-200);
+  border-radius: 4px;
+  padding: var(--space-md) var(--space-sm);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.scoreValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-display, 2rem);
+  color: var(--gold-600);
+  line-height: 1;
+  font-weight: 600;
+}
+
+.scoreLabel {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--ink-600);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* ── Rank list (Rangsystem) ── */
+
+.rankList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+}
+
+.rankItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background: var(--bg-parchment-light);
+  border: 1px solid var(--ink-200);
+  border-radius: 4px;
+  padding: var(--space-sm) var(--space-md);
+}
+
+.rankNumber {
+  font-family: var(--font-mono);
+  font-size: 1.25rem;
+  color: var(--gold-500);
+  font-weight: 600;
+  min-width: 2rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.rankInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rankTitle {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  color: var(--ink-900);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.rankDesc {
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  color: var(--ink-600);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 600px) {
+  .page {
+    padding: var(--space-md) var(--space-sm) var(--space-2xl);
+  }
+
+  .scoreGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tab {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .scoreGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
