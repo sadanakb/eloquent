@@ -1,198 +1,247 @@
 .wrapper {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 32px 24px 48px;
-}
-
-@media (max-width: 767px) {
-  .wrapper {
-    padding: 20px 16px 32px;
-  }
+  background: var(--bg-parchment);
+  min-height: 100vh;
+  padding: var(--space-xl) var(--space-md);
 }
 
 .header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-xl);
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: clamp(28px, 5vw, 48px);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--ink-900);
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--space-sm);
 }
 
 .subtitle {
-  color: var(--text-secondary);
-  margin-top: 4px;
   font-family: var(--font-display);
   font-style: italic;
+  font-size: 18px;
+  color: var(--ink-600);
+  margin: 0 0 var(--space-lg);
+}
+
+.headerDivider {
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/* Container */
+.wdtCard,
+.searchWrapper,
+.catRow,
+.list,
+.count {
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Wort des Tages */
+.wdtCard {
+  margin-bottom: var(--space-xl);
+  animation: goldPulse 1.5s ease both;
 }
 
 .wdtLabel {
+  font-family: var(--font-body);
   font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--accent-copper);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--gold-600);
   text-transform: uppercase;
-  margin-bottom: 8px;
-  font-family: var(--font-display);
+  margin-bottom: var(--space-sm);
 }
 
 .wdtWord {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: var(--text-display, 36px);
   font-weight: 700;
-  color: var(--accent-gold);
+  color: var(--ink-900);
+  line-height: 1.1;
+  margin-bottom: var(--space-xs);
+}
+
+.wdtPartOfSpeech {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--gold-600);
+  margin-bottom: var(--space-sm);
 }
 
 .wdtDef {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-top: 4px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--ink-600);
   line-height: 1.6;
+  margin-bottom: var(--space-sm);
 }
 
 .wdtExample {
+  font-family: var(--font-body);
   font-size: 13px;
-  color: var(--text-muted);
-  margin-top: 8px;
+  color: var(--ink-400);
   font-style: italic;
-  border-left: 2px solid var(--accent-copper);
-  padding-left: 12px;
+  border-left: 2px solid var(--gold-300);
+  padding-left: var(--space-sm);
+  line-height: 1.5;
 }
 
-.searchRow {
+/* Search */
+.searchWrapper {
+  margin-bottom: var(--space-md);
+}
+
+.searchBox {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
   align-items: center;
+  gap: var(--space-sm);
+  background: var(--bg-parchment-light);
+  border: 1.5px solid var(--ink-200);
+  border-radius: 8px;
+  padding: 10px 14px;
+  transition: border-color var(--transition-fast);
+}
+
+.searchBox:focus-within {
+  border-color: var(--gold-500);
 }
 
 .searchInput {
   flex: 1;
-  min-width: 200px;
-  padding: 10px 14px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-family: var(--font-body);
+  background: transparent;
+  border: none;
   outline: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink-900);
 }
 
-.searchInput:focus {
-  border-color: var(--accent-copper);
+.searchInput::placeholder {
+  color: var(--ink-400);
 }
 
+/* Category chips */
 .catRow {
   display: flex;
-  gap: 4px;
-  flex-wrap: nowrap;
+  gap: var(--space-sm);
   overflow-x: auto;
-  max-width: 100%;
-  padding-bottom: 4px;
+  white-space: nowrap;
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  scrollbar-width: none;
+}
+
+.catRow::-webkit-scrollbar {
+  display: none;
 }
 
 .catChip {
-  padding: 6px 12px;
-  border-radius: 3px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
   flex-shrink: 0;
-  background: var(--bg-card);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
-  transition: all var(--transition-fast);
-  font-family: var(--font-display);
+  cursor: pointer;
 }
 
-.catChip:hover {
-  border-color: var(--accent-copper);
-  color: var(--text-primary);
-}
-
-.catChipActive {
-  composes: catChip;
-  background: rgba(139, 105, 20, 0.08);
-  color: var(--accent-gold);
-  border-color: rgba(139, 105, 20, 0.3);
-}
-
+/* Word list */
 .list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-sm);
+}
+
+.wordCard {
+  padding: var(--space-md);
+  border-left: 3px solid transparent;
+  transition: border-color var(--transition-fast);
+  animation: fadeInUp 0.3s ease both;
+  cursor: pointer;
+}
+
+.wordCard:hover {
+  border-left-color: var(--gold-500);
 }
 
 .wordRow {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: var(--space-sm);
 }
 
 .wordInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .wordHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  flex-wrap: wrap;
 }
 
 .wordName {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: var(--text-title, 20px);
   font-weight: 700;
-  color: var(--accent-gold);
+  color: var(--ink-900);
 }
 
 .schwierigkeit {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--gold-500);
   letter-spacing: 2px;
 }
 
 .wordDef {
+  font-family: var(--font-body);
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--ink-600);
   line-height: 1.5;
 }
 
+/* Expanded section */
 .expandedSection {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--ink-200);
 }
 
 .example {
+  font-family: var(--font-body);
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--ink-400);
   font-style: italic;
-  margin-bottom: 8px;
-  border-left: 2px solid var(--accent-copper);
-  padding-left: 10px;
+  margin-bottom: var(--space-sm);
+  border-left: 2px solid var(--gold-300);
+  padding-left: var(--space-sm);
+  line-height: 1.5;
 }
 
 .synonymRow {
   display: flex;
-  gap: 6px;
+  gap: var(--space-xs);
   flex-wrap: wrap;
   align-items: center;
 }
 
 .synonymLabel {
+  font-family: var(--font-body);
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
 
+/* Count */
 .count {
   text-align: center;
-  margin-top: 16px;
+  margin-top: var(--space-md);
+  font-family: var(--font-body);
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-400);
 }
