@@ -1,4 +1,4 @@
-const CACHE_NAME = 'eloquent-v2';
+const CACHE_NAME = 'eloquent-v3';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
