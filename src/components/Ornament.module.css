@@ -1,8 +1,3 @@
-/* ═══════════════════════════════════════════════
-   ELOQUENT — Ornament-Komponente
-   SVG-Vignetten als Emoji-Ersatz
-   ═══════════════════════════════════════════════ */
-
 .icon {
   display: inline-flex;
   align-items: center;
@@ -19,18 +14,50 @@
 .divider {
   display: flex;
   align-items: center;
-  gap: 16px;
-  margin: var(--space-lg) 0;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  padding: var(--space-sm) 0;
 }
 
-.dividerLine {
-  flex: 1;
+.lines {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  width: 80px;
+}
+.linesRight { align-items: flex-start; }
+
+.thick {
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--gold-500));
+}
+.linesRight .thick {
+  background: linear-gradient(90deg, var(--gold-500), transparent);
+}
+
+.thin {
   height: 1px;
-  background: linear-gradient(to right, transparent, var(--border), transparent);
+  width: 100%;
+  margin-top: 3px;
+  background: linear-gradient(90deg, transparent, rgba(197, 150, 12, 0.4));
+}
+.linesRight .thin {
+  background: linear-gradient(90deg, rgba(197, 150, 12, 0.4), transparent);
 }
 
-.dividerCenter {
-  color: var(--accent-copper);
-  font-size: 14px;
-  line-height: 1;
+.diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--gold-500);
+  transform: rotate(45deg);
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+
+.rule {
+  border: none;
+  border-top: 1px solid var(--ink-200);
+  margin: var(--space-md) 0;
 }

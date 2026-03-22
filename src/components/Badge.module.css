@@ -1,13 +1,42 @@
 .badge {
   display: inline-flex;
-  padding: 3px 12px;
-  border-radius: 3px;
-  font-size: 11px;
+  align-items: center;
+  font-family: var(--font-body);
   font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: var(--text-overline);
   text-transform: uppercase;
-  font-family: var(--font-display);
-  border: 1px solid var(--border);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+/* Rang badge */
+.rank {
+  border: 1.5px solid var(--gold-300);
+  color: var(--gold-700);
+  background: transparent;
+  letter-spacing: 0.1em;
+}
+
+/* Kategorie badge (filterable) */
+.category {
+  border: 1px solid var(--ink-200);
+  color: var(--ink-600);
+  background: transparent;
+  border-radius: 16px;
+  padding: 4px 12px;
+  font-size: var(--text-caption);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.category:hover { border-color: var(--gold-300); color: var(--gold-700); }
+.category.active { background: var(--gold-500); color: #fff; border-color: var(--gold-500); }
+
+/* Wortart badge */
+.wordtype {
+  background: var(--bg-parchment-dark);
+  color: var(--ink-600);
+  border-radius: 4px;
+  font-size: 0.6875rem;
 }

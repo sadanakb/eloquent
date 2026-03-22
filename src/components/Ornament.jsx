@@ -1,3 +1,4 @@
+// src/components/Ornament.jsx
 import styles from './Ornament.module.css';
 
 // SVG-Pfade für alle Ornament-Icons (Emoji-Ersatz)
@@ -77,12 +78,32 @@ export function OrnamentIcon({ name, size = 'md', className = '', style = {} }) 
   );
 }
 
-export function OrnamentDivider({ symbol = '\u00B7' }) {
+// Double-line divider (thick + thin, gold)
+export function OrnamentDivider({ className = '' }) {
   return (
-    <div className={styles.divider}>
-      <div className={styles.dividerLine} />
-      <span className={styles.dividerCenter}>{symbol}</span>
-      <div className={styles.dividerLine} />
+    <div className={`${styles.divider} ${className}`} aria-hidden="true">
+      <div className={styles.lines}>
+        <div className={styles.thick} />
+        <div className={styles.thin} />
+      </div>
+      <div className={styles.diamond} />
+      <div className={`${styles.lines} ${styles.linesRight}`}>
+        <div className={styles.thick} />
+        <div className={styles.thin} />
+      </div>
     </div>
   );
 }
+
+// Single horizontal rule in gold
+export function OrnamentRule({ className = '' }) {
+  return <hr className={`${styles.rule} ${className}`} aria-hidden="true" />;
+}
+
+// Legacy export for backward compat
+export function Ornament({ type = 'divider', className = '' }) {
+  if (type === 'rule') return <OrnamentRule className={className} />;
+  return <OrnamentDivider className={className} />;
+}
+
+export default Ornament;
