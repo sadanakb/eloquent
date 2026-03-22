@@ -364,18 +364,18 @@ export function OnlineDuellPage({ onNavigate }) {
     setShowCodeInput(false);
   };
 
-  // No internet or supabase not initialized
+  // Supabase not initialized — stale cached version, user must reload
   if (!isOnline()) {
     return (
       <div className={styles.page}>
         <div className={styles.container}>
           <div className={`${styles.stateWrap} animate-in`}>
             <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
-            <h2 className={styles.stateTitle}>Online-Modus nicht verfügbar</h2>
+            <h2 className={styles.stateTitle}>Bitte Seite neu laden</h2>
             <p className={styles.stateText}>
-              Bitte prüfe deine Internetverbindung und lade die Seite neu.
+              Eine veraltete Version ist im Cache. Lade die Seite neu, um online spielen zu können.
             </p>
-            <Button variant="primary" onClick={() => window.location.reload()} className={styles.fullWidth}>
+            <Button variant="primary" onClick={() => window.location.reload()}>
               Neu laden
             </Button>
             <Button variant="secondary" onClick={() => onNavigate('home')}>

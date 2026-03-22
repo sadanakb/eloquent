@@ -14,7 +14,7 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
   : null;
 
 export function isOnline() {
-  return supabase !== null && navigator.onLine !== false;
+  return supabase !== null;
 }
 
 export function isSupabaseReady() {
