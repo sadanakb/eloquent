@@ -1,221 +1,223 @@
+/* ── Page shell ── */
 .page {
+  background: var(--bg-parchment);
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.hero {
-  text-align: center;
-  padding: 48px 24px 32px;
-  max-width: 600px;
-}
-
-.tagline {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-style: italic;
-  color: var(--text-secondary);
-  margin-top: 16px;
-  line-height: 1.5;
-}
-
-.subTagline {
-  font-size: 15px;
-  color: var(--text-muted);
-  margin-top: 8px;
-  letter-spacing: 0.05em;
+  padding: var(--space-xl) var(--space-md);
 }
 
 .container {
-  width: 100%;
-  max-width: 960px;
-  padding: 0 24px 64px;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
-/* Primary action cards */
+/* ── Letter reveal animation ── */
+@keyframes letterReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Hero section ── */
+.hero {
+  text-align: center;
+  padding-bottom: var(--space-2xl);
+}
+
+.greeting {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--ink-600);
+  margin-bottom: var(--space-md);
+  letter-spacing: 0.03em;
+}
+
+.greeting strong {
+  color: var(--gold-700);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--text-hero);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--ink-900);
+  line-height: 1;
+  margin: 0 0 var(--space-lg);
+  text-transform: uppercase;
+}
+
+.letter {
+  display: inline-block;
+  animation: letterReveal 0.5s ease both;
+}
+
+.ornamentRow {
+  margin: var(--space-md) 0;
+}
+
+.subtitle {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-style: italic;
+  color: var(--ink-600);
+  margin: var(--space-md) 0;
+  line-height: 1.4;
+}
+
+/* ── Primary action cards grid ── */
 .primaryGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
 }
 
 .primaryCard {
-  display: flex;
+  display: flex !important;
   align-items: center;
-  gap: 16px;
-  padding: 24px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  gap: var(--space-md);
+  padding: var(--space-lg);
   cursor: pointer;
   text-align: left;
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-card);
 }
 
-.primaryCard:hover {
-  border-color: var(--accent-gold);
-  box-shadow: var(--shadow-elevated);
-  transform: translateY(-2px);
-}
-
-.primaryIcon {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  background: var(--bg-elevated);
+.cardIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  background: var(--bg-parchment-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: var(--accent-gold);
 }
 
-.primaryIconAccent {
-  background: rgba(184, 134, 11, 0.08);
-}
-
-.primaryInfo {
+.cardInfo {
   flex: 1;
   min-width: 0;
 }
 
-.primaryTitle {
+.cardTitle {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 1.125rem;
   font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 4px;
+  color: var(--ink-900);
+  margin: 0 0 var(--space-xs);
+  line-height: 1.2;
 }
 
-.primaryDesc {
-  font-size: 14px;
-  color: var(--text-muted);
+.cardDesc {
+  font-family: var(--font-body);
+  font-size: var(--text-small);
+  color: var(--ink-600);
+  margin: 0;
   line-height: 1.4;
 }
 
-/* Secondary action cards */
-.secondaryGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-bottom: 32px;
+/* ── Secondary mode cards ── */
+.secondaryRow {
+  display: flex;
+  gap: var(--space-sm);
+  overflow-x: auto;
+  padding-bottom: var(--space-xs);
+  margin-bottom: var(--space-lg);
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.secondaryRow::-webkit-scrollbar {
+  display: none;
 }
 
 .secondaryCard {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 20px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
   cursor: pointer;
-  transition: all var(--transition-base);
-  color: var(--text-secondary);
-}
-
-.secondaryCard:hover {
-  border-color: var(--accent-copper);
-  color: var(--accent-gold);
-  background: var(--bg-card-hover);
+  flex-shrink: 0;
+  min-width: 96px;
+  text-align: center;
 }
 
 .secondaryLabel {
-  font-size: 14px;
+  font-family: var(--font-body);
+  font-size: var(--text-small);
   font-weight: 600;
+  color: var(--ink-800);
+  white-space: nowrap;
 }
 
-/* Quick links — desktop only */
+/* ── Featured / Daily Challenge section ── */
+.featuredSection {
+  margin-bottom: var(--space-xl);
+}
+
+.featuredCard {
+  padding: var(--space-lg);
+  animation: goldPulse 2s ease 0.8s both;
+}
+
+.featuredHeading {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 700;
+  color: var(--ink-900);
+  margin: 0 0 var(--space-md);
+  text-align: center;
+}
+
+/* ── Quick links footer ── */
 .quickLinks {
   display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 32px;
+  justify-content: space-around;
   flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--gold-100);
 }
 
 .quickLink {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
   background: transparent;
-  color: var(--text-muted);
-  font-size: 13px;
+  color: var(--ink-600);
+  font-family: var(--font-body);
+  font-size: var(--text-overline);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast);
+  border-radius: 6px;
 }
 
 .quickLink:hover {
-  border-color: var(--accent-gold);
-  color: var(--accent-gold);
-  background: var(--bg-card);
+  color: var(--gold-700);
+  background: var(--bg-parchment-dark);
 }
 
-.greeting {
-  text-align: center;
-  margin-top: 24px;
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-.greeting strong {
-  color: var(--accent-gold);
-}
-
-/* Mobile */
-@media (max-width: 767px) {
-  .hero {
-    padding: 32px 20px 24px;
-  }
-
-  .tagline {
-    font-size: 18px;
-  }
-
-  .container {
-    padding: 0 16px 32px;
-  }
-
+/* ── Mobile ≤ 480px ── */
+@media (max-width: 480px) {
   .primaryGrid {
     grid-template-columns: 1fr;
   }
 
-  .secondaryGrid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-  }
-
-  .secondaryCard {
-    padding: 16px 8px;
-  }
-
-  .secondaryLabel {
-    font-size: 12px;
-  }
-
-  .quickLinks {
-    display: none;
-  }
-
-  .greeting {
-    display: none;
-  }
-}
-
-/* Tablet */
-@media (min-width: 768px) and (max-width: 1024px) {
   .primaryCard {
-    padding: 20px;
+    padding: var(--space-md);
   }
 
-  .primaryTitle {
-    font-size: 18px;
+  .title {
+    letter-spacing: 0.1em;
   }
 }
