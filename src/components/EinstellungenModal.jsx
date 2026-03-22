@@ -46,7 +46,7 @@ export function EinstellungenModal({ onClose }) {
     setTestingGroq(true);
     setGroqResult(null);
     try {
-      const res = await fetch('/api/groq/chat/completions', {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

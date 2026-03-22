@@ -5,7 +5,7 @@
 // Provider: Groq (Cloud)
 // ──────────────────────────────────────────────────────
 
-const GROQ_PROXY = '/api/groq'; // Vite proxy → api.groq.com
+const GROQ_PROXY = 'https://api.groq.com/openai/v1';
 
 // ──────────────────────────────────────────────────────
 // Schritt 1: Research-Agent — Reine Textanalyse
