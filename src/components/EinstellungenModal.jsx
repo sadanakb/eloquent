@@ -9,6 +9,17 @@ export function EinstellungenModal({ onClose }) {
   const [testingGroq, setTestingGroq] = useState(false);
   const [groqResult, setGroqResult] = useState(null);
 
+  const [theme, setTheme] = useState(
+    document.documentElement.dataset.theme || 'light'
+  );
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('theme', next);
+    setTheme(next);
+  };
+
   useEffect(() => {
     migrateFromGemini();
     const existing = getGroqKey();
@@ -30,6 +41,8 @@ export function EinstellungenModal({ onClose }) {
 
   const handleTestGroq = async () => {
     if (!groqKey) return;
+    // Auto-save before testing so the key is persisted
+    setGroqKey(groqKey);
     setTestingGroq(true);
     setGroqResult(null);
     try {
@@ -48,11 +61,18 @@ export function EinstellungenModal({ onClose }) {
       if (res.ok) {
         setGroqResult({ ok: true, msg: 'Groq API funktioniert! (Llama 3.3 70B)' });
       } else {
-        const err = await res.json().catch(() => ({}));
-        setGroqResult({ ok: false, msg: err.error?.message || `Fehler ${res.status}` });
+        const errText = await res.text();
+        let errMsg = `Fehler ${res.status}`;
+        try {
+          const errJson = JSON.parse(errText);
+          errMsg = errJson.error?.message || errMsg;
+        } catch {
+          if (errText) errMsg += `: ${errText.slice(0, 200)}`;
+        }
+        setGroqResult({ ok: false, msg: errMsg });
       }
     } catch (e) {
-      setGroqResult({ ok: false, msg: e.message });
+      setGroqResult({ ok: false, msg: `Verbindungsfehler: ${e.message}` });
     }
     setTestingGroq(false);
   };
@@ -64,6 +84,18 @@ export function EinstellungenModal({ onClose }) {
       <div onClick={e => e.stopPropagation()} className={styles.modal}>
         <button className={styles.closeX} onClick={onClose} aria-label="Schließen">&times;</button>
         <h2 className={styles.title}>Einstellungen</h2>
+
+        {/* Erscheinungsbild */}
+        <div className={styles.settingRow}>
+          <div className={styles.settingLabel}>
+            <span className={styles.settingTitle}>Erscheinungsbild</span>
+            <span className={styles.settingDesc}>Hell oder dunkel</span>
+          </div>
+          <button onClick={toggleTheme} className={styles.themeToggle} aria-label="Erscheinungsbild wechseln">
+            {theme === 'dark' ? '☀' : '☾'}
+            <span>{theme === 'dark' ? 'Hell' : 'Dunkel'}</span>
+          </button>
+        </div>
 
         {/* Status Banner */}
         <div className={hasAny ? styles.statusOk : styles.statusWarn}>

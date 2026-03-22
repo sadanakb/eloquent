@@ -252,3 +252,29 @@
   border-color: var(--accent-copper);
   color: var(--text-primary);
 }
+
+.settingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) 0;
+  border-bottom: 1px solid var(--ink-200);
+}
+.settingLabel { display: flex; flex-direction: column; gap: 2px; }
+.settingTitle { font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink-900); font-weight: 500; }
+.settingDesc { font-size: var(--text-small); color: var(--ink-400); }
+.themeToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1.5px solid var(--ink-200);
+  background: transparent;
+  color: var(--ink-800);
+  font-size: var(--text-small);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.themeToggle:hover { border-color: var(--gold-300); color: var(--gold-700); background: var(--gold-50); }
