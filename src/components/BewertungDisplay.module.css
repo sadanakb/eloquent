@@ -47,13 +47,13 @@
 
 .methodKi {
   composes: methodBadge;
-  background: rgba(74, 103, 65, 0.12);
+  background: rgba(74, 124, 89, 0.12);
   color: var(--success);
 }
 
 .methodHeuristik {
   composes: methodBadge;
-  background: rgba(139, 105, 20, 0.12);
+  background: rgba(197, 150, 12, 0.12);
   color: var(--accent-gold);
 }
 
@@ -62,9 +62,9 @@
   font-size: 11px;
   padding: 6px 12px;
   border-radius: var(--radius-sm);
-  background: rgba(139, 58, 58, 0.08);
+  background: rgba(156, 64, 64, 0.08);
   color: var(--error);
-  border: 1px solid rgba(139, 58, 58, 0.15);
+  border: 1px solid rgba(156, 64, 64, 0.15);
 }
 
 .categories {
@@ -170,7 +170,7 @@
   font-size: 13px;
   color: var(--text-secondary);
   padding: 4px 0 4px 16px;
-  border-left: 2px solid rgba(74, 103, 65, 0.3);
+  border-left: 2px solid rgba(74, 124, 89, 0.3);
   margin-bottom: 4px;
 }
 

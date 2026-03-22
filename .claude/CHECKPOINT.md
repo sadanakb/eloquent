@@ -1,22 +1,43 @@
-# Checkpoint — 2026-03-17
+# Checkpoint — 2026-03-22
 
 ## Ziel
-Comprehensive Frontend Quality Overhaul — production-quality frontend for ELOQUENT
+Komplettes Frontend-Redesign von ELOQUENT Wortduell — alle 10 Seiten + Design-System-Foundation.
+Design-Philosophie: "Gedruckte Eloquenz, digital erlebbar" (Cormorant Garamond, Tinte & Gold).
 
-## Erledigt (Overhaul)
-- [x] Step 1: Unicode & German Text Fixes — ALL HTML entities replaced with real UTF-8 across 18 files. All ASCII-German replaced with proper umlauts.
-- [x] Step 2: Layout Standardization — All page wrappers unified to max-width: 800px, responsive padding. App.jsx paddingBottom → CSS app-shell class (mobile-only).
-- [x] Step 3: NavBar Desktop Polish — links gap/font-size increased, auth button larger, medium screen breakpoint (768-1024px).
-- [x] Step 4: HeroPage Redesign — CSS Grid for action buttons (Duell + Online side-by-side, Übung full-width below).
-- [x] Step 5: BottomNav Drawer Polish — hover/active states, dividers, max-height scroll.
-- [x] Step 6: Modal Polish — Close (×) button top-right on both modals. Consistent max-width (480px).
-- [x] Step 7: Button/Card Accessibility — min-height: 44px on all buttons.
-- [x] Step 8: Game Screen Polish — larger timer, thicker progress bar, spacious textarea, bigger score display (64px).
+## Erledigt
+- [x] Task 1: Token Migration + theme.css + Dark Mode Init (Commit: 5311d54)
+- [x] Task 2: animations.css — goldPulse, shimmer, scaleXIn, progressFill, searchPulse (Commit: f108f9e)
+- [x] Task 3: Icons.jsx — 17 SVG-Komponenten (Commit: 17e2499)
+- [x] Task 4: Button Redesign — primary/secondary/tertiary/ghost/danger Varianten (Commit: c3eeaa3)
+- [x] Task 5+6: Card Redesign + Input neu erstellt (Commit: 13f8d0e)
+- [x] Task 7+8: Badge Redesign + Ornament + ornaments.css gelöscht (Commit: bb0a100)
+- [x] Task 9: NavBar + BottomNav Redesign (Commit: 18bfba2)
+- [x] Task 10: EinstellungenModal + Dark Mode Toggle (Commit: aa15bb9)
+
+## Laufend (Parallele Agenten)
+- [ ] Task 11: HeroPage Redesign
+- [ ] Task 12: DuellPage Redesign
+- [ ] Task 13: OnlineDuellPage Redesign
+- [ ] Task 14: WoerterbuchPage Redesign
+- [ ] Task 15: ProfilePage Redesign
+- [ ] Task 16: UebungPage Redesign
+- [ ] Task 17: StoryPage + 7 Subkomponenten
+- [ ] Task 18: RanglistePage Redesign
+- [ ] Task 19: AchievementPage Redesign
+- [ ] Task 20: RegelnPage Redesign
+
+## Offen
+- [ ] Task 21: Final Sweep + verbleibende Komponenten (nach Tasks 11-20)
+
+## Entscheidungen
+- Token-Aliase: alte Token-Namen bleiben als CSS-Variable-Referenzen erhalten (zero breakage)
+- Stack: JSX + CSS Modules (kein TypeScript, kein Tailwind, kein Framer Motion)
+- Parallele Agenten für unabhängige Seiten (verschiedene Dateien = keine Git-Konflikte)
 
 ## Build/Test-Status
-- Build: OK (179 Module, 941ms)
-- Bundle: 696KB JS (gzip: 214KB) + 85KB CSS + 37KB howler
-- Letzter Commit vor Overhaul: a1792bd
+- Build: OK (alle Phase-1-Commits erfolgreich)
+- Letzter Commit: 18bfba2 feat: redesign Navbar + BottomNav styles
 
-## Nächster Schritt
-Push to GitHub → Vercel auto-deploys
+## Naechster Schritt
+Warten auf Completion aller 10 Page-Agenten (Tasks 11-20).
+Dann: Task 21 — Final Sweep (verbleibende Komponenten, Token-Bereinigung, finales Build-Check).

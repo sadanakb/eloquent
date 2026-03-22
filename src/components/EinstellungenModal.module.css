@@ -61,15 +61,15 @@
 
 .statusOk {
   composes: statusBanner;
-  background: rgba(74, 103, 65, 0.08);
-  border: 1px solid rgba(74, 103, 65, 0.2);
+  background: rgba(74, 124, 89, 0.08);
+  border: 1px solid rgba(74, 124, 89, 0.2);
   color: var(--success);
 }
 
 .statusWarn {
   composes: statusBanner;
-  background: rgba(139, 105, 20, 0.08);
-  border: 1px solid rgba(139, 105, 20, 0.2);
+  background: rgba(197, 150, 12, 0.08);
+  border: 1px solid rgba(197, 150, 12, 0.2);
   color: var(--accent-gold);
 }
 
@@ -95,7 +95,7 @@
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 3px;
-  background: rgba(74, 103, 65, 0.12);
+  background: rgba(74, 124, 89, 0.12);
   color: var(--success);
   font-weight: 600;
 }
@@ -208,7 +208,7 @@
   composes: smallBtn;
   background: transparent;
   color: var(--error);
-  border: 1px solid rgba(139, 58, 58, 0.3);
+  border: 1px solid rgba(156, 64, 64, 0.3);
 }
 
 .smallBtnDanger:hover {
@@ -225,13 +225,13 @@
 
 .resultOk {
   composes: resultMsg;
-  background: rgba(74, 103, 65, 0.08);
+  background: rgba(74, 124, 89, 0.08);
   color: var(--success);
 }
 
 .resultError {
   composes: resultMsg;
-  background: rgba(139, 58, 58, 0.08);
+  background: rgba(156, 64, 64, 0.08);
   color: var(--error);
 }
 

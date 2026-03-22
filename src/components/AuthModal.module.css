@@ -140,7 +140,7 @@
 .avatarSelected {
   composes: avatarBase;
   border-color: var(--accent-gold);
-  background: rgba(139, 105, 20, 0.06);
+  background: rgba(197, 150, 12, 0.06);
 }
 
 .avatarLabel {
