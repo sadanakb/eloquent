@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isOnline } from '../lib/supabase.js';
 
 const AuthContext = createContext(null);
@@ -8,7 +8,6 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const handledRef = useRef(false);
 
   async function fetchOrCreateProfile(userId) {
     if (!supabase) return null;
@@ -59,27 +58,19 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Listen to all auth state changes
+    // Check session immediately on mount (handles OAuth redirect code exchange)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    // Listen to all subsequent auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        handledRef.current = true;
         setSession(session);
       }
     );
 
-    // Fallback: if onAuthStateChange doesn't fire within 2s, check manually
-    const timeout = setTimeout(() => {
-      if (!handledRef.current) {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          setSession(session);
-        });
-      }
-    }, 2000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   async function signIn() {
