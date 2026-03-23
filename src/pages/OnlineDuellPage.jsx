@@ -117,7 +117,7 @@ export function OnlineDuellPage({ onNavigate }) {
           .from('profiles')
           .select('username, avatar_url, elo_rating')
           .eq('id', opponentId)
-          .single();
+          .maybeSingle();
         setOpponent(data);
       }
       setSituation(getRandomSituation());
@@ -180,13 +180,13 @@ export function OnlineDuellPage({ onNavigate }) {
     }
   }, [user]);
 
+  // FIX 1 — Trust DB status instead of stale opponentStatus state
   const handleWritingSubmit = async (text) => {
     if (!match || !user) return;
     setScoringText(text);
-    await submitAnswer(match.id, user.id, text);
-
-    // Check if opponent already submitted
-    if (opponentStatus === 'submitted') {
+    const updatedMatch = await submitAnswer(match.id, user.id, text);
+    // Trust DB status — 'scoring' means both players have submitted
+    if (updatedMatch?.status === 'scoring') {
       setPhase('scoring');
       await performScoring(text);
     } else {
@@ -196,6 +196,11 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const performScoring = async (text) => {
     setPhase('scoring');
+    // FIX 5 — Add 20s timeout to scoring phase
+    const scoringTimeout = setTimeout(() => {
+      console.warn('[Scoring] Timeout reached, showing result with available data');
+      setPhase('result');
+    }, 20000);
     try {
       // Score the player's text with KI (or heuristic fallback)
       const result = await kiBewertung(situation, text || scoringText);
@@ -245,14 +250,16 @@ export function OnlineDuellPage({ onNavigate }) {
         total_games: (profile?.total_games || 0) + 1,
       });
 
+      clearTimeout(scoringTimeout);
       setPhase('result');
     } catch (e) {
       console.error('Scoring failed:', e);
+      clearTimeout(scoringTimeout);
       setPhase('result');
     }
   };
 
-  // When waiting and opponent submits, trigger scoring
+  // FIX 2 — When waiting and opponent submits, trigger scoring (keep as-is)
   useEffect(() => {
     if (phase === 'waiting' && opponentStatus === 'submitted') {
       performScoring(scoringText);
@@ -275,11 +282,12 @@ export function OnlineDuellPage({ onNavigate }) {
           const m = event.match;
           const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
           if (supabase && opponentId) {
+            // FIX 3 — Use maybeSingle() to handle missing profiles gracefully
             const { data } = await supabase
               .from('profiles')
               .select('username, avatar_url, elo_rating')
               .eq('id', opponentId)
-              .single();
+              .maybeSingle();
             setOpponent(data);
           }
           setFriendWaiting(false);
@@ -304,16 +312,18 @@ export function OnlineDuellPage({ onNavigate }) {
       setSituation(getRandomSituation());
       const opponentId = m.player1_id === user.id ? m.player2_id : m.player1_id;
       if (supabase && opponentId) {
+        // FIX 3 — Use maybeSingle() to handle missing profiles gracefully
         const { data } = await supabase
           .from('profiles')
           .select('username, avatar_url, elo_rating')
           .eq('id', opponentId)
-          .single();
+          .maybeSingle();
         setOpponent(data);
       }
       setPhase('matched');
     } else {
-      setJoinError('Code ungültig oder Spiel nicht mehr verfügbar.');
+      // FIX 6 — Better error message for missing friend code
+      setJoinError('Code nicht gefunden. Prüfe ob der Code korrekt ist und das Spiel noch wartet.');
     }
   };
 
@@ -334,6 +344,8 @@ export function OnlineDuellPage({ onNavigate }) {
   };
 
   const handleRematch = () => {
+    // FIX 4 — Clean up match subscription before resetting
+    if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
     setPhase('searching');
     setSearchElapsed(0);
     setEloRange(200);
@@ -349,6 +361,8 @@ export function OnlineDuellPage({ onNavigate }) {
   };
 
   const handleNewMatch = () => {
+    // FIX 4 — Clean up match subscription before resetting
+    if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
     setPhase('menu');
     setPlayerResult(null);
     setOpponentScore(null);

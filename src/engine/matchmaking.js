@@ -26,6 +26,16 @@ export async function joinQueue(userId, eloRating) {
   // Try immediate match
   await findMatch(userId);
 
+  // Clean up any existing subscription first
+  if (activeSubscription) {
+    supabase.removeChannel(activeSubscription);
+    activeSubscription = null;
+  }
+  if (expandTimer) {
+    clearTimeout(expandTimer);
+    expandTimer = null;
+  }
+
   // Subscribe to Realtime for new matches involving this player
   const channel = supabase
     .channel('matchmaking')

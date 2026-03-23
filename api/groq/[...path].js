@@ -16,7 +16,13 @@ export default async function handler(req, res) {
   const groqUrl = `https://api.groq.com/openai/v1${groqPath}`;
 
   const headers = {};
-  if (req.headers.authorization) headers['Authorization'] = req.headers.authorization;
+  // Use server-side key if configured, otherwise use client-provided key
+  const serverKey = process.env.GROQ_API_KEY;
+  if (serverKey) {
+    headers['Authorization'] = `Bearer ${serverKey}`;
+  } else if (req.headers.authorization) {
+    headers['Authorization'] = req.headers.authorization;
+  }
   if (req.headers['content-type']) headers['Content-Type'] = req.headers['content-type'];
 
   try {
