@@ -32,7 +32,7 @@
   background: none;
   cursor: pointer;
   font-size: 20px;
-  color: var(--text-muted);
+  color: var(--ink-600);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
