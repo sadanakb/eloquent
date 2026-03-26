@@ -89,6 +89,61 @@ Antworte NUR mit JSON:
   "tipps": ["Tipp 1", "Tipp 2", "Tipp 3"]
 }`
 
+// ─── Key Decryption (ported from key-encryption.js) ───
+
+async function deriveKey(userId: string): Promise<CryptoKey> {
+  const encoder = new TextEncoder()
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(userId + '_eloquent_key_v1'),
+    'PBKDF2',
+    false,
+    ['deriveKey']
+  )
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: encoder.encode('eloquent_salt'), iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  )
+}
+
+async function decryptGroqKey(encryptedBase64: string, userId: string): Promise<string | null> {
+  try {
+    const key = await deriveKey(userId)
+    const combined = Uint8Array.from(atob(encryptedBase64), c => c.charCodeAt(0))
+    const iv = combined.slice(0, 12)
+    const ciphertext = combined.slice(12)
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv }, key, ciphertext
+    )
+    return new TextDecoder().decode(decrypted)
+  } catch {
+    return null
+  }
+}
+
+async function getRandomUserGroqKey(admin: any): Promise<string | null> {
+  // Fetch all users who have an encrypted Groq key
+  const { data: rows } = await admin
+    .from('user_progress')
+    .select('user_id, settings')
+    .not('settings->groq_key_encrypted', 'is', null)
+
+  if (!rows || rows.length === 0) return null
+
+  // Shuffle and try to decrypt until we find a working key
+  const shuffled = rows.sort(() => Math.random() - 0.5)
+  for (const row of shuffled) {
+    const encrypted = row.settings?.groq_key_encrypted
+    if (!encrypted) continue
+    const key = await decryptGroqKey(encrypted, row.user_id)
+    if (key && key.startsWith('gsk_')) return key
+  }
+  return null
+}
+
 // ─── Helpers ───
 
 function sanitize(text: string): string {
@@ -345,11 +400,20 @@ Deno.serve(async (req) => {
     let p1Score: number, p2Score: number
     let scoringMethod = 'ki'
 
-    if (groqKey) {
+    // Determine which Groq key to use: server env > random user key > heuristic
+    let activeGroqKey = groqKey || null
+    if (!activeGroqKey) {
+      activeGroqKey = await getRandomUserGroqKey(admin)
+      if (activeGroqKey) {
+        console.log('Using borrowed user Groq key for scoring')
+      }
+    }
+
+    if (activeGroqKey) {
       try {
         const [result1, result2] = await Promise.all([
-          scoreText(groqKey, situation, match.player1_text),
-          scoreText(groqKey, situation, match.player2_text),
+          scoreText(activeGroqKey, situation, match.player1_text),
+          scoreText(activeGroqKey, situation, match.player2_text),
         ])
         p1Score = result1.total
         p2Score = result2.total
@@ -398,10 +462,12 @@ Deno.serve(async (req) => {
     // Update player 1 profile
     const p1Won = winnerId === match.player1_id
     const p1Lost = winnerId === match.player2_id
+    const isDraw = winnerId === null
     await admin.from('profiles').update({
       elo_rating: elo.newPlayerRating,
       wins: (p1Profile?.wins || 0) + (p1Won ? 1 : 0),
       losses: (p1Profile?.losses || 0) + (p1Lost ? 1 : 0),
+      draws: ((p1Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
       total_games: p1Games + 1,
     }).eq('id', match.player1_id)
 
@@ -412,6 +478,7 @@ Deno.serve(async (req) => {
       elo_rating: elo.newOpponentRating,
       wins: (p2Profile?.wins || 0) + (p2Won ? 1 : 0),
       losses: (p2Profile?.losses || 0) + (p2Lost ? 1 : 0),
+      draws: ((p2Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
       total_games: p2Games + 1,
     }).eq('id', match.player2_id)
 
