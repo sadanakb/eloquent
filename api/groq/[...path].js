@@ -1,13 +1,19 @@
 // Vercel Serverless Function — Groq API Catch-All Proxy
 // Handles /api/groq/chat/completions, /api/groq/models, etc.
 
+import { getCorsHeaders, setCorsHeaders, handlePreflight, validateAuth } from '../_lib/cors-auth.js';
+
 export default async function handler(req, res) {
   // CORS preflight
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.status(204).end();
+  if (handlePreflight(req, res)) return;
+
+  // Set CORS headers for all responses
+  setCorsHeaders(req, res);
+
+  // Auth check
+  const authError = validateAuth(req);
+  if (authError) {
+    return res.status(401).json({ error: { message: authError } });
   }
 
   // Build Groq URL from path segments: ['chat', 'completions'] → /chat/completions

@@ -459,7 +459,12 @@ export async function kiBewertung(situation, antwort) {
       console.log(`[ELOQUENT] KI-Bewertung erfolgreich! (${result._provider}/${result._model}) in ${result._duration}s`);
       return result;
     } catch (e) {
-      console.warn('[ELOQUENT] Alle KI-Provider fehlgeschlagen:', e.message);
+      const isRateLimit = e.message?.includes('RATE_LIMITED') || e.message?.includes('429');
+      if (isRateLimit) {
+        console.warn('[ELOQUENT] Groq Rate Limit — Fallback auf Heuristik');
+      } else {
+        console.warn('[ELOQUENT] Alle KI-Provider fehlgeschlagen:', e.message);
+      }
       console.warn('[ELOQUENT] Fallback auf Heuristik (letzter Ausweg)');
       const heuristik = berechneHeuristik(text, situation, e.message);
       heuristik._duration = ((Date.now() - startTime) / 1000).toFixed(1);

@@ -14,6 +14,17 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DIST = join(__dirname, 'dist');
 const PORT = process.env.PORT || 3000;
 
+const ALLOWED_ORIGINS = [
+  'https://eloquent-iota.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+function getAllowedOrigin(req) {
+  const origin = req.headers?.origin || '';
+  return ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+}
+
 const MIME_TYPES = {
   '.html': 'text/html',
   '.js': 'application/javascript',
@@ -55,7 +66,7 @@ async function proxyGroq(req, res) {
 
     res.writeHead(groqRes.status, {
       'Content-Type': groqRes.headers.get('content-type') || 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': getAllowedOrigin(req),
     });
     const responseBody = await groqRes.arrayBuffer();
     res.end(Buffer.from(responseBody));
@@ -98,9 +109,10 @@ const server = createServer((req, res) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': getAllowedOrigin(req),
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
     });
     return res.end();
   }

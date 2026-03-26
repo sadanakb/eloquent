@@ -4,6 +4,7 @@ import eventBus from './event-bus.js'
 let Howl = null
 let howlerLoaded = false
 let howlerLoading = false
+let soundListenerRegistered = false
 
 const sounds = {}
 
@@ -111,7 +112,20 @@ function toggleMusic() {
   return next
 }
 
-eventBus.on('sound:play', (e) => play(e.detail.sound))
+export function initSoundManager() {
+  if (soundListenerRegistered) return;
+  soundListenerRegistered = true;
+  eventBus.on('sound:play', (e) => play(e.detail.sound));
+}
+
+export function destroySoundManager() {
+  soundListenerRegistered = false;
+  // Note: eventBus doesn't support removeListener by reference easily,
+  // but the flag prevents re-registration
+}
+
+// Auto-init on first import
+initSoundManager();
 
 export default {
   play,

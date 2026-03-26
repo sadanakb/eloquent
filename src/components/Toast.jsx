@@ -32,6 +32,7 @@ export function ToastProvider({ children }) {
     counterRef.current += 1;
     const toast = {
       id: `toast_${counterRef.current}`,
+      type: 'achievement',
       achievement,
       timestamp: Date.now(),
     };
@@ -40,15 +41,34 @@ export function ToastProvider({ children }) {
     processQueue();
   }, [processQueue]);
 
-  // Auto-dismiss toasts
+  const showMessage = useCallback((opts) => {
+    counterRef.current += 1;
+    const toast = {
+      id: `toast_${counterRef.current}`,
+      type: 'message',
+      message: opts.message,
+      action: opts.action || null,
+      actionLabel: opts.actionLabel || null,
+      duration: opts.duration !== undefined ? opts.duration : AUTO_DISMISS_MS,
+      timestamp: Date.now(),
+    };
+
+    queueRef.current.push(toast);
+    processQueue();
+  }, [processQueue]);
+
+  // Auto-dismiss toasts (skip toasts with duration: 0)
   useEffect(() => {
     if (toasts.length === 0) return;
 
-    const timers = toasts.map(t => {
-      const elapsed = Date.now() - t.timestamp;
-      const remaining = Math.max(AUTO_DISMISS_MS - elapsed, 0);
-      return setTimeout(() => removeToast(t.id), remaining);
-    });
+    const timers = toasts
+      .filter(t => (t.duration !== undefined ? t.duration : AUTO_DISMISS_MS) > 0)
+      .map(t => {
+        const duration = t.duration !== undefined ? t.duration : AUTO_DISMISS_MS;
+        const elapsed = Date.now() - t.timestamp;
+        const remaining = Math.max(duration - elapsed, 0);
+        return setTimeout(() => removeToast(t.id), remaining);
+      });
 
     return () => timers.forEach(clearTimeout);
   }, [toasts, removeToast]);
@@ -61,25 +81,73 @@ export function ToastProvider({ children }) {
     return unsub;
   }, [showToast]);
 
+  // Listen for toast:message events (general purpose toasts)
+  useEffect(() => {
+    const unsub = eventBus.on('toast:message', (e) => {
+      showMessage(e.detail || { message: 'Benachrichtigung' });
+    });
+    return unsub;
+  }, [showMessage]);
+
+  // Listen for SW update toast
+  useEffect(() => {
+    const unsub = eventBus.on('toast:update-available', () => {
+      showMessage({
+        message: 'Neue Version verfügbar!',
+        action: () => window.location.reload(),
+        actionLabel: 'Jetzt aktualisieren',
+        duration: 0,
+      });
+    });
+    return unsub;
+  }, [showMessage]);
+
   return (
-    <ToastContext.Provider value={{ showToast }}>
+    <ToastContext.Provider value={{ showToast, showMessage }}>
       {children}
-      <div className={styles.container} aria-live="polite">
+      <div className={styles.container} aria-live="assertive" role="alert">
         {toasts.map((t, i) => (
           <div
             key={t.id}
             className={styles.toast}
             style={{ '--toast-index': i }}
-            onClick={() => removeToast(t.id)}
+            onClick={() => !t.action && removeToast(t.id)}
           >
-            <div className={styles.iconWrap}>
-              <OrnamentIcon name={t.achievement.icon} size="md" />
-            </div>
-            <div className={styles.content}>
-              <div className={styles.label}>Erfolg freigeschaltet</div>
-              <div className={styles.name}>{t.achievement.name}</div>
-              <div className={styles.description}>{t.achievement.description}</div>
-            </div>
+            {t.type === 'achievement' ? (
+              <>
+                <div className={styles.iconWrap}>
+                  <OrnamentIcon name={t.achievement.icon} size="md" />
+                </div>
+                <div className={styles.content}>
+                  <div className={styles.label}>Erfolg freigeschaltet</div>
+                  <div className={styles.name}>{t.achievement.name}</div>
+                  <div className={styles.description}>{t.achievement.description}</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.content}>
+                  <div className={styles.messageName}>{t.message}</div>
+                </div>
+                {t.action && t.actionLabel && (
+                  <button
+                    className={styles.actionBtn}
+                    onClick={(e) => { e.stopPropagation(); t.action(); removeToast(t.id); }}
+                  >
+                    {t.actionLabel}
+                  </button>
+                )}
+                {!t.action && (
+                  <button
+                    className={styles.dismissBtn}
+                    onClick={() => removeToast(t.id)}
+                    aria-label="Schließen"
+                  >
+                    &times;
+                  </button>
+                )}
+              </>
+            )}
           </div>
         ))}
       </div>

@@ -5,6 +5,8 @@
 // Provider: Groq (Cloud)
 // ──────────────────────────────────────────────────────
 
+import { logger } from './logger.js';
+
 const GROQ_PROXY = '/api/groq';
 
 // ──────────────────────────────────────────────────────
@@ -175,6 +177,9 @@ async function callGroq(apiKey, messages) {
 
   if (!res.ok) {
     const err = await res.text();
+    if (res.status === 429) {
+      throw new Error(`RATE_LIMITED: Groq API Rate Limit überschritten`);
+    }
     throw new Error(`Groq Fehler (${res.status}): ${err.slice(0, 150)}`);
   }
 
@@ -190,7 +195,7 @@ async function callGroq(apiKey, messages) {
 
 async function groqScore(apiKey, situation, antwort) {
   // Schritt 1: Research-Agent
-  console.log('[Research-Agent] Groq → llama-3.3-70b-versatile — Textanalyse...');
+  logger.debug('[Research-Agent] Groq → llama-3.3-70b-versatile — Textanalyse...');
   const researchPrompt = buildResearchPrompt(situation, antwort);
   const researchText = await callGroq(apiKey, [
     { role: 'system', content: 'Du bist ein Textanalyst. Antworte NUR mit JSON.' },
@@ -198,20 +203,20 @@ async function groqScore(apiKey, situation, antwort) {
   ]);
 
   const researchResult = parseJson(researchText, 'Research-Agent');
-  console.log(`[Research-Agent] Analyse abgeschlossen:`, {
+  logger.debug('[Research-Agent] Analyse abgeschlossen:', {
     mittel: researchResult.mittel?.length || 0,
     gehobene: researchResult.gehobene_woerter?.length || 0,
   });
 
   // Schritt 2: Bewertungs-Agent
-  console.log('[Bewertungs-Agent] Groq → llama-3.3-70b-versatile — Scoring...');
+  logger.debug('[Bewertungs-Agent] Groq → llama-3.3-70b-versatile — Scoring...');
   const bewertungPrompt = buildBewertungPrompt(situation, antwort, researchResult);
   const bewertungText = await callGroq(apiKey, [
     { role: 'system', content: 'Du bist ein Bewertungs-Professor. Antworte NUR mit JSON.' },
     { role: 'user', content: bewertungPrompt },
   ]);
 
-  console.log('[Bewertungs-Agent] Scoring abgeschlossen');
+  logger.debug('[Bewertungs-Agent] Scoring abgeschlossen');
   return { text: bewertungText, provider: 'groq', model: 'llama-3.3-70b-versatile' };
 }
 
@@ -275,7 +280,7 @@ async function mitRetry(fn, providerName) {
       lastError = e;
       if (versuch <= MAX_RETRIES) {
         const wartezeit = versuch * 2000; // 2s, 4s
-        console.warn(`[ELOQUENT KI] ${providerName} Versuch ${versuch} fehlgeschlagen: ${e.message} — Retry in ${wartezeit / 1000}s...`);
+        logger.warn(`${providerName} Versuch ${versuch} fehlgeschlagen: ${e.message} — Retry in ${wartezeit / 1000}s...`);
         await new Promise(r => setTimeout(r, wartezeit));
       }
     }
@@ -312,6 +317,88 @@ export function setGroqKey(key) {
   } else {
     localStorage.removeItem('eloquent_groq_key');
   }
+}
+
+/**
+ * Save Groq key to localStorage AND (if logged in) encrypted to Supabase.
+ * Import this instead of setGroqKey() when user context is available.
+ */
+export async function saveGroqKeyWithSync(groqKey, user) {
+  // 1. Always save locally
+  setGroqKey(groqKey);
+
+  // 2. If logged in, sync encrypted to Supabase
+  if (user) {
+    try {
+      const { encryptGroqKey } = await import('./key-encryption.js');
+      const { supabase } = await import('../lib/supabase.js');
+      if (!supabase) return;
+
+      if (groqKey) {
+        const encrypted = await encryptGroqKey(groqKey.trim(), user.id);
+        const { data: existing } = await supabase
+          .from('user_progress')
+          .select('settings')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        await supabase.from('user_progress').upsert({
+          user_id: user.id,
+          settings: {
+            ...(existing?.settings || {}),
+            groq_key_encrypted: encrypted,
+          },
+        }, { onConflict: 'user_id' });
+      } else {
+        // Key removed — clear from cloud too
+        const { data: existing } = await supabase
+          .from('user_progress')
+          .select('settings')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (existing?.settings?.groq_key_encrypted) {
+          await supabase.from('user_progress').upsert({
+            user_id: user.id,
+            settings: {
+              ...(existing.settings || {}),
+              groq_key_encrypted: null,
+            },
+          }, { onConflict: 'user_id' });
+        }
+      }
+    } catch {
+      // Best-effort sync — local save already succeeded
+    }
+  }
+}
+
+/**
+ * Load Groq key from Supabase after login. Returns true if key was loaded.
+ */
+export async function loadGroqKeyFromSupabase(userId) {
+  try {
+    const { decryptGroqKey } = await import('./key-encryption.js');
+    const { supabase } = await import('../lib/supabase.js');
+    if (!supabase) return false;
+
+    const { data } = await supabase
+      .from('user_progress')
+      .select('settings')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (data?.settings?.groq_key_encrypted) {
+      const decrypted = await decryptGroqKey(data.settings.groq_key_encrypted, userId);
+      if (decrypted) {
+        localStorage.setItem('eloquent_groq_key', btoa(decrypted));
+        return true;
+      }
+    }
+  } catch {
+    // Decryption or network failure — keep local key as-is
+  }
+  return false;
 }
 
 export function hasAiProvider() {

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react';
 import { EinstellungenModal } from './components/EinstellungenModal.jsx';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
@@ -6,19 +6,25 @@ import { AuthModal } from './components/AuthModal.jsx';
 import { NavBar } from './components/NavBar.jsx';
 import { SetupWizard } from './components/SetupWizard.jsx';
 import { ToastProvider } from './components/Toast.jsx';
+import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { PageTransition } from './components/PageTransition.jsx';
 import { BottomNav } from './components/BottomNav.jsx';
-import { HeroPage } from './pages/HeroPage.jsx';
-import { DuellPage } from './pages/DuellPage.jsx';
-import { UebungPage } from './pages/UebungPage.jsx';
-import { WoerterbuchPage } from './pages/WoerterbuchPage.jsx';
-import { RanglistePage } from './pages/RanglistePage.jsx';
-import { RegelnPage } from './pages/RegelnPage.jsx';
-import { StoryPage } from './pages/StoryPage.jsx';
-import { AchievementPage } from './pages/AchievementPage.jsx';
-import { ProfilePage } from './pages/ProfilePage.jsx';
-import { OnlineDuellPage } from './pages/OnlineDuellPage.jsx';
+import { PageLoader } from './components/PageLoader.jsx';
 import './styles.css';
+
+// Keep HeroPage eager (landing page, first paint)
+import { HeroPage } from './pages/HeroPage.jsx';
+
+// Lazy load all other pages
+const DuellPage = lazy(() => import('./pages/DuellPage.jsx').then(m => ({ default: m.DuellPage })));
+const UebungPage = lazy(() => import('./pages/UebungPage.jsx').then(m => ({ default: m.UebungPage })));
+const WoerterbuchPage = lazy(() => import('./pages/WoerterbuchPage.jsx').then(m => ({ default: m.WoerterbuchPage })));
+const RanglistePage = lazy(() => import('./pages/RanglistePage.jsx').then(m => ({ default: m.RanglistePage })));
+const RegelnPage = lazy(() => import('./pages/RegelnPage.jsx').then(m => ({ default: m.RegelnPage })));
+const StoryPage = lazy(() => import('./pages/StoryPage.jsx').then(m => ({ default: m.StoryPage })));
+const AchievementPage = lazy(() => import('./pages/AchievementPage.jsx').then(m => ({ default: m.AchievementPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx').then(m => ({ default: m.ProfilePage })));
+const OnlineDuellPage = lazy(() => import('./pages/OnlineDuellPage.jsx').then(m => ({ default: m.OnlineDuellPage })));
 
 // Map route paths to page IDs for NavBar/BottomNav
 const routeToPage = {
@@ -64,6 +70,7 @@ function AppRoutes() {
         <AuthModal onClose={() => {}} forceOpen />
       )}
       <PageTransition pageKey={currentPage}>
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HeroPage onNavigate={onNavigate} />} />
           <Route path="/duell" element={<DuellPage onNavigate={onNavigate} />} />
@@ -78,6 +85,7 @@ function AppRoutes() {
           <Route path="/duell/:code" element={<OnlineDuellPage onNavigate={onNavigate} />} />
           <Route path="*" element={<HeroPage onNavigate={onNavigate} />} />
         </Routes>
+        </Suspense>
       </PageTransition>
       <BottomNav activePage={currentPage} onNavigate={onNavigate} onOpenSettings={() => setShowSettings(true)} />
       {showSettings && <EinstellungenModal onClose={() => setShowSettings(false)} />}
@@ -87,12 +95,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <AppRoutes />
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

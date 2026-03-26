@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { getGroqKey, setGroqKey, getAiStatus, migrateFromGemini } from '../engine/ki-scorer.js';
+import { getGroqKey, setGroqKey, saveGroqKeyWithSync, getAiStatus, migrateFromGemini } from '../engine/ki-scorer.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import soundManager from '../engine/sound-manager.js';
 import styles from './EinstellungenModal.module.css';
 
 export function EinstellungenModal({ onClose }) {
+  const { user } = useAuth();
   const [groqKey, setGroqKeyState] = useState('');
   const [saved, setSaved] = useState(false);
   const [testingGroq, setTestingGroq] = useState(false);
@@ -26,22 +28,22 @@ export function EinstellungenModal({ onClose }) {
     if (existing) setGroqKeyState(existing);
   }, []);
 
-  const handleSaveGroq = () => {
-    setGroqKey(groqKey);
+  const handleSaveGroq = async () => {
+    await saveGroqKeyWithSync(groqKey, user);
     setSaved(true);
     setGroqResult(null);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleRemoveGroq = () => {
-    setGroqKey('');
+  const handleRemoveGroq = async () => {
+    await saveGroqKeyWithSync('', user);
     setGroqKeyState('');
     setGroqResult(null);
   };
 
   const handleTestGroq = async () => {
     if (!groqKey) return;
-    setGroqKey(groqKey.trim());
+    await saveGroqKeyWithSync(groqKey.trim(), user);
     setTestingGroq(true);
     setGroqResult(null);
     try {

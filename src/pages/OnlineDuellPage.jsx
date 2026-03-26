@@ -1,18 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { supabase, isOnline, isSupabaseReady } from '../lib/supabase.js';
+import { supabase, isOnline } from '../lib/supabase.js';
 import { joinQueue, leaveQueue } from '../engine/matchmaking.js';
 import {
   subscribeToMatch,
   submitAnswer,
-  submitScores,
+  requestServerScoring,
   createFriendChallenge,
   joinFriendChallenge,
+  forfeitMatch,
+  cleanupMyStaleData,
 } from '../engine/online-game.js';
-import { kiBewertung } from '../engine/scoring-engine.js';
-import { calculateElo, getRankTitle } from '../engine/elo.js';
+import { createPresence } from '../engine/presence.js';
+import { getRankTitle } from '../engine/elo.js';
 import eventBus from '../engine/event-bus.js';
-import { SITUATIONEN } from '../data/situationen.js';
+import { SITUATIONEN, getSituationById } from '../data/situationen.js';
+import { useActiveMatch, markActiveMatch, clearActiveMatch } from '../hooks/useActiveMatch.js';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { Card } from '../components/Card.jsx';
@@ -64,20 +67,102 @@ export function OnlineDuellPage({ onNavigate }) {
   const [friendWaiting, setFriendWaiting] = useState(false);
   const [showCodeInput, setShowCodeInput] = useState(false);
 
-  // Scoring
-  const [scoringText, setScoringText] = useState('');
+  // Presence
+  const [opponentDisconnected, setOpponentDisconnected] = useState(false);
+  const [disconnectCountdown, setDisconnectCountdown] = useState(60);
+  const presenceRef = useRef(null);
+  const countdownIntervalRef = useRef(null);
 
   const myElo = profile?.elo_rating || 1200;
+
+  // Reconnect: check for active matches on mount
+  const { activeMatch, reconnectState, isLoading: reconnectLoading } = useActiveMatch(user?.id);
+
+  useEffect(() => {
+    if (reconnectState && activeMatch && !match) {
+      // Restore the match state
+      setMatch(activeMatch);
+
+      // Restore the situation from match data
+      if (activeMatch.situation_id) {
+        const sit = getSituationById(activeMatch.situation_id);
+        if (sit) setSituation(sit);
+      }
+
+      // Jump to the appropriate phase
+      setPhase(reconnectState.phase);
+    }
+  }, [reconnectState, activeMatch]);
+
+  // Clean up stale data on page load
+  useEffect(() => {
+    if (user?.id) {
+      cleanupMyStaleData(user.id);
+    }
+  }, [user?.id]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (leaveQueueRef.current) leaveQueueRef.current();
       if (unsubMatchRef.current) unsubMatchRef.current();
+      presenceRef.current?.destroy();
+      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     };
   }, []);
 
-  // Search timer
+  // Presence tracking during active match phases
+  useEffect(() => {
+    if (!match?.id || !user?.id || !['writing', 'waiting', 'scoring'].includes(phase)) {
+      return;
+    }
+
+    const presence = createPresence(match.id, user.id, {
+      onOpponentOnline: () => {
+        setOpponentDisconnected(false);
+        setDisconnectCountdown(60);
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+      },
+      onOpponentOffline: () => {
+        setOpponentDisconnected(true);
+        setDisconnectCountdown(60);
+        countdownIntervalRef.current = setInterval(() => {
+          setDisconnectCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(countdownIntervalRef.current);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      },
+      onOpponentTimeout: async () => {
+        try {
+          const opponentId = match.player1_id === user.id ? match.player2_id : match.player1_id;
+          if (opponentId) {
+            await forfeitMatch(match.id, opponentId);
+          }
+        } catch (err) {
+          console.error('Auto-forfeit error:', err);
+        }
+      },
+    });
+    presenceRef.current = presence;
+
+    return () => {
+      presence?.destroy();
+      presenceRef.current = null;
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
+  }, [match?.id, user?.id, phase]);
+
+  // Search timer with 2-minute timeout
   useEffect(() => {
     if (phase !== 'searching') return;
     const start = Date.now();
@@ -85,6 +170,13 @@ export function OnlineDuellPage({ onNavigate }) {
       const sec = Math.floor((Date.now() - start) / 1000);
       setSearchElapsed(sec);
       if (sec >= 30) setEloRange(400);
+      if (sec >= 120) {
+        clearInterval(iv);
+        handleCancelSearch();
+        eventBus.emit('toast:message', {
+          message: 'Kein Gegner gefunden. Versuche es später oder fordere einen Freund heraus!',
+        });
+      }
     }, 1000);
     return () => clearInterval(iv);
   }, [phase]);
@@ -110,6 +202,7 @@ export function OnlineDuellPage({ onNavigate }) {
   useEffect(() => {
     const onFound = async ({ match: m }) => {
       setMatch(m);
+      markActiveMatch(m.id);
       // Fetch opponent profile
       const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
       if (supabase && opponentId) {
@@ -120,7 +213,13 @@ export function OnlineDuellPage({ onNavigate }) {
           .maybeSingle();
         setOpponent(data);
       }
-      setSituation(getRandomSituation());
+      // Use situation from match record so both players see the same one
+      if (m.situation_id) {
+        const sit = getSituationById(m.situation_id);
+        setSituation(sit || getRandomSituation());
+      } else {
+        setSituation(getRandomSituation());
+      }
       setPhase('matched');
     };
 
@@ -138,6 +237,23 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const handleQuickMatch = async () => {
     if (!user) return;
+
+    // Prevent double match: check for existing active match
+    if (supabase) {
+      const { data: existing } = await supabase
+        .from('matches')
+        .select('id, status')
+        .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+        .in('status', ['active', 'scoring', 'waiting'])
+        .limit(1)
+        .maybeSingle();
+
+      if (existing) {
+        eventBus.emit('toast:message', { message: 'Du hast bereits ein laufendes Spiel.' });
+        return;
+      }
+    }
+
     setPhase('searching');
     setSearchElapsed(0);
     setEloRange(200);
@@ -167,6 +283,7 @@ export function OnlineDuellPage({ onNavigate }) {
     }
     if (event.type === 'scores_ready') {
       // Scores came from server
+      clearActiveMatch();
       const m = event.match;
       const isP1 = m.player1_id === user?.id;
       setPlayerScore(isP1 ? m.player1_score : m.player2_score);
@@ -175,6 +292,7 @@ export function OnlineDuellPage({ onNavigate }) {
       setPhase('result');
     }
     if (event.type === 'opponent_disconnected') {
+      clearActiveMatch();
       setWinner('player');
       setPhase('result');
     }
@@ -183,86 +301,66 @@ export function OnlineDuellPage({ onNavigate }) {
   // FIX 1 — Trust DB status instead of stale opponentStatus state
   const handleWritingSubmit = async (text) => {
     if (!match || !user) return;
-    setScoringText(text);
-    const updatedMatch = await submitAnswer(match.id, user.id, text);
-    // Trust DB status — 'scoring' means both players have submitted
-    if (updatedMatch?.status === 'scoring') {
-      setPhase('scoring');
-      await performScoring(text);
-    } else {
+    try {
+      const updatedMatch = await submitAnswer(match.id, user.id, text);
+      // Trust DB status — 'scoring' means both players have submitted
+      if (updatedMatch?.status === 'scoring') {
+        await performScoring();
+      } else {
+        setPhase('waiting');
+      }
+    } catch (err) {
+      console.error('Submit answer failed:', err.message);
+      // Still move to waiting so the user isn't stuck
       setPhase('waiting');
     }
   };
 
-  const performScoring = async (text) => {
+  const performScoring = async () => {
     setPhase('scoring');
-    // FIX 5 — Add 20s timeout to scoring phase
+    // Server-side scoring for online matches — Edge Function handles scoring + ELO
     const scoringTimeout = setTimeout(() => {
       console.warn('[Scoring] Timeout reached, showing result with available data');
+      clearActiveMatch();
       setPhase('result');
-    }, 20000);
+    }, 30000);
     try {
-      // Score the player's text with KI (or heuristic fallback)
-      const result = await kiBewertung(situation, text || scoringText);
-      setPlayerResult(result);
-      const pScore = Object.values(result.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
-      setPlayerScore(pScore);
+      const result = await requestServerScoring(match.id);
 
-      // Try to get opponent's text from DB and score it too
-      let oScore;
-      if (match?.id) {
-        const { data: matchData } = await supabase
-          .from('matches')
-          .select('player1_id, player1_text, player2_text')
-          .eq('id', match.id)
-          .single();
-        const opponentText = matchData?.player1_id === user?.id
-          ? matchData?.player2_text
-          : matchData?.player1_text;
-        if (opponentText) {
-          const opResult = await kiBewertung(situation, opponentText);
-          oScore = Object.values(opResult.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
+      if (result) {
+        const isPlayer1 = match.player1_id === user.id;
+        const myScore = isPlayer1 ? result.player1_score : result.player2_score;
+        const opScore = isPlayer1 ? result.player2_score : result.player1_score;
+
+        setPlayerScore(myScore);
+        setOpponentScore(opScore);
+
+        if (result.winner_id === user.id) setWinner('player');
+        else if (result.winner_id) setWinner('opponent');
+        else setWinner('draw');
+
+        if (result.elo_changes) {
+          const myEloChange = isPlayer1 ? result.elo_changes.player1 : result.elo_changes.player2;
+          setEloChange(myEloChange);
         }
+
+        clearTimeout(scoringTimeout);
+        clearActiveMatch();
+        setPhase('result');
       }
-      // Fallback if opponent text unavailable
-      if (oScore == null) {
-        oScore = Math.round(pScore * (0.7 + Math.random() * 0.6));
-        oScore = Math.min(oScore, 100);
-      }
-      setOpponentScore(oScore);
-
-      // Calculate Elo
-      const opElo = opponent?.elo_rating || 1200;
-      const { change } = calculateElo(myElo, opElo, pScore, oScore, profile?.total_games || 0);
-      setEloChange(change);
-
-      // Determine winner
-      if (pScore > oScore) setWinner('player');
-      else if (oScore > pScore) setWinner('opponent');
-      else setWinner('draw');
-
-      // Update profile
-      const isWin = pScore > oScore;
-      await updateProfile({
-        elo_rating: myElo + change,
-        wins: (profile?.wins || 0) + (isWin ? 1 : 0),
-        losses: (profile?.losses || 0) + (!isWin && pScore !== oScore ? 1 : 0),
-        total_games: (profile?.total_games || 0) + 1,
-      });
-
-      clearTimeout(scoringTimeout);
-      setPhase('result');
     } catch (e) {
-      console.error('Scoring failed:', e);
+      console.error('Server scoring failed:', e);
       clearTimeout(scoringTimeout);
-      setPhase('result');
+      // Fallback: the Realtime subscription should pick up 'completed' status
+      // if the other client's request succeeded. Wait for it.
+      // If still in scoring after 30s (the timeout above), we show whatever we have.
     }
   };
 
-  // FIX 2 — When waiting and opponent submits, trigger scoring (keep as-is)
+  // FIX 2 — When waiting and opponent submits, trigger server scoring
   useEffect(() => {
     if (phase === 'waiting' && opponentStatus === 'submitted') {
-      performScoring(scoringText);
+      performScoring();
     }
   }, [phase, opponentStatus]);
 
@@ -272,9 +370,23 @@ export function OnlineDuellPage({ onNavigate }) {
     const result = await createFriendChallenge(user.id);
     if (result) {
       setFriendCode(result.code);
-      setMatch({ id: result.matchId });
       setFriendWaiting(true);
-      setSituation(getRandomSituation());
+
+      // Fetch match to get the situation_id set by createFriendChallenge
+      const { data: matchData } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', result.matchId)
+        .single();
+
+      setMatch(matchData || { id: result.matchId });
+      markActiveMatch(result.matchId);
+      if (matchData?.situation_id) {
+        const sit = getSituationById(matchData.situation_id);
+        setSituation(sit || getRandomSituation());
+      } else {
+        setSituation(getRandomSituation());
+      }
 
       // Subscribe to match for when friend joins
       const unsub = subscribeToMatch(result.matchId, async (event) => {
@@ -303,13 +415,27 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const [joinError, setJoinError] = useState('');
 
+  const sanitizedFriendCode = friendCodeInput.toUpperCase().trim();
+  const isValidFriendCode = /^[A-Z0-9]{6}$/.test(sanitizedFriendCode);
+
   const handleJoinChallenge = async () => {
-    if (!user || !friendCodeInput.trim()) return;
+    if (!user || !isValidFriendCode) return;
     setJoinError('');
-    const m = await joinFriendChallenge(friendCodeInput.trim().toUpperCase(), user.id);
-    if (m) {
+    try {
+      const m = await joinFriendChallenge(sanitizedFriendCode, user.id);
+      if (!m) {
+        setJoinError('Code nicht gefunden. Prüfe ob der Code korrekt ist und das Spiel noch wartet.');
+        return;
+      }
       setMatch(m);
-      setSituation(getRandomSituation());
+      markActiveMatch(m.id);
+      // Use situation from match record so both players see the same one
+      if (m.situation_id) {
+        const sit = getSituationById(m.situation_id);
+        setSituation(sit || getRandomSituation());
+      } else {
+        setSituation(getRandomSituation());
+      }
       const opponentId = m.player1_id === user.id ? m.player2_id : m.player1_id;
       if (supabase && opponentId) {
         // FIX 3 — Use maybeSingle() to handle missing profiles gracefully
@@ -321,8 +447,8 @@ export function OnlineDuellPage({ onNavigate }) {
         setOpponent(data);
       }
       setPhase('matched');
-    } else {
-      // FIX 6 — Better error message for missing friend code
+    } catch (err) {
+      console.error('Join challenge failed:', err.message);
       setJoinError('Code nicht gefunden. Prüfe ob der Code korrekt ist und das Spiel noch wartet.');
     }
   };
@@ -345,7 +471,11 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const handleRematch = () => {
     // FIX 4 — Clean up match subscription before resetting
+    clearActiveMatch();
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
+    presenceRef.current?.destroy(); presenceRef.current = null;
+    setOpponentDisconnected(false);
+    setDisconnectCountdown(60);
     setPhase('searching');
     setSearchElapsed(0);
     setEloRange(200);
@@ -362,7 +492,11 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const handleNewMatch = () => {
     // FIX 4 — Clean up match subscription before resetting
+    clearActiveMatch();
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
+    presenceRef.current?.destroy(); presenceRef.current = null;
+    setOpponentDisconnected(false);
+    setDisconnectCountdown(60);
     setPhase('menu');
     setPlayerResult(null);
     setOpponentScore(null);
@@ -385,14 +519,17 @@ export function OnlineDuellPage({ onNavigate }) {
         <div className={styles.container}>
           <div className={`${styles.stateWrap} animate-in`}>
             <OrnamentIcon name="tintenfass" size="xl" className={styles.stateIcon} />
-            <h2 className={styles.stateTitle}>Bitte Seite neu laden</h2>
+            <h2 className={styles.stateTitle}>Du bist offline</h2>
             <p className={styles.stateText}>
-              Eine veraltete Version ist im Cache. Lade die Seite neu, um online spielen zu können.
+              Für Online-Matches ist eine Internetverbindung nötig. Übungsmodus und Story sind weiterhin verfügbar.
             </p>
             <Button variant="primary" onClick={() => window.location.reload()}>
-              Neu laden
+              Erneut versuchen
             </Button>
-            <Button variant="secondary" onClick={() => onNavigate('home')}>
+            <Button variant="secondary" onClick={() => onNavigate('uebung')}>
+              Zum Übungsmodus
+            </Button>
+            <Button variant="tertiary" onClick={() => onNavigate('home')}>
               Zurück zum Menü
             </Button>
           </div>
@@ -427,6 +564,38 @@ export function OnlineDuellPage({ onNavigate }) {
   return (
     <div className={styles.page}>
       <div className={styles.container}>
+
+        {/* Opponent disconnect banner */}
+        {opponentDisconnected && (
+          <div role="alert" aria-live="assertive" style={{
+            background: 'linear-gradient(135deg, #8b0000, #a52a2a)',
+            color: 'white',
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.9rem',
+            fontFamily: 'Lora, serif',
+          }}>
+            <span>Gegner hat Verbindung verloren</span>
+            <span style={{ fontWeight: 'bold', fontVariantNumeric: 'tabular-nums' }}>
+              {disconnectCountdown}s verbleibend
+            </span>
+          </div>
+        )}
+
+        {/* Reconnect notice */}
+        {reconnectState && phase !== 'menu' && phase !== 'result' && (
+          <div style={{
+            textAlign: 'center', padding: '0.75rem 1rem',
+            fontFamily: 'Lora, serif', color: 'var(--text-secondary)',
+            fontSize: '0.9rem', marginBottom: '0.5rem',
+          }}>
+            Laufendes Spiel gefunden — wird fortgesetzt…
+          </div>
+        )}
 
         {/* ── MENU ── */}
         {phase === 'menu' && (
@@ -478,17 +647,21 @@ export function OnlineDuellPage({ onNavigate }) {
                     placeholder="ABC123"
                     value={friendCodeInput}
                     onChange={e => setFriendCodeInput(e.target.value.toUpperCase())}
+                    maxLength={6}
                     className={styles.codeInput}
                   />
                   <Button
                     variant="primary"
                     size="md"
                     onClick={handleJoinChallenge}
-                    disabled={friendCodeInput.length < 6}
+                    disabled={!isValidFriendCode}
                     className={styles.fullWidth}
                   >
                     Beitreten
                   </Button>
+                  {friendCodeInput.length > 0 && !isValidFriendCode && (
+                    <p className={styles.joinError}>Code muss 6 Zeichen lang sein (Buchstaben und Zahlen)</p>
+                  )}
                   {joinError && <p className={styles.joinError}>{joinError}</p>}
                 </div>
               )}
@@ -530,10 +703,14 @@ export function OnlineDuellPage({ onNavigate }) {
               </Button>
               <div className={styles.searchMeta}>
                 <span className={styles.searchTime}>{searchElapsed}s</span>
-                <span className={styles.searchRange}>Elo: {myElo - eloRange} – {myElo + eloRange}</span>
+                <span className={styles.searchRange}>
+                  {searchElapsed < 30
+                    ? `Suche Gegner (ELO ${Math.max(0, myElo - eloRange)}–${myElo + eloRange})…`
+                    : `Erweiterte Suche (ELO ${Math.max(0, myElo - eloRange)}–${myElo + eloRange})…`}
+                </span>
               </div>
-              {searchElapsed >= 30 && (
-                <p className={styles.searchExpanded}>Suchbereich erweitert</p>
+              {searchElapsed >= 90 && (
+                <p className={styles.searchExpanded}>Kein Gegner? Versuche "Freunde herausfordern"!</p>
               )}
             </Card>
             <div className={styles.cancelWrap}>
@@ -586,6 +763,7 @@ export function OnlineDuellPage({ onNavigate }) {
               spielerName={profile?.username}
               onSubmit={handleWritingSubmit}
               schwierigkeit="mittel"
+              matchStartTime={match?.created_at}
             />
           </div>
         )}

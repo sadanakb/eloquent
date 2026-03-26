@@ -17,14 +17,8 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
       )
-      .then(() =>
-        // Force all open tabs to reload so they get fresh JS immediately
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) =>
-          Promise.all(clients.map((client) => client.navigate(client.url)))
-        )
-      )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {

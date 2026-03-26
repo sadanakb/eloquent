@@ -3,11 +3,11 @@ import { OrnamentIcon } from './Ornament';
 import styles from './BottomNav.module.css';
 
 const TABS = [
-  { id: 'home', label: 'Home', icon: 'federn', useOrnament: true },
-  { id: 'duell', label: 'Duell', icon: '\u2694', useOrnament: false },
-  { id: 'uebung', label: '\u00dcbung', icon: 'buch', useOrnament: true },
-  { id: 'story', label: 'Story', icon: 'buchOffen', useOrnament: true },
-  { id: 'mehr', label: 'Mehr', icon: '\u00B7\u00B7\u00B7', useOrnament: false },
+  { id: 'home', label: 'Home', icon: 'federn', useOrnament: true, ariaLabel: 'Startseite' },
+  { id: 'duell', label: 'Duell', icon: '\u2694', useOrnament: false, ariaLabel: 'Duell' },
+  { id: 'uebung', label: '\u00dcbung', icon: 'buch', useOrnament: true, ariaLabel: '\u00dcbung' },
+  { id: 'story', label: 'Story', icon: 'buchOffen', useOrnament: true, ariaLabel: 'Story-Modus' },
+  { id: 'mehr', label: 'Mehr', icon: '\u00B7\u00B7\u00B7', useOrnament: false, ariaLabel: 'Mehr anzeigen' },
 ];
 
 const DRAWER_ITEMS = [
@@ -70,6 +70,7 @@ export function BottomNav({ activePage, onNavigate, onOpenSettings }) {
               key={tab.id}
               className={`${styles.tab} ${isActive ? styles.tabActive : ''}`}
               onClick={() => handleTab(tab.id)}
+              aria-label={tab.ariaLabel}
             >
               <span className={styles.tabIcon}>
                 {tab.useOrnament ? (

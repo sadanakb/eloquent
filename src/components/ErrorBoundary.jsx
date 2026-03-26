@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './ErrorBoundary.module.css';
 
 export class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -17,25 +18,30 @@ export class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{
-          minHeight: '100vh', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', padding: 32, textAlign: 'center',
-          fontFamily: 'system-ui, sans-serif',
-        }}>
-          <div>
-            <h1 style={{ fontSize: 24, marginBottom: 12 }}>Etwas ist schiefgelaufen</h1>
-            <p style={{ fontSize: 14, color: '#666', marginBottom: 24 }}>
-              {this.state.error?.message || 'Ein unerwarteter Fehler ist aufgetreten.'}
+        <div className={styles.container}>
+          <div className={styles.content}>
+            <div className={styles.ornament}>&#10086;</div>
+            <h1 className={styles.title}>Etwas ist schiefgelaufen</h1>
+            <div className={styles.divider} />
+            <p className={styles.message}>
+              Ein unerwarteter Fehler ist aufgetreten. Bitte versuche die Seite neu zu laden.
             </p>
             <button
+              className={styles.reloadButton}
               onClick={() => window.location.reload()}
-              style={{
-                padding: '10px 24px', fontSize: 14, cursor: 'pointer',
-                border: '1px solid #ccc', borderRadius: 6, background: '#fff',
+            >
+              Seite neu laden
+            </button>
+            <a
+              href="/"
+              className={styles.homeLink}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = '/';
               }}
             >
-              Neu laden
-            </button>
+              Zurück zur Startseite
+            </a>
           </div>
         </div>
       );

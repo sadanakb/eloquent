@@ -1,6 +1,32 @@
 import { supabase, isOnline } from '../lib/supabase.js';
 import eventBus from './event-bus.js';
 
+/**
+ * Clean up stale data for this user.
+ * Call on page load before starting matchmaking.
+ */
+export async function cleanupMyStaleData(userId) {
+  if (!supabase) return;
+
+  try {
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+    // Delete my old waiting matches
+    await supabase.from('matches')
+      .delete()
+      .eq('player1_id', userId)
+      .eq('status', 'waiting')
+      .lt('created_at', thirtyMinAgo);
+
+    // Delete my old queue entries
+    await supabase.from('matchmaking_queue')
+      .delete()
+      .eq('user_id', userId);
+  } catch (err) {
+    console.error('Cleanup error:', err);
+  }
+}
+
 export async function createMatch(player1Id, player2Id, situationId) {
   if (!isOnline()) return null;
 
@@ -66,47 +92,18 @@ export function subscribeToMatch(matchId, callback) {
 export async function submitAnswer(matchId, playerId, text) {
   if (!isOnline()) return null;
 
-  // Determine which player column to update
-  const { data: match } = await supabase
-    .from('matches')
-    .select('player1_id, player2_id')
-    .eq('id', matchId)
-    .single();
-
-  if (!match) return null;
-
-  const column = match.player1_id === playerId ? 'player1_text' : 'player2_text';
-
-  const updates = { [column]: text };
-
-  // If both players have submitted, move to scoring
-  const otherColumn = column === 'player1_text' ? 'player2_text' : 'player1_text';
-  const { data: current } = await supabase
-    .from('matches')
-    .select(otherColumn)
-    .eq('id', matchId)
-    .single();
-
-  if (current && current[otherColumn]) {
-    updates.status = 'scoring';
-  }
-
-  const { data, error } = await supabase
-    .from('matches')
-    .update(updates)
-    .eq('id', matchId)
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Failed to submit answer:', error.message);
-    return null;
-  }
+  const { data: match, error } = await supabase.rpc('submit_match_text', {
+    p_match_id: matchId,
+    p_player_id: playerId,
+    p_text: text,
+  });
+  if (error) throw error;
 
   eventBus.emit('match:answer_submitted', { matchId, playerId });
-  return data;
+  return match;
 }
 
+// Fallback for offline mode. In Phase 4, online scoring will be handled by the Edge Function.
 export async function submitScores(matchId, scores) {
   if (!isOnline()) return null;
 
@@ -139,36 +136,14 @@ export async function submitScores(matchId, scores) {
 }
 
 export async function forfeitMatch(matchId, playerId) {
-  if (!isOnline()) return null;
-
-  const { data: match } = await supabase
-    .from('matches')
-    .select('player1_id, player2_id')
-    .eq('id', matchId)
-    .single();
-
-  if (!match) return null;
-
-  const winnerId = match.player1_id === playerId ? match.player2_id : match.player1_id;
-
-  const { data, error } = await supabase
-    .from('matches')
-    .update({
-      status: 'forfeited',
-      winner_id: winnerId,
-      completed_at: new Date().toISOString(),
-    })
-    .eq('id', matchId)
-    .select()
-    .single();
-
+  const { error } = await supabase.rpc('forfeit_match', {
+    p_match_id: matchId,
+    p_forfeiter_id: playerId,
+  });
   if (error) {
-    console.error('Failed to forfeit match:', error.message);
-    return null;
+    console.error('Forfeit error:', error.message);
+    throw error;
   }
-
-  eventBus.emit('match:forfeited', { matchId, playerId, winnerId });
-  return data;
 }
 
 export async function createFriendChallenge(userId) {
@@ -176,12 +151,20 @@ export async function createFriendChallenge(userId) {
 
   const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
+  // Import SITUATIONEN lazily to pick a situation for the match
+  const { SITUATIONEN } = await import('../data/situationen.js');
+  const pool = SITUATIONEN.mittel?.length ? SITUATIONEN.mittel
+    : SITUATIONEN.leicht?.length ? SITUATIONEN.leicht : [];
+  const situation = pool[Math.floor(Math.random() * pool.length)];
+
   const { data, error } = await supabase
     .from('matches')
     .insert({
       player1_id: userId,
+      situation_id: situation?.id || null,
       status: 'waiting',
       friend_code: code,
+      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
     })
     .select()
     .single();
@@ -194,26 +177,37 @@ export async function createFriendChallenge(userId) {
   return { code, matchId: data.id };
 }
 
+/**
+ * Request server-side scoring via Supabase Edge Function.
+ * Only used for online matches — offline modes use client-side scoring.
+ */
+export async function requestServerScoring(matchId) {
+  if (!supabase) throw new Error('Supabase not available');
+
+  const { data, error } = await supabase.functions.invoke('score-match', {
+    body: { matchId },
+  });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function joinFriendChallenge(code, userId) {
   if (!isOnline()) return null;
 
-  const { data, error } = await supabase
+  const { data: matchId, error } = await supabase.rpc('join_friend_match', {
+    p_code: code.toUpperCase().trim(),
+    p_joiner_id: userId,
+  });
+  if (error) throw error;
+
+  // Return the match data by fetching it
+  const { data: match } = await supabase
     .from('matches')
-    .update({
-      player2_id: userId,
-      status: 'active',
-    })
-    .eq('friend_code', code)
-    .eq('status', 'waiting')
-    .is('player2_id', null)
-    .select()
+    .select('*')
+    .eq('id', matchId)
     .single();
 
-  if (error) {
-    console.error('Failed to join challenge:', error.message);
-    return null;
-  }
-
-  eventBus.emit('match:friend_joined', { matchId: data.id, userId });
-  return data;
+  eventBus.emit('match:friend_joined', { matchId: match.id, userId });
+  return match;
 }

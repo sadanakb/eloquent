@@ -1,5 +1,6 @@
 import { supabase, isOnline } from '../lib/supabase.js';
 import eventBus from './event-bus.js';
+import { SITUATIONEN } from '../data/situationen.js';
 
 const INITIAL_ELO_RANGE = 200;
 const EXPANDED_ELO_RANGE = 400;
@@ -68,23 +69,15 @@ export async function joinQueue(userId, eloRating) {
 export async function leaveQueue(userId) {
   if (!isOnline()) return;
 
-  if (expandTimer) {
-    clearTimeout(expandTimer);
+  try {
+    if (expandTimer) clearTimeout(expandTimer);
+    if (activeSubscription) supabase.removeChannel(activeSubscription);
+    await supabase.from('matchmaking_queue').delete().eq('user_id', userId);
+  } catch (err) {
+    console.error('leaveQueue error:', err);
+  } finally {
     expandTimer = null;
-  }
-
-  if (activeSubscription) {
-    supabase.removeChannel(activeSubscription);
     activeSubscription = null;
-  }
-
-  const { error } = await supabase
-    .from('matchmaking_queue')
-    .delete()
-    .eq('user_id', userId);
-
-  if (error) {
-    console.error('Failed to leave queue:', error.message);
   }
 
   eventBus.emit('matchmaking:left', { userId });
@@ -107,13 +100,14 @@ export async function findMatch(userId) {
   const minElo = myEntry.elo_rating - eloRange;
   const maxElo = myEntry.elo_rating + eloRange;
 
-  // Find compatible opponents
+  // Find compatible opponents (only recent queue entries)
   const { data: opponents, error: searchError } = await supabase
     .from('matchmaking_queue')
     .select('*')
     .neq('user_id', userId)
     .gte('elo_rating', minElo)
     .lte('elo_rating', maxElo)
+    .gt('joined_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
     .order('joined_at', { ascending: true })
     .limit(1);
 
@@ -121,12 +115,18 @@ export async function findMatch(userId) {
 
   const opponent = opponents[0];
 
+  // Pick a random situation server-side so both players see the same one
+  const pool = SITUATIONEN.mittel?.length ? SITUATIONEN.mittel
+    : SITUATIONEN.leicht?.length ? SITUATIONEN.leicht : [];
+  const situation = pool[Math.floor(Math.random() * pool.length)];
+
   // Create match
   const { data: match, error: matchError } = await supabase
     .from('matches')
     .insert({
       player1_id: userId,
       player2_id: opponent.user_id,
+      situation_id: situation?.id || null,
       status: 'active',
     })
     .select()

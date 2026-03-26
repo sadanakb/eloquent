@@ -12,11 +12,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
     <link rel="manifest" href="/manifest.json" />
-    <meta property="og:title" content="ELOQUENT — Das Wortduell" />
-    <meta property="og:description" content="Trainiere deine Eloquenz in eleganten Rededuellen mit KI-Bewertung." />
+    <meta property="og:title" content="ELOQUENT — Das Wortduell der Eloquenten" />
+    <meta property="og:description" content="Trainiere deine Eloquenz in eleganten Rededuellen mit KI-Bewertung. Spiele gegen Freunde oder finde Gegner weltweit." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://eloquent-iota.vercel.app" />
-    <title>ELOQUENT — Das Wortduell</title>
+    <meta property="og:image" content="https://eloquent-iota.vercel.app/og-image.png" />
+    <link rel="canonical" href="https://eloquent-iota.vercel.app" />
+    <title>ELOQUENT — Das Wortduell der Eloquenten</title>
     <style>
       /* Critical inline styles to prevent FOUC */
       body { background: #F5F0E8; color: #2C1810; }
@@ -27,7 +29,20 @@
     <script type="module" src="/main.jsx"></script>
     <script>
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js');
+        navigator.serviceWorker.register('/sw.js').then(function(registration) {
+          registration.addEventListener('updatefound', function() {
+            var newWorker = registration.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', function() {
+              if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+                import('./src/engine/event-bus.js').then(function(mod) {
+                  var eventBus = mod.default || mod.eventBus;
+                  eventBus.emit('toast:update-available');
+                });
+              }
+            });
+          });
+        });
       }
     </script>
   </body>

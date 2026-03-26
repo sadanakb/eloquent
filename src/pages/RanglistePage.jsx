@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getRang } from '../data/raenge.js';
 import { supabase, isOnline } from '../lib/supabase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
@@ -78,30 +78,42 @@ export function RanglistePage() {
   const [tab, setTab] = useState('global');
   const [globalData, setGlobalData] = useState([]);
   const [loadingGlobal, setLoadingGlobal] = useState(false);
+  const [leaderboardError, setLeaderboardError] = useState(null);
 
   const auth = useAuth();
   const userId = auth?.user?.id;
 
+  const fetchLeaderboard = useCallback(async () => {
+    if (!isOnline() || !supabase) return;
+    try {
+      setLoadingGlobal(true);
+      setLeaderboardError(null);
+      const { data, error } = await supabase
+        .from('weekly_leaderboard')
+        .select('*')
+        .order('elo_rating', { ascending: false })
+        .limit(100);
+
+      if (error) {
+        console.error('Leaderboard fetch failed:', error.message);
+        setLeaderboardError('Rangliste konnte nicht geladen werden.');
+        setGlobalData([]);
+      } else {
+        setGlobalData(data || []);
+      }
+    } catch (err) {
+      console.error('Leaderboard fetch error:', err);
+      setLeaderboardError('Rangliste konnte nicht geladen werden. Bitte versuche es später erneut.');
+      setGlobalData([]);
+    } finally {
+      setLoadingGlobal(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (tab !== 'global') return;
-    if (!isOnline() || !supabase) return;
-
-    setLoadingGlobal(true);
-    supabase
-      .from('weekly_leaderboard')
-      .select('*')
-      .order('elo_rating', { ascending: false })
-      .limit(100)
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('Leaderboard fetch failed:', error.message);
-          setGlobalData([]);
-        } else {
-          setGlobalData(data || []);
-        }
-        setLoadingGlobal(false);
-      });
-  }, [tab]);
+    fetchLeaderboard();
+  }, [tab, fetchLeaderboard]);
 
   // Determine the current data set to render
   const isLokal = tab === 'lokal';
@@ -180,8 +192,8 @@ export function RanglistePage() {
 
         {/* Messages */}
         {isGlobal && !isOnline() && (
-          <div className={styles.message}>
-            <p>Online-Rangliste nicht verfügbar. Keine Serververbindung.</p>
+          <div className={styles.message} role="alert">
+            <p>Du bist offline. Übungsmodus und Story sind weiterhin verfügbar.</p>
           </div>
         )}
 
@@ -197,7 +209,22 @@ export function RanglistePage() {
           </div>
         )}
 
-        {isGlobal && isOnline() && auth?.isAuthenticated && !loadingGlobal && globalData.length === 0 && (
+        {isGlobal && isOnline() && auth?.isAuthenticated && !loadingGlobal && leaderboardError && (
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <p style={{ color: 'var(--text-secondary, #666)', marginBottom: '1rem' }}>
+              {leaderboardError}
+            </p>
+            <button
+              onClick={() => fetchLeaderboard()}
+              className="btn-gold"
+              style={{ padding: '0.5rem 1.5rem', cursor: 'pointer' }}
+            >
+              Erneut versuchen
+            </button>
+          </div>
+        )}
+
+        {isGlobal && isOnline() && auth?.isAuthenticated && !loadingGlobal && !leaderboardError && globalData.length === 0 && (
           <div className={styles.message}>
             <p>Noch keine Einträge vorhanden.</p>
           </div>

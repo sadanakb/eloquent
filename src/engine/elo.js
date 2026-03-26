@@ -21,23 +21,26 @@ export function calculateElo(playerRating, opponentRating, playerScore, opponent
     actualOpponent = 0.5;
   }
 
-  const newPlayerRating = Math.round(playerRating + K * (actualPlayer - expectedPlayer));
-  const newOpponentRating = Math.round(opponentRating + K * (actualOpponent - expectedOpponent));
+  const newPlayerRating = Math.max(0, Math.min(10000, Math.round(playerRating + K * (actualPlayer - expectedPlayer))));
+  const newOpponentRating = Math.max(0, Math.min(10000, Math.round(opponentRating + K * (actualOpponent - expectedOpponent))));
   const change = newPlayerRating - playerRating;
 
   return { newPlayerRating, newOpponentRating, change };
 }
 
 export function getInitialElo() {
-  return 1200;
+  return 400;
 }
 
 export function getRankTitle(elo) {
-  if (elo < 1000) return 'Novize';
-  if (elo < 1200) return 'Lehrling';
-  if (elo < 1400) return 'Geselle';
-  if (elo < 1600) return 'Redner';
-  if (elo < 1800) return 'Meister';
-  if (elo < 2000) return 'Großmeister';
-  return 'Legende';
+  if (elo < 100) return 'Anfänger';
+  if (elo < 250) return 'Lehrling';
+  if (elo < 400) return 'Redner';
+  if (elo < 600) return 'Dichter';
+  if (elo < 900) return 'Rhetoriker';
+  if (elo < 1300) return 'Wortkünstler';
+  if (elo < 2000) return 'Meister';
+  if (elo < 3500) return 'Großmeister';
+  if (elo < 5000) return 'Legende';
+  return 'Eloquenz-Gott';
 }

@@ -1,5 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseReady } from '../lib/supabase.js';
+import { syncFromServer, syncToServer } from '../engine/sync';
+import { loadGroqKeyFromSupabase, saveGroqKeyWithSync, getGroqKey } from '../engine/ki-scorer.js';
+import eventBus from '../engine/event-bus.js';
 
 const AuthContext = createContext(null);
 
@@ -26,7 +29,7 @@ export function AuthProvider({ children }) {
       .from('profiles')
       .upsert({
         id: userId,
-        elo_rating: 1200,
+        elo_rating: 400,
         wins: 0,
         losses: 0,
         total_games: 0,
@@ -44,6 +47,10 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true);
       const p = await fetchOrCreateProfile(session.user.id);
       setProfile(p);
+      // Best-effort sync from server after profile is loaded
+      syncFromServer(session.user.id).catch(() => {});
+      // Sync Groq key: cloud → local, or local → cloud on first login
+      syncGroqKey(session.user).catch(() => {});
     } else {
       setUser(null);
       setProfile(null);
@@ -73,6 +80,24 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  async function syncGroqKey(authUser) {
+    const keyLoaded = await loadGroqKeyFromSupabase(authUser.id);
+    if (keyLoaded) {
+      eventBus.emit('toast:message', { message: 'API-Key wurde aus deinem Account geladen.' });
+      return;
+    }
+    // No key in cloud — upload local key if it exists
+    const localKey = localStorage.getItem('eloquent_groq_key');
+    if (localKey) {
+      try {
+        const raw = atob(localKey);
+        if (raw && raw.startsWith('gsk_')) {
+          await saveGroqKeyWithSync(raw, authUser);
+        }
+      } catch { /* invalid base64 */ }
+    }
+  }
+
   async function signIn() {
     if (!supabase) return;
     await supabase.auth.signInWithOAuth({
@@ -85,6 +110,10 @@ export function AuthProvider({ children }) {
 
   async function signOut() {
     if (!supabase) return;
+    // Best-effort sync to server before signing out
+    if (user?.id) {
+      await syncToServer(user.id).catch(() => {});
+    }
     await supabase.auth.signOut();
   }
 

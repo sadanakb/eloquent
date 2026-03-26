@@ -51,12 +51,26 @@ function WortHinweise() {
   );
 }
 
-export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit }) {
+export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit, matchStartTime, onPasteDetected }) {
   const [text, setText] = useState('');
+  const [pasteHint, setPasteHint] = useState(false);
   const wc = text.trim().split(/\s+/).filter(Boolean).length;
+  const charCount = text.length;
+  const charsRemaining = 5000 - charCount;
+  const showCharCounter = charCount >= 4500;
+  const canSubmit = charCount >= 10 && wc >= 10;
   const taRef = useRef(null);
   const textRef = useRef(text);
   const submittedRef = useRef(false);
+
+  const handlePaste = useCallback((e) => {
+    const pasted = e.clipboardData?.getData('text') || '';
+    if (pasted.length > 100) {
+      setPasteHint(true);
+      onPasteDetected?.(true);
+      setTimeout(() => setPasteHint(false), 5000);
+    }
+  }, [onPasteDetected]);
 
   const totalTime = TIMER_DURATIONS[schwierigkeit] || DEFAULT_TIMER;
   const [timeLeft, setTimeLeft] = useState(totalTime);
@@ -82,18 +96,39 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
   }, [onSubmit]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
+    if (matchStartTime) {
+      // Server-synced timer: calculate from match creation time
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - new Date(matchStartTime).getTime()) / 1000);
+        const remaining = Math.max(0, totalTime - elapsed);
+        setTimeLeft(remaining);
+
+        if (remaining <= 0) {
           clearInterval(interval);
-          doSubmit();
-          return 0;
+          if (!submittedRef.current) {
+            doSubmit();
+          }
         }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [doSubmit]);
+      }, 250); // 250ms for smoother updates
+
+      return () => clearInterval(interval);
+    } else {
+      // Local timer fallback (offline/practice modes)
+      const interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            if (!submittedRef.current) {
+              doSubmit();
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [matchStartTime, totalTime, doSubmit]);
 
   useEffect(() => {
     if (timeLeft === 15) {
@@ -115,6 +150,9 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
             <span
               className={isUrgent ? styles.timerUrgent : styles.timerNormal}
               style={{ color: timerColor }}
+              aria-live="polite"
+              aria-atomic="true"
+              role="timer"
             >
               {formatTime(timeLeft)}
             </span>
@@ -143,16 +181,32 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
             ref={taRef}
             value={text}
             onChange={e => setText(e.target.value)}
+            onPaste={handlePaste}
+            maxLength={5000}
             placeholder="Schreibe hier deine eloquente Antwort..."
             disabled={timeLeft <= 0}
             className={styles.textarea}
             style={isUrgent ? { borderColor: timerColor } : undefined}
+            aria-label="Deine Antwort"
           />
+          {pasteHint && (
+            <div className={styles.pasteHint}>
+              Tipp: Eigene Formulierungen werden besser bewertet
+            </div>
+          )}
+          {showCharCounter && (
+            <span className={`${styles.charCounter} ${charsRemaining <= 100 ? styles.charCounterUrgent : ''}`}>
+              {charsRemaining} Zeichen übrig
+            </span>
+          )}
+          {charCount > 0 && charCount < 10 && (
+            <span className={styles.minLengthHint}>Mindestens 10 Zeichen</span>
+          )}
           <div className={styles.footer}>
             <span className={wc < 10 ? styles.wordCountLow : styles.wordCountOk}>
               {wc} Wörter {wc < 10 ? '(min. 10)' : '\u2713'}
             </span>
-            <Button variant="gold" disabled={wc < 10 || timeLeft <= 0} onClick={() => { if (submittedRef.current) return; doSubmit(); }}>
+            <Button variant="gold" disabled={!canSubmit || timeLeft <= 0} onClick={() => { if (submittedRef.current) return; doSubmit(); }}>
               Antwort abgeben →
             </Button>
           </div>

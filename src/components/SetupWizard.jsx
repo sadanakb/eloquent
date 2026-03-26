@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getGroqKey, setGroqKey } from '../engine/ki-scorer.js';
+import { getGroqKey, setGroqKey, saveGroqKeyWithSync } from '../engine/ki-scorer.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { Card } from './Card.jsx';
 import { Button } from './Button.jsx';
 import { Logo } from './Logo.jsx';
@@ -9,6 +10,7 @@ import styles from './SetupWizard.module.css';
 const STEPS = ['willkommen', 'groq', 'fertig'];
 
 export function SetupWizard({ onComplete }) {
+  const { user } = useAuth();
   const [step, setStep] = useState('willkommen');
   const [groqKey, setGroqKeyState] = useState('');
   const [testingGroq, setTestingGroq] = useState(false);
@@ -23,8 +25,8 @@ export function SetupWizard({ onComplete }) {
     }
   }, []);
 
-  const handleSaveGroq = () => {
-    setGroqKey(groqKey);
+  const handleSaveGroq = async () => {
+    await saveGroqKeyWithSync(groqKey, user);
     setKiReady(true);
     setGroqResult({ ok: true, msg: 'Gespeichert!' });
     setTimeout(() => setStep('fertig'), 800);
@@ -49,7 +51,7 @@ export function SetupWizard({ onComplete }) {
       });
       if (res.ok) {
         setGroqResult({ ok: true, msg: 'Groq funktioniert!' });
-        setGroqKey(groqKey);
+        await saveGroqKeyWithSync(groqKey, user);
         setKiReady(true);
       } else {
         const err = await res.json().catch(() => ({}));

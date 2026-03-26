@@ -21,12 +21,12 @@ export function NavBar({ current, onNavigate }) {
   };
 
   const navItems = [
-    { id: 'duell', label: 'Duell' },
-    { id: 'online', label: 'Online' },
-    { id: 'story', label: 'Story' },
-    { id: 'uebung', label: 'Übung' },
-    { id: 'woerterbuch', label: 'Wörter' },
-    { id: 'rangliste', label: 'Rangliste' },
+    { id: 'duell', label: 'Duell', ariaLabel: 'Duell-Modus' },
+    { id: 'online', label: 'Online', ariaLabel: 'Online Match' },
+    { id: 'story', label: 'Story', ariaLabel: 'Story-Modus' },
+    { id: 'uebung', label: 'Übung', ariaLabel: 'Übungsmodus' },
+    { id: 'woerterbuch', label: 'Wörter', ariaLabel: 'Wörterbuch' },
+    { id: 'rangliste', label: 'Rangliste', ariaLabel: 'Rangliste anzeigen' },
   ];
 
   return (
@@ -40,6 +40,8 @@ export function NavBar({ current, onNavigate }) {
               key={n.id}
               onClick={() => onNavigate(n.id)}
               className={`${styles.navLink}${current === n.id ? ` ${styles.navLinkActive}` : ''}`}
+              aria-label={n.ariaLabel}
+              aria-current={current === n.id ? 'page' : undefined}
             >
               {n.label}
             </button>

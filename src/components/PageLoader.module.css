@@ -1,0 +1,32 @@
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem;
+}
+
+.content {
+  text-align: center;
+}
+
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #b8860b;
+  animation: pulse 2s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+.text {
+  font-family: 'Lora', serif;
+  font-size: 1rem;
+  color: #8b7355;
+  letter-spacing: 0.1em;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.95); }
+}
