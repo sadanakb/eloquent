@@ -54,6 +54,8 @@ export function OnlineDuellPage({ onNavigate }) {
   const [countdown, setCountdown] = useState(5);
   const [opponentStatus, setOpponentStatus] = useState('writing');
   const unsubMatchRef = useRef(null);
+  const isScoringRef = useRef(false);
+  const scoringTimeoutRef = useRef(null);
 
   // Result
   const [playerResult, setPlayerResult] = useState(null);
@@ -91,6 +93,16 @@ export function OnlineDuellPage({ onNavigate }) {
         if (sit) setSituation(sit);
       }
 
+      // Handle auto_submit: time expired — submit placeholder and move to waiting
+      if (reconnectState.phase === 'auto_submit') {
+        setMatch(reconnectState.match);
+        setPhase('waiting');
+        submitAnswer(reconnectState.match.id, user.id, '(Zeit abgelaufen)').catch(err => {
+          logger.error('Auto-submit on reconnect failed:', err);
+        });
+        return;
+      }
+
       // Jump to the appropriate phase
       setPhase(reconnectState.phase);
     }
@@ -110,6 +122,11 @@ export function OnlineDuellPage({ onNavigate }) {
       if (unsubMatchRef.current) unsubMatchRef.current();
       presenceRef.current?.destroy();
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      if (scoringTimeoutRef.current) {
+        clearTimeout(scoringTimeoutRef.current);
+        scoringTimeoutRef.current = null;
+      }
+      isScoringRef.current = false;
     };
   }, []);
 
@@ -319,13 +336,18 @@ export function OnlineDuellPage({ onNavigate }) {
   };
 
   const performScoring = async () => {
+    if (isScoringRef.current) return;
+    isScoringRef.current = true;
     setPhase('scoring');
-    // Server-side scoring for online matches — Edge Function handles scoring + ELO
-    const scoringTimeout = setTimeout(() => {
+
+    scoringTimeoutRef.current = setTimeout(() => {
       logger.warn('Scoring timeout reached, showing result with available data');
       clearActiveMatch();
+      isScoringRef.current = false;
+      scoringTimeoutRef.current = null;
       setPhase('result');
     }, 30000);
+
     try {
       const result = await requestServerScoring(match.id);
 
@@ -349,16 +371,17 @@ export function OnlineDuellPage({ onNavigate }) {
           setScoringMethod(result.scoring_method);
         }
 
-        clearTimeout(scoringTimeout);
         clearActiveMatch();
         setPhase('result');
       }
     } catch (e) {
       logger.error('Server scoring failed:', e);
-      clearTimeout(scoringTimeout);
-      // Fallback: the Realtime subscription should pick up 'completed' status
-      // if the other client's request succeeded. Wait for it.
-      // If still in scoring after 30s (the timeout above), we show whatever we have.
+    } finally {
+      if (scoringTimeoutRef.current) {
+        clearTimeout(scoringTimeoutRef.current);
+        scoringTimeoutRef.current = null;
+      }
+      isScoringRef.current = false;
     }
   };
 
@@ -475,6 +498,8 @@ export function OnlineDuellPage({ onNavigate }) {
   };
 
   const handleRematch = async () => {
+    isScoringRef.current = false;
+    if (scoringTimeoutRef.current) { clearTimeout(scoringTimeoutRef.current); scoringTimeoutRef.current = null; }
     // FIX 4 — Clean up match subscription before resetting
     clearActiveMatch();
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
@@ -685,7 +710,12 @@ export function OnlineDuellPage({ onNavigate }) {
                   <Button variant="primary" onClick={handleShare}>
                     Teilen
                   </Button>
-                  <Button variant="secondary" onClick={() => { setFriendWaiting(false); setFriendCode(''); }}>
+                  <Button variant="secondary" onClick={() => {
+                    if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
+                    clearActiveMatch();
+                    setFriendWaiting(false);
+                    setFriendCode('');
+                  }}>
                     Abbrechen
                   </Button>
                 </div>

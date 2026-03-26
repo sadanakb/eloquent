@@ -34,6 +34,14 @@ export function createPresence(matchId, userId, callbacks) {
         disconnectTimer = null;
       }
       callbacks.onOpponentOnline?.();
+    } else if (!opponentConnected && opponentOnline) {
+      opponentOnline = false;
+      callbacks.onOpponentOffline?.();
+      if (!disconnectTimer) {
+        disconnectTimer = setTimeout(() => {
+          callbacks.onOpponentTimeout?.();
+        }, 60_000);
+      }
     }
   });
 

@@ -9,7 +9,6 @@ import { corsHeaders } from '../_shared/cors.ts'
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
 const GROQ_MODEL = 'llama-3.3-70b-versatile'
 const MAX_RETRIES = 2
-const SCORING_TIMEOUT = 25000 // 25s (Edge Function limit is ~30s)
 
 // ─── Scoring Prompts (ported from ki-scorer.js) ───
 
@@ -129,7 +128,7 @@ async function getRandomUserGroqKey(admin: any): Promise<string | null> {
   const { data: rows } = await admin
     .from('user_progress')
     .select('user_id, settings')
-    .not('settings->groq_key_encrypted', 'is', null)
+    .not('settings->>groq_key_encrypted', 'is', null)
 
   if (!rows || rows.length === 0) return null
 
@@ -278,8 +277,13 @@ function heuristicScore(text: string): number {
 
 // ─── ELO Calculation (ported from elo.js) ───
 
-function calculateElo(playerRating: number, opponentRating: number, playerScore: number, opponentScore: number, gamesPlayed = 30) {
-  const K = gamesPlayed < 30 ? 32 : 16
+function calculateElo(
+  playerRating: number, opponentRating: number,
+  playerScore: number, opponentScore: number,
+  playerGames: number, opponentGames: number
+) {
+  const kPlayer = playerGames < 30 ? 32 : 16
+  const kOpponent = opponentGames < 30 ? 32 : 16
   const expectedPlayer = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400))
   const expectedOpponent = 1 / (1 + Math.pow(10, (playerRating - opponentRating) / 400))
 
@@ -292,10 +296,14 @@ function calculateElo(playerRating: number, opponentRating: number, playerScore:
     actualPlayer = 0.5; actualOpponent = 0.5
   }
 
-  const newPlayerRating = Math.max(0, Math.min(10000, Math.round(playerRating + K * (actualPlayer - expectedPlayer))))
-  const newOpponentRating = Math.max(0, Math.min(10000, Math.round(opponentRating + K * (actualOpponent - expectedOpponent))))
+  const newPlayerRating = Math.max(0, Math.min(10000, Math.round(playerRating + kPlayer * (actualPlayer - expectedPlayer))))
+  const newOpponentRating = Math.max(0, Math.min(10000, Math.round(opponentRating + kOpponent * (actualOpponent - expectedOpponent))))
 
-  return { newPlayerRating, newOpponentRating, playerChange: newPlayerRating - playerRating, opponentChange: newOpponentRating - opponentRating }
+  return {
+    newPlayerRating, newOpponentRating,
+    playerChange: newPlayerRating - playerRating,
+    opponentChange: newOpponentRating - opponentRating,
+  }
 }
 
 // ─── Main Handler ───
@@ -341,48 +349,58 @@ Deno.serve(async (req) => {
     // Service role client for DB writes
     const admin = createClient(supabaseUrl, serviceRoleKey)
 
-    // Load match
-    const { data: match, error: matchError } = await admin
+    // Load match first for auth check
+    const { data: matchCheck, error: matchCheckError } = await admin
       .from('matches')
-      .select('*')
+      .select('player1_id, player2_id, player1_score, player2_score, winner_id, status, scoring_method')
       .eq('id', matchId)
       .single()
 
-    if (matchError || !match) {
+    if (matchCheckError || !matchCheck) {
       return new Response(JSON.stringify({ error: 'Match not found' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
     // Verify caller is a player
-    if (match.player1_id !== user.id && match.player2_id !== user.id) {
+    if (matchCheck.player1_id !== user.id && matchCheck.player2_id !== user.id) {
       return new Response(JSON.stringify({ error: 'Not a player in this match' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    // Idempotency: already scored
-    if (match.status === 'completed' && match.player1_score !== null) {
+    // Idempotency: already completed
+    if (matchCheck.status === 'completed' && matchCheck.player1_score !== null) {
       return new Response(JSON.stringify({
-        player1_score: match.player1_score,
-        player2_score: match.player2_score,
-        winner_id: match.winner_id,
+        player1_score: matchCheck.player1_score,
+        player2_score: matchCheck.player2_score,
+        winner_id: matchCheck.winner_id,
+        scoring_method: matchCheck.scoring_method,
         already_completed: true,
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    // Race condition: scores already being written
-    if (match.player1_score !== null) {
-      return new Response(JSON.stringify({
-        player1_score: match.player1_score,
-        player2_score: match.player2_score,
-        winner_id: match.winner_id,
-        already_completed: true,
-      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    // Atomic scoring lock — only ONE invocation wins this UPDATE
+    const { data: claimed, error: claimError } = await admin
+      .from('matches')
+      .update({ status: 'scoring' })
+      .eq('id', matchId)
+      .in('status', ['active', 'waiting'])
+      .select()
+      .single()
+
+    if (claimError || !claimed) {
+      // Another invocation claimed scoring — return 202
+      return new Response(JSON.stringify({ status: 'scoring_in_progress' }), {
+        status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
     }
+
+    const match = claimed
 
     // Validate both texts exist
     if (!match.player1_text || !match.player2_text) {
+      await admin.from('matches').update({ status: 'active' }).eq('id', matchId)
       return new Response(JSON.stringify({ error: 'Both players must submit text first' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -442,15 +460,15 @@ Deno.serve(async (req) => {
 
     const p1Profile = profiles?.find((p: any) => p.id === match.player1_id)
     const p2Profile = profiles?.find((p: any) => p.id === match.player2_id)
-    const p1Elo = p1Profile?.elo_rating || 400
-    const p2Elo = p2Profile?.elo_rating || 400
-    const p1Games = p1Profile?.total_games || 0
-    const p2Games = p2Profile?.total_games || 0
+    const p1Elo = p1Profile?.elo_rating ?? 400
+    const p2Elo = p2Profile?.elo_rating ?? 400
+    const p1Games = p1Profile?.total_games ?? 0
+    const p2Games = p2Profile?.total_games ?? 0
 
-    const elo = calculateElo(p1Elo, p2Elo, p1Score, p2Score, Math.min(p1Games, p2Games))
+    const elo = calculateElo(p1Elo, p2Elo, p1Score, p2Score, p1Games, p2Games)
 
     // Update match
-    await admin.from('matches').update({
+    const { error: matchUpdateError } = await admin.from('matches').update({
       player1_score: p1Score,
       player2_score: p2Score,
       winner_id: winnerId,
@@ -458,29 +476,35 @@ Deno.serve(async (req) => {
       completed_at: new Date().toISOString(),
       scoring_method: scoringMethod,
     }).eq('id', matchId)
+    if (matchUpdateError) {
+      console.error('Match update failed:', matchUpdateError)
+      throw new Error(`Match update failed: ${matchUpdateError.message}`)
+    }
 
     // Update player 1 profile
     const p1Won = winnerId === match.player1_id
     const p1Lost = winnerId === match.player2_id
     const isDraw = winnerId === null
-    await admin.from('profiles').update({
+    const { error: p1Error } = await admin.from('profiles').update({
       elo_rating: elo.newPlayerRating,
       wins: (p1Profile?.wins || 0) + (p1Won ? 1 : 0),
       losses: (p1Profile?.losses || 0) + (p1Lost ? 1 : 0),
       draws: ((p1Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
       total_games: p1Games + 1,
     }).eq('id', match.player1_id)
+    if (p1Error) console.error('Player 1 profile update failed:', p1Error)
 
     // Update player 2 profile
     const p2Won = winnerId === match.player2_id
     const p2Lost = winnerId === match.player1_id
-    await admin.from('profiles').update({
+    const { error: p2Error } = await admin.from('profiles').update({
       elo_rating: elo.newOpponentRating,
       wins: (p2Profile?.wins || 0) + (p2Won ? 1 : 0),
       losses: (p2Profile?.losses || 0) + (p2Lost ? 1 : 0),
       draws: ((p2Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
       total_games: p2Games + 1,
     }).eq('id', match.player2_id)
+    if (p2Error) console.error('Player 2 profile update failed:', p2Error)
 
     return new Response(JSON.stringify({
       player1_score: p1Score,
