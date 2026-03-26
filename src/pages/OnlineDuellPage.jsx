@@ -27,6 +27,7 @@ import { Confetti } from '../components/Confetti.jsx';
 import { AuthModal } from '../components/AuthModal.jsx';
 import { Input } from '../components/Input.jsx';
 import { GlobeNetwork, BoltIcon } from '../components/icons/Icons.jsx';
+import { logger } from '../engine/logger.js';
 import styles from './OnlineDuellPage.module.css';
 
 function getRandomSituation() {
@@ -60,6 +61,7 @@ export function OnlineDuellPage({ onNavigate }) {
   const [playerScore, setPlayerScore] = useState(null);
   const [eloChange, setEloChange] = useState(0);
   const [winner, setWinner] = useState(null);
+  const [scoringMethod, setScoringMethod] = useState('ki');
 
   // Friend challenge
   const [friendCode, setFriendCode] = useState('');
@@ -146,7 +148,7 @@ export function OnlineDuellPage({ onNavigate }) {
             await forfeitMatch(match.id, opponentId);
           }
         } catch (err) {
-          console.error('Auto-forfeit error:', err);
+          logger.error('Auto-forfeit error:', err);
         }
       },
     });
@@ -310,7 +312,7 @@ export function OnlineDuellPage({ onNavigate }) {
         setPhase('waiting');
       }
     } catch (err) {
-      console.error('Submit answer failed:', err.message);
+      logger.error('Submit answer failed:', err.message);
       // Still move to waiting so the user isn't stuck
       setPhase('waiting');
     }
@@ -320,7 +322,7 @@ export function OnlineDuellPage({ onNavigate }) {
     setPhase('scoring');
     // Server-side scoring for online matches — Edge Function handles scoring + ELO
     const scoringTimeout = setTimeout(() => {
-      console.warn('[Scoring] Timeout reached, showing result with available data');
+      logger.warn('Scoring timeout reached, showing result with available data');
       clearActiveMatch();
       setPhase('result');
     }, 30000);
@@ -343,13 +345,16 @@ export function OnlineDuellPage({ onNavigate }) {
           const myEloChange = isPlayer1 ? result.elo_changes.player1 : result.elo_changes.player2;
           setEloChange(myEloChange);
         }
+        if (result.scoring_method) {
+          setScoringMethod(result.scoring_method);
+        }
 
         clearTimeout(scoringTimeout);
         clearActiveMatch();
         setPhase('result');
       }
     } catch (e) {
-      console.error('Server scoring failed:', e);
+      logger.error('Server scoring failed:', e);
       clearTimeout(scoringTimeout);
       // Fallback: the Realtime subscription should pick up 'completed' status
       // if the other client's request succeeded. Wait for it.
@@ -448,7 +453,7 @@ export function OnlineDuellPage({ onNavigate }) {
       }
       setPhase('matched');
     } catch (err) {
-      console.error('Join challenge failed:', err.message);
+      logger.error('Join challenge failed:', err.message);
       setJoinError('Code nicht gefunden. Prüfe ob der Code korrekt ist und das Spiel noch wartet.');
     }
   };
@@ -469,25 +474,27 @@ export function OnlineDuellPage({ onNavigate }) {
     }
   };
 
-  const handleRematch = () => {
+  const handleRematch = async () => {
     // FIX 4 — Clean up match subscription before resetting
     clearActiveMatch();
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
     presenceRef.current?.destroy(); presenceRef.current = null;
     setOpponentDisconnected(false);
     setDisconnectCountdown(60);
-    setPhase('searching');
-    setSearchElapsed(0);
-    setEloRange(200);
     setPlayerResult(null);
     setOpponentScore(null);
     setPlayerScore(null);
     setEloChange(0);
     setWinner(null);
+    setScoringMethod('ki');
     setOpponentStatus('writing');
     setMatch(null);
     setOpponent(null);
-    handleQuickMatch();
+    // Re-enter matchmaking queue (creates a fresh match)
+    setPhase('searching');
+    setSearchElapsed(0);
+    setEloRange(200);
+    await handleQuickMatch();
   };
 
   const handleNewMatch = () => {
@@ -503,6 +510,7 @@ export function OnlineDuellPage({ onNavigate }) {
     setPlayerScore(null);
     setEloChange(0);
     setWinner(null);
+    setScoringMethod('ki');
     setOpponentStatus('writing');
     setMatch(null);
     setOpponent(null);
@@ -821,6 +829,14 @@ export function OnlineDuellPage({ onNavigate }) {
                   {eloChange >= 0 ? '+' : ''}{eloChange}
                 </span>
               </div>
+              {scoringMethod === 'heuristic' && (
+                <div style={{
+                  textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)',
+                  fontStyle: 'italic', marginTop: '0.5rem',
+                }}>
+                  Bewertet mit alternativer Methode
+                </div>
+              )}
             </Card>
 
             {playerResult && (

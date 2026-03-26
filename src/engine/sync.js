@@ -14,6 +14,7 @@
  */
 
 import { supabase, isSupabaseReady } from '../lib/supabase';
+import { logger } from './logger.js';
 
 let syncTimeout = null;
 
@@ -32,7 +33,7 @@ export async function syncFromServer(userId) {
       .maybeSingle();
 
     if (error) {
-      console.warn('[Sync] Failed to load from server:', error.message);
+      logger.warn('[Sync] Failed to load from server:', error.message);
       return;
     }
 
@@ -77,7 +78,7 @@ export async function syncFromServer(userId) {
       }
     }
   } catch (err) {
-    console.warn('[Sync] Error during sync from server:', err);
+    logger.warn('[Sync] Error during sync from server:', err);
   }
 }
 
@@ -104,10 +105,10 @@ export async function syncToServer(userId) {
       .upsert(data, { onConflict: 'user_id' });
 
     if (error) {
-      console.warn('[Sync] Failed to sync to server:', error.message);
+      logger.warn('[Sync] Failed to sync to server:', error.message);
     }
   } catch (err) {
-    console.warn('[Sync] Error during sync to server:', err);
+    logger.warn('[Sync] Error during sync to server:', err);
   }
 }
 

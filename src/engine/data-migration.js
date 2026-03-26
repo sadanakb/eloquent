@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import storage from './storage.js';
+import { logger } from './logger.js';
 
 const MIGRATED_KEY = 'supabase_migrated';
 
@@ -49,7 +50,7 @@ export async function migrateToSupabase(userId) {
         .eq('id', userId);
 
       if (profileError) {
-        console.error('Profile migration failed:', profileError.message);
+        logger.error('Profile migration failed:', profileError.message);
         return false;
       }
     }
@@ -66,7 +67,7 @@ export async function migrateToSupabase(userId) {
         .upsert(rows, { onConflict: 'user_id,achievement_id', ignoreDuplicates: true });
 
       if (achievError) {
-        console.error('Achievement migration failed:', achievError.message);
+        logger.error('Achievement migration failed:', achievError.message);
         return false;
       }
     }
@@ -75,7 +76,7 @@ export async function migrateToSupabase(userId) {
     storage.set(MIGRATED_KEY, true);
     return true;
   } catch (err) {
-    console.error('Migration error:', err);
+    logger.error('Migration error:', err);
     return false;
   }
 }

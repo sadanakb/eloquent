@@ -3,6 +3,7 @@ import { supabase, isSupabaseReady } from '../lib/supabase.js';
 import { syncFromServer, syncToServer } from '../engine/sync';
 import { loadGroqKeyFromSupabase, saveGroqKeyWithSync, getGroqKey } from '../engine/ki-scorer.js';
 import eventBus from '../engine/event-bus.js';
+import { logger } from '../engine/logger.js';
 
 const AuthContext = createContext(null);
 
@@ -125,7 +126,7 @@ export function AuthProvider({ children }) {
       .select()
       .single();
     if (error) {
-      console.error('Profile update failed:', error.message);
+      logger.error('Profile update failed:', error.message);
       return null;
     }
     setProfile(data);

@@ -3,6 +3,7 @@ import { AntwortEingabe } from '../AntwortEingabe.jsx';
 import { BewertungDisplay } from '../BewertungDisplay.jsx';
 import { Button } from '../Button.jsx';
 import { kiBewertung } from '../../engine/scoring-engine.js';
+import { logger } from '../../engine/logger.js';
 import styles from './FreeTextChallenge.module.css';
 
 const ZEIT_TO_SCHWIERIGKEIT = {
@@ -38,7 +39,7 @@ export function FreeTextChallenge({ challenge, onComplete }) {
       setErgebnis(result);
       setPhase('result');
     } catch (e) {
-      console.error('[FreeTextChallenge] Bewertung fehlgeschlagen:', e);
+      logger.error('[FreeTextChallenge] Bewertung fehlgeschlagen:', e);
       setErgebnis(null);
       setPhase('result');
     }

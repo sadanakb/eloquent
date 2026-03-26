@@ -3,6 +3,8 @@
 // Loads Xenova/paraphrase-multilingual-MiniLM-L12-v2
 // ──────────────────────────────────────────────────────
 
+import { logger } from './logger.js';
+
 let pipeline = null;
 let modelInstance = null;
 let modelStatus = "idle"; // idle, loading, ready, error
@@ -45,7 +47,7 @@ export async function loadModel() {
     notifyStatus("ready");
     return modelInstance;
   } catch (e) {
-    console.warn("Transformers.js model loading failed:", e.message);
+    logger.warn("Transformers.js model loading failed:", e.message);
     notifyStatus("error");
     return null;
   }
@@ -58,7 +60,7 @@ export async function embedText(text) {
     const output = await model(text, { pooling: "mean", normalize: true });
     return output.data;
   } catch (e) {
-    console.warn("Embedding failed:", e.message);
+    logger.warn("Embedding failed:", e.message);
     return null;
   }
 }
@@ -74,7 +76,7 @@ export async function embedSentences(sentences) {
     }
     return results;
   } catch (e) {
-    console.warn("Batch embedding failed:", e.message);
+    logger.warn("Batch embedding failed:", e.message);
     return null;
   }
 }

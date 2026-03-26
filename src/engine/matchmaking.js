@@ -1,6 +1,7 @@
 import { supabase, isOnline } from '../lib/supabase.js';
 import eventBus from './event-bus.js';
 import { SITUATIONEN } from '../data/situationen.js';
+import { logger } from './logger.js';
 
 const INITIAL_ELO_RANGE = 200;
 const EXPANDED_ELO_RANGE = 400;
@@ -18,7 +19,7 @@ export async function joinQueue(userId, eloRating) {
     .upsert({ user_id: userId, elo_rating: eloRating, joined_at: new Date().toISOString() });
 
   if (error) {
-    console.error('Failed to join queue:', error.message);
+    logger.error('Failed to join queue:', error.message);
     return null;
   }
 
@@ -74,7 +75,7 @@ export async function leaveQueue(userId) {
     if (activeSubscription) supabase.removeChannel(activeSubscription);
     await supabase.from('matchmaking_queue').delete().eq('user_id', userId);
   } catch (err) {
-    console.error('leaveQueue error:', err);
+    logger.error('leaveQueue error:', err);
   } finally {
     expandTimer = null;
     activeSubscription = null;
@@ -133,7 +134,7 @@ export async function findMatch(userId) {
     .single();
 
   if (matchError) {
-    console.error('Failed to create match:', matchError.message);
+    logger.error('Failed to create match:', matchError.message);
     return null;
   }
 

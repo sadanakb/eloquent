@@ -6,6 +6,7 @@ import { getRankTitle } from '../engine/elo.js';
 import { Badge } from '../components/Badge.jsx';
 import { Ornament } from '../components/Ornament.jsx';
 import { CrownIcon, ShieldIcon } from '../components/icons/Icons.jsx';
+import { logger } from '../engine/logger.js';
 import styles from './RanglistePage.module.css';
 
 const demo = [
@@ -95,14 +96,14 @@ export function RanglistePage() {
         .limit(100);
 
       if (error) {
-        console.error('Leaderboard fetch failed:', error.message);
+        logger.error('Leaderboard fetch failed:', error.message);
         setLeaderboardError('Rangliste konnte nicht geladen werden.');
         setGlobalData([]);
       } else {
         setGlobalData(data || []);
       }
     } catch (err) {
-      console.error('Leaderboard fetch error:', err);
+      logger.error('Leaderboard fetch error:', err);
       setLeaderboardError('Rangliste konnte nicht geladen werden. Bitte versuche es später erneut.');
       setGlobalData([]);
     } finally {

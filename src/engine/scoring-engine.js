@@ -4,6 +4,7 @@ import { tokenize, satzSinnScore, textKohaerenz, semantischerSituationsmatch, fi
 import { tiefesAntiGaming } from './anti-gaming.js';
 import { erkenneRhetorischeMittel } from './rhetorik-detector.js';
 import { aiBewertung, hasAiProvider } from './ki-scorer.js';
+import { logger } from './logger.js';
 
 // ══════════════════════════════════════════════════════
 // ELOQUENT Scoring Engine v6 — Additive Scoring
@@ -452,20 +453,20 @@ export async function kiBewertung(situation, antwort) {
   // Fallback-Kette: Groq → Heuristik (allerletzter Ausweg)
   if (hasAiProvider()) {
     try {
-      console.log('[ELOQUENT] Starte KI-Bewertung (Groq)...');
+      logger.info('[ELOQUENT] Starte KI-Bewertung (Groq)...');
       const result = await aiBewertung(situation, text);
       result._methode = 'ki';
       result._duration = ((Date.now() - startTime) / 1000).toFixed(1);
-      console.log(`[ELOQUENT] KI-Bewertung erfolgreich! (${result._provider}/${result._model}) in ${result._duration}s`);
+      logger.info(`[ELOQUENT] KI-Bewertung erfolgreich! (${result._provider}/${result._model}) in ${result._duration}s`);
       return result;
     } catch (e) {
       const isRateLimit = e.message?.includes('RATE_LIMITED') || e.message?.includes('429');
       if (isRateLimit) {
-        console.warn('[ELOQUENT] Groq Rate Limit — Fallback auf Heuristik');
+        logger.warn('[ELOQUENT] Groq Rate Limit — Fallback auf Heuristik');
       } else {
-        console.warn('[ELOQUENT] Alle KI-Provider fehlgeschlagen:', e.message);
+        logger.warn('[ELOQUENT] Alle KI-Provider fehlgeschlagen:', e.message);
       }
-      console.warn('[ELOQUENT] Fallback auf Heuristik (letzter Ausweg)');
+      logger.warn('[ELOQUENT] Fallback auf Heuristik (letzter Ausweg)');
       const heuristik = berechneHeuristik(text, situation, e.message);
       heuristik._duration = ((Date.now() - startTime) / 1000).toFixed(1);
       return heuristik;
@@ -473,13 +474,13 @@ export async function kiBewertung(situation, antwort) {
   }
 
   // Kein KI-Provider konfiguriert → Heuristik als einzige Option
-  console.warn('[ELOQUENT] Kein KI-Provider konfiguriert, nutze Heuristik');
+  logger.warn('[ELOQUENT] Kein KI-Provider konfiguriert, nutze Heuristik');
   try {
     const heuristik = berechneHeuristik(text, situation, 'Kein KI-Provider konfiguriert');
     heuristik._duration = ((Date.now() - startTime) / 1000).toFixed(1);
     return heuristik;
   } catch (e) {
-    console.error("Bewertung fehlgeschlagen:", e);
+    logger.error("Bewertung fehlgeschlagen:", e);
     return {
       kategorien: {
         situationsbezug: { p: 0, f: 'Bewertung konnte nicht durchgeführt werden.' },

@@ -8,6 +8,7 @@ import { Card } from '../components/Card.jsx';
 import { Badge } from '../components/Badge.jsx';
 import { Input } from '../components/Input.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
+import { logger } from '../engine/logger.js';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { OrnamentIcon, OrnamentDivider } from '../components/Ornament.jsx';
 import { BoltIcon } from '../components/icons/Icons.jsx';
@@ -124,11 +125,11 @@ export function DuellPage({ onNavigate }) {
     let r1, r2;
     try {
       [r1, r2] = await Promise.all([
-        s1Promise.catch(e => { console.error('[Duell] S1 Scoring Fehler:', e.message); return SKIP_ERGEBNIS; }),
-        s2Skipped ? Promise.resolve(SKIP_ERGEBNIS) : kiBewertung(situation, text).catch(e => { console.error('[Duell] S2 Scoring Fehler:', e.message); return SKIP_ERGEBNIS; }),
+        s1Promise.catch(e => { logger.error('[Duell] S1 Scoring Fehler:', e.message); return SKIP_ERGEBNIS; }),
+        s2Skipped ? Promise.resolve(SKIP_ERGEBNIS) : kiBewertung(situation, text).catch(e => { logger.error('[Duell] S2 Scoring Fehler:', e.message); return SKIP_ERGEBNIS; }),
       ]);
     } catch (e) {
-      console.error('[Duell] Bewertung fehlgeschlagen:', e.message);
+      logger.error('[Duell] Bewertung fehlgeschlagen:', e.message);
       r1 = SKIP_ERGEBNIS;
       r2 = SKIP_ERGEBNIS;
     }

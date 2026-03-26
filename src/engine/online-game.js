@@ -1,5 +1,6 @@
 import { supabase, isOnline } from '../lib/supabase.js';
 import eventBus from './event-bus.js';
+import { logger } from './logger.js';
 
 /**
  * Clean up stale data for this user.
@@ -23,7 +24,7 @@ export async function cleanupMyStaleData(userId) {
       .delete()
       .eq('user_id', userId);
   } catch (err) {
-    console.error('Cleanup error:', err);
+    logger.error('Cleanup error:', err);
   }
 }
 
@@ -42,7 +43,7 @@ export async function createMatch(player1Id, player2Id, situationId) {
     .single();
 
   if (error) {
-    console.error('Failed to create match:', error.message);
+    logger.error('Failed to create match:', error.message);
     return null;
   }
 
@@ -127,7 +128,7 @@ export async function submitScores(matchId, scores) {
     .single();
 
   if (error) {
-    console.error('Failed to submit scores:', error.message);
+    logger.error('Failed to submit scores:', error.message);
     return null;
   }
 
@@ -141,7 +142,7 @@ export async function forfeitMatch(matchId, playerId) {
     p_forfeiter_id: playerId,
   });
   if (error) {
-    console.error('Forfeit error:', error.message);
+    logger.error('Forfeit error:', error.message);
     throw error;
   }
 }
@@ -170,7 +171,7 @@ export async function createFriendChallenge(userId) {
     .single();
 
   if (error) {
-    console.error('Failed to create friend challenge:', error.message);
+    logger.error('Failed to create friend challenge:', error.message);
     return null;
   }
 

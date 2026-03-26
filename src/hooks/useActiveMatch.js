@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase.js';
+import { logger } from '../engine/logger.js';
 
 /**
  * Mark a match as active in sessionStorage.
@@ -91,7 +92,7 @@ export function useActiveMatch(userId) {
           setReconnectState(state);
         }
       } catch (err) {
-        console.error('Active match check failed:', err);
+        logger.error('Active match check failed:', err);
       } finally {
         setIsLoading(false);
       }

@@ -8,6 +8,7 @@ import { OrnamentIcon } from '../Ornament.jsx';
 import { AntwortEingabe } from '../AntwortEingabe.jsx';
 import { BewertungDisplay } from '../BewertungDisplay.jsx';
 import { kiBewertung } from '../../engine/scoring-engine.js';
+import { logger } from '../../engine/logger.js';
 import styles from './BossFight.module.css';
 
 export function BossFight({ boss, onComplete, archetypeBonus }) {
@@ -66,7 +67,7 @@ export function BossFight({ boss, onComplete, archetypeBonus }) {
       setPlayerScore(totalScore);
       setPhase('result');
     } catch (e) {
-      console.error('[BossFight] Bewertung fehlgeschlagen:', e);
+      logger.error('[BossFight] Bewertung fehlgeschlagen:', e);
       setPlayerScore(0);
       setErgebnis(null);
       setPhase('result');

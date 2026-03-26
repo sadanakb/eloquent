@@ -1,5 +1,6 @@
 import storage from './storage.js';
 import eventBus from './event-bus.js';
+import { logger } from './logger.js';
 
 const STORAGE_KEY = 'story_progress';
 
@@ -121,7 +122,7 @@ export function advanceState(action, data = {}) {
       break;
 
     default:
-      console.warn(`[story-engine] Unknown action: ${action}`);
+      logger.warn(`[story-engine] Unknown action: ${action}`);
       return state;
   }
 
