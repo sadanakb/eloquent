@@ -1,40 +1,35 @@
-# Checkpoint — 2026-03-22 ABGESCHLOSSEN
+# Checkpoint — 2026-04-04
 
 ## Ziel
-Komplettes Frontend-Redesign von ELOQUENT Wortduell — alle 10 Seiten + Design-System-Foundation.
-Design-Philosophie: "Gedruckte Eloquenz, digital erlebbar" (Cormorant Garamond, Tinte & Gold).
+Mobile-Fix (Bottom-Nav), Performance-Optimierung, und komplettes Freundesystem mit Online-Matches
 
-## ALLE TASKS ERLEDIGT ✅
+## Erledigt
+- [x] Bottom-Nav Fix: dvh viewport, translateZ(0) GPU-Layer, touch-action, Drawer-Position (Dateien: src/styles/base.css, src/components/BottomNav.module.css)
+- [x] Performance: GoldParticles infinite→1, Avatar lazy loading, Timer 250→1000ms (Dateien: src/components/GoldParticles.module.css, src/pages/RanglistePage.jsx, src/pages/ProfilePage.jsx, src/components/AntwortEingabe.jsx)
+- [x] scrollTo(0,0) entfernt aus onNavigate (Datei: src/App.jsx)
+- [x] Duell-Tab → Online-Match, lokales Duell in Mehr-Drawer (Dateien: src/App.jsx, src/components/BottomNav.jsx)
+- [x] DB-Migration: friendships table, friend_code, last_seen_at, RLS, DB-Functions (Datei: supabase/migrations/005_friend_system.sql)
+- [x] Friends Engine: getFriends, sendRequest, search, subscribe, heartbeat (Datei: src/engine/friends.js)
+- [x] Friend UI: FriendListSection, AddFriendModal, FriendRequestsSection (Dateien: src/components/FriendListSection.jsx, AddFriendModal.jsx, FriendRequestsSection.jsx + CSS)
+- [x] OnlineDuellPage Integration: Freunde-Sektion, Challenge-Button, Realtime (Datei: src/pages/OnlineDuellPage.jsx)
+- [x] Globaler Match-Einladungs-Listener mit Toast-Notification (Datei: src/App.jsx)
+- [x] Rangliste Freunde-Tab mit echten Daten (Datei: src/pages/RanglistePage.jsx)
+- [x] Profil: Friend-Code Anzeige (Datei: src/pages/ProfilePage.jsx)
+- [x] AuthContext: friend_code Auto-Generierung für bestehende User (Datei: src/contexts/AuthContext.jsx)
 
-### Phase 1 — Foundation
-- [x] Task 1: Token Migration + theme.css + Dark Mode Init (5311d54)
-- [x] Task 2: animations.css — goldPulse, shimmer, scaleXIn, progressFill, searchPulse (f108f9e)
-- [x] Task 3: Icons.jsx — 17 SVG-Komponenten (17e2499)
-- [x] Task 4: Button Redesign — primary/secondary/tertiary/ghost/danger Varianten (c3eeaa3)
-- [x] Task 5+6: Card Redesign + Input neu erstellt (13f8d0e)
-- [x] Task 7+8: Badge Redesign + Ornament + ornaments.css gelöscht (bb0a100)
-- [x] Task 9: NavBar + BottomNav Redesign (18bfba2)
-- [x] Task 10: EinstellungenModal + Dark Mode Toggle (aa15bb9)
+## Offen
+- [ ] Migration 005 auf Supabase-DB ausführen (manuell)
+- [ ] E2E Testing mit 2 Browsern
 
-### Phase 2 — Seiten
-- [x] Task 11: HeroPage — Letter-Reveal, Action-Cards, Daily Challenge (ad6137d)
-- [x] Task 12: DuellPage — Side-by-side Inputs, BoltIcon VS (e007643)
-- [x] Task 13: OnlineDuellPage — searchPulse, Friend Challenge Card (1213170)
-- [x] Task 14: WoerterbuchPage — Featured Word, Chip-Filter, Stagger (988c982)
-- [x] Task 15: ProfilePage — Stats Grid, XP Animation, Match History (9651ed2)
-- [x] Task 16: UebungPage — Streak Strip, 2-Col Layout, Mobile Collapse (c639495)
-- [x] Task 17: StoryPage + 7 Subkomponenten (66fa242)
-- [x] Task 18: RanglistePage — Podium, Filter Tabs, Sticky Own Rank (bac2b79)
-- [x] Task 19: AchievementPage — Hero Unlock, Close-Call Banner, Badge Grid (a0d7507)
-- [x] Task 20: RegelnPage — Horizontal Tab Nav, Blockquotes, Score Grid (a19d5e4)
-
-### Phase 3 — Finalisierung
-- [x] Task 21: Final Token Sweep — verbleibende Komponenten (89d21a7)
+## Entscheidungen
+- Freundesliste in OnlineDuellPage integriert (nicht separate Seite)
+- Push-Notification via Supabase Realtime für Match-Einladungen
+- Duell-Tab führt direkt zu Online-Match
+- Online-Status via last_seen_at Heartbeat (60s Intervall, 2min Timeout)
 
 ## Build/Test-Status
-- Build: OK (0 Errors, exit code 0)
-- Letzter Commit: 89d21a7 feat: final token sweep — update remaining components to design system
-- 19 Feature-Commits total
+- Build: OK (✓ built in 965ms)
+- Tests: N/A
 
-## Naechster Schritt
-FERTIG. Empfehlung: `npm run dev` und alle 10 Routen visuell prüfen.
+## Nächster Schritt
+Migration 005 auf Supabase-DB ausführen, dann E2E testen

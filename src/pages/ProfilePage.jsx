@@ -91,6 +91,7 @@ export function ProfilePage({ onNavigate }) {
                 src={profile.avatar_url}
                 alt={profile?.username || 'Avatar'}
                 className={styles.avatarImg}
+                loading="lazy"
               />
             ) : (
               <div className={styles.avatarIcon}>
@@ -99,6 +100,13 @@ export function ProfilePage({ onNavigate }) {
             )}
           </div>
           <h1 className={styles.username}>{profile?.username || 'Spieler'}</h1>
+          {profile?.friend_code && (
+            <div className={styles.rankRow} style={{ marginBottom: '0.25rem' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                #{profile.friend_code}
+              </span>
+            </div>
+          )}
           <div className={styles.rankRow}>
             <Badge type="rank">{rankTitle}</Badge>
             <span className={styles.eloNum}>{elo} Elo</span>

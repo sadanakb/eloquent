@@ -7,6 +7,7 @@ import { Badge } from '../components/Badge.jsx';
 import { Ornament } from '../components/Ornament.jsx';
 import { CrownIcon, ShieldIcon } from '../components/icons/Icons.jsx';
 import { logger } from '../engine/logger.js';
+import { getFriends } from '../engine/friends.js';
 import styles from './RanglistePage.module.css';
 
 const demo = [
@@ -25,6 +26,7 @@ function AvatarCircle({ avatarUrl, username, size = 48, isFirst = false }) {
         alt={username}
         className={`${styles.avatar} ${isFirst ? styles.avatarFirst : ''}`}
         style={{ width: size, height: size }}
+        loading="lazy"
       />
     );
   }
@@ -78,7 +80,9 @@ function PodiumColumn({ entry, rank, isDemo = false }) {
 export function RanglistePage() {
   const [tab, setTab] = useState('global');
   const [globalData, setGlobalData] = useState([]);
+  const [friendsData, setFriendsData] = useState([]);
   const [loadingGlobal, setLoadingGlobal] = useState(false);
+  const [loadingFriends, setLoadingFriends] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState(null);
 
   const auth = useAuth();
@@ -116,12 +120,28 @@ export function RanglistePage() {
     fetchLeaderboard();
   }, [tab, fetchLeaderboard]);
 
+  // Fetch friends for the "Freunde" tab
+  useEffect(() => {
+    if (tab !== 'freunde' || !userId) return;
+    const loadFriends = async () => {
+      setLoadingFriends(true);
+      const data = await getFriends(userId);
+      setFriendsData(
+        data
+          .map(f => ({ user_id: f.id, username: f.username, avatar_url: f.avatar_url, elo_rating: f.elo_rating || 1200 }))
+          .sort((a, b) => b.elo_rating - a.elo_rating)
+      );
+      setLoadingFriends(false);
+    };
+    loadFriends();
+  }, [tab, userId]);
+
   // Determine the current data set to render
   const isLokal = tab === 'lokal';
   const isFriends = tab === 'freunde';
   const isGlobal = tab === 'global';
 
-  // For lokal tab use demo data, for global use fetched data
+  // For lokal tab use demo data, for global use fetched data, for friends use friendsData
   const activeData = isLokal ? demo.map(d => ({
     user_id: d.name,
     username: d.name,
@@ -129,7 +149,7 @@ export function RanglistePage() {
     wins: d.siege,
     losses: d.gespielt - d.siege,
     avatar_url: null,
-  })) : globalData;
+  })) : isFriends ? friendsData : globalData;
 
   const top3 = activeData.slice(0, 3);
   const rest = activeData.slice(3);
@@ -158,7 +178,7 @@ export function RanglistePage() {
     }
   }
 
-  const showPodium = (isLokal || (isGlobal && auth?.isAuthenticated && !loadingGlobal)) && activeData.length >= 1;
+  const showPodium = (isLokal || (isGlobal && auth?.isAuthenticated && !loadingGlobal) || (isFriends && !loadingFriends)) && activeData.length >= 1;
 
   return (
     <div className={styles.page}>
@@ -231,9 +251,15 @@ export function RanglistePage() {
           </div>
         )}
 
-        {isFriends && (
+        {isFriends && loadingFriends && (
           <div className={styles.message}>
-            <p>Freundesliste noch nicht verfügbar.</p>
+            <p>Laden...</p>
+          </div>
+        )}
+
+        {isFriends && !loadingFriends && friendsData.length === 0 && (
+          <div className={styles.message}>
+            <p>Noch keine Freunde. Füge Freunde über das Duell-Menü hinzu!</p>
           </div>
         )}
 
@@ -270,7 +296,7 @@ export function RanglistePage() {
                 >
                   <span className={styles.listRank}>{rank}</span>
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt={username} className={styles.listAvatar} />
+                    <img src={avatarUrl} alt={username} className={styles.listAvatar} loading="lazy" />
                   ) : (
                     <div className={styles.listAvatarPlaceholder}>
                       <ShieldIcon size={12} color="var(--gold-500)" />

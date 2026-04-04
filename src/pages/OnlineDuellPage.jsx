@@ -28,6 +28,10 @@ import { AuthModal } from '../components/AuthModal.jsx';
 import { Input } from '../components/Input.jsx';
 import { GlobeNetwork, BoltIcon } from '../components/icons/Icons.jsx';
 import { logger } from '../engine/logger.js';
+import { getFriends, getPendingRequests, sendFriendRequest, sendFriendRequestByCode, respondToRequest, removeFriend, searchUsers, subscribeFriendEvents, updateLastSeen, isUserOnline } from '../engine/friends.js';
+import { FriendListSection } from '../components/FriendListSection.jsx';
+import { FriendRequestsSection } from '../components/FriendRequestsSection.jsx';
+import { AddFriendModal } from '../components/AddFriendModal.jsx';
 import styles from './OnlineDuellPage.module.css';
 
 function getRandomSituation() {
@@ -79,6 +83,13 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const myElo = profile?.elo_rating || 1200;
 
+  // Friends
+  const [friends, setFriends] = useState([]);
+  const [friendRequests, setFriendRequests] = useState([]);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const friendSubRef = useRef(null);
+
   // Reconnect: check for active matches on mount
   const { activeMatch, reconnectState, isLoading: reconnectLoading } = useActiveMatch(user?.id);
 
@@ -113,6 +124,42 @@ export function OnlineDuellPage({ onNavigate }) {
     if (user?.id) {
       cleanupMyStaleData(user.id);
     }
+  }, [user?.id]);
+
+  // Load friends and friend requests
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadFriends = async () => {
+      setFriendsLoading(true);
+      const [friendsData, requestsData] = await Promise.all([
+        getFriends(user.id),
+        getPendingRequests(user.id),
+      ]);
+      setFriends(friendsData.map(f => ({ ...f, isOnline: isUserOnline(f.last_seen_at) })));
+      setFriendRequests(requestsData);
+      setFriendsLoading(false);
+    };
+
+    loadFriends();
+
+    // Subscribe to friend events for real-time updates
+    const channel = subscribeFriendEvents(user.id,
+      () => loadFriends(), // onInsert — reload on new request
+      () => loadFriends(), // onUpdate — reload on acceptance
+    );
+    friendSubRef.current = channel;
+
+    // Online status heartbeat
+    updateLastSeen(user.id);
+    const heartbeat = setInterval(() => updateLastSeen(user.id), 60000);
+
+    return () => {
+      if (friendSubRef.current) {
+        supabase.removeChannel(friendSubRef.current);
+      }
+      clearInterval(heartbeat);
+    };
   }, [user?.id]);
 
   // Cleanup on unmount
@@ -594,6 +641,86 @@ export function OnlineDuellPage({ onNavigate }) {
     );
   }
 
+  // ── Friend handlers ──
+  const handleChallengeFriend = async (friend) => {
+    if (!user) return;
+    const result = await createFriendChallenge(user.id);
+    if (result) {
+      // Set player2_id to the friend so they get notified
+      await supabase.from('matches').update({ player2_id: friend.id }).eq('id', result.matchId);
+
+      setFriendCode(result.code);
+      setFriendWaiting(true);
+
+      const { data: matchData } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', result.matchId)
+        .single();
+
+      setMatch(matchData || { id: result.matchId });
+      markActiveMatch(result.matchId);
+      if (matchData?.situation_id) {
+        const sit = getSituationById(matchData.situation_id);
+        setSituation(sit || getRandomSituation());
+      } else {
+        setSituation(getRandomSituation());
+      }
+
+      // Subscribe to match
+      const unsub = subscribeToMatch(result.matchId, async (event) => {
+        if (event.type === 'friend_joined') {
+          const m = event.match;
+          const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
+          if (supabase && opponentId) {
+            const { data } = await supabase
+              .from('profiles')
+              .select('username, avatar_url, elo_rating')
+              .eq('id', opponentId)
+              .maybeSingle();
+            setOpponent(data);
+          }
+          setFriendWaiting(false);
+          setMatch(m);
+          setPhase('matched');
+          return;
+        }
+        handleMatchEvent(event);
+      });
+      unsubMatchRef.current = unsub;
+    }
+  };
+
+  const handleRemoveFriend = async (friend) => {
+    await removeFriend(friend.friendshipId);
+    setFriends(prev => prev.filter(f => f.id !== friend.id));
+  };
+
+  const handleAcceptRequest = async (friendshipId) => {
+    await respondToRequest(friendshipId, user.id, true);
+    // Reload both lists
+    const [friendsData, requestsData] = await Promise.all([
+      getFriends(user.id),
+      getPendingRequests(user.id),
+    ]);
+    setFriends(friendsData.map(f => ({ ...f, isOnline: isUserOnline(f.last_seen_at) })));
+    setFriendRequests(requestsData);
+  };
+
+  const handleDeclineRequest = async (friendshipId) => {
+    await respondToRequest(friendshipId, user.id, false);
+    setFriendRequests(prev => prev.filter(r => r.friendshipId !== friendshipId));
+  };
+
+  const handleSearchUsers = async (query) => {
+    return await searchUsers(query, user.id);
+  };
+
+  const handleSendFriendRequest = async (addresseeId) => {
+    const result = await sendFriendRequest(user.id, addresseeId);
+    return result;
+  };
+
   return (
     <div className={styles.page}>
       <div className={styles.container}>
@@ -699,6 +826,25 @@ export function OnlineDuellPage({ onNavigate }) {
                 </div>
               )}
             </Card>
+
+            {/* ── Friends Section ── */}
+            {isAuthenticated && (
+              <>
+                <FriendRequestsSection
+                  requests={friendRequests}
+                  onAccept={handleAcceptRequest}
+                  onDecline={handleDeclineRequest}
+                  loading={friendsLoading}
+                />
+                <FriendListSection
+                  friends={friends}
+                  onChallenge={handleChallengeFriend}
+                  onRemove={handleRemoveFriend}
+                  onAddClick={() => setShowAddFriend(true)}
+                  loading={friendsLoading}
+                />
+              </>
+            )}
 
             {/* Friend waiting state */}
             {friendWaiting && (
@@ -890,6 +1036,15 @@ export function OnlineDuellPage({ onNavigate }) {
       </div>
 
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAddFriend && (
+        <AddFriendModal
+          isOpen={showAddFriend}
+          onClose={() => setShowAddFriend(false)}
+          onSendRequest={handleSendFriendRequest}
+          onSearchUsers={handleSearchUsers}
+          myFriendCode={profile?.friend_code || ''}
+        />
+      )}
     </div>
   );
 }

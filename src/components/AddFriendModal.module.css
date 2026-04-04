@@ -1,0 +1,213 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  animation: fadeIn 200ms ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--shadow-elevated);
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 250ms ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.closeX {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--ink-400);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.closeX:hover {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--accent-gold);
+  margin: 0 0 var(--space-md) 0;
+}
+
+.codeSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+
+.codeLabel {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.codeValue {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold-500);
+  font-weight: 600;
+  flex: 1;
+}
+
+.copyBtn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--gold-700);
+  background: transparent;
+  color: var(--gold-500);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.copyBtn:hover {
+  background: var(--gold-500);
+  color: var(--bg-page);
+}
+
+.copied {
+  border-color: #4ade80;
+  color: #4ade80;
+}
+
+.searchWrapper {
+  margin-bottom: var(--space-md);
+}
+
+.results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.resultRow:last-child {
+  border-bottom: none;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--gold-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  color: var(--gold-500);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.resultInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.resultName {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.resultElo {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.sendBtn {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--gold-500);
+  background: transparent;
+  color: var(--gold-500);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  touch-action: manipulation;
+}
+
+.sendBtn:hover {
+  background: var(--gold-500);
+  color: var(--bg-page);
+}
+
+.sentBtn {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid #4ade80;
+  background: transparent;
+  color: #4ade80;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  cursor: default;
+  white-space: nowrap;
+}
+
+.statusText {
+  padding: var(--space-md) 0;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}

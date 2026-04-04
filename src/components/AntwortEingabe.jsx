@@ -109,7 +109,7 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
             doSubmit();
           }
         }
-      }, 250); // 250ms for smoother updates
+      }, 1000); // 1s interval — display shows whole seconds only
 
       return () => clearInterval(interval);
     } else {

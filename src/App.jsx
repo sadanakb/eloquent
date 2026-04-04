@@ -1,7 +1,9 @@
-import { useState, useCallback, lazy, Suspense } from 'react';
+import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { EinstellungenModal } from './components/EinstellungenModal.jsx';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
+import { supabase } from './lib/supabase.js';
+import eventBus from './engine/event-bus.js';
 import { AuthModal } from './components/AuthModal.jsx';
 import { NavBar } from './components/NavBar.jsx';
 import { SetupWizard } from './components/SetupWizard.jsx';
@@ -38,6 +40,7 @@ const routeToPage = {
   '/achievements': 'achievements',
   '/profil': 'profil',
   '/online': 'online',
+  '/lokal': 'lokal',
 };
 
 const pageToRoute = Object.fromEntries(
@@ -53,11 +56,54 @@ function AppRoutes() {
   const onNavigate = useCallback((page, state) => {
     const route = pageToRoute[page] || '/';
     navigate(route, { state });
-    window.scrollTo(0, 0);
   }, [navigate]);
 
   const [setupDone, setSetupDone] = useState(() => localStorage.getItem('eloquent_setup_done') === '1');
   const [showSettings, setShowSettings] = useState(false);
+  const inviteChannelRef = useRef(null);
+
+  // Global listener for match invitations from friends
+  useEffect(() => {
+    const userId = profile?.id;
+    if (!isAuthenticated || !userId || !supabase) return;
+
+    const channel = supabase
+      .channel(`match-invites:${userId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'matches',
+        filter: `player2_id=eq.${userId}`,
+      }, async (payload) => {
+        const match = payload.new;
+        if (match.status !== 'waiting' || !match.friend_code) return;
+
+        // Fetch the challenger's profile
+        const { data: challenger } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', match.player1_id)
+          .maybeSingle();
+
+        const name = challenger?.username || 'Jemand';
+        eventBus.emit('toast:message', {
+          message: `${name} fordert dich heraus!`,
+          type: 'info',
+          duration: 15000,
+          action: () => navigate(`/duell/${match.friend_code}`),
+          actionLabel: 'Annehmen',
+        });
+      })
+      .subscribe();
+
+    inviteChannelRef.current = channel;
+
+    return () => {
+      if (inviteChannelRef.current) {
+        supabase.removeChannel(inviteChannelRef.current);
+      }
+    };
+  }, [isAuthenticated, profile?.id, navigate]);
 
   if (!setupDone) {
     return <SetupWizard onComplete={() => setSetupDone(true)} />;
@@ -73,7 +119,8 @@ function AppRoutes() {
         <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HeroPage onNavigate={onNavigate} />} />
-          <Route path="/duell" element={<DuellPage onNavigate={onNavigate} />} />
+          <Route path="/duell" element={<OnlineDuellPage onNavigate={onNavigate} />} />
+          <Route path="/lokal" element={<DuellPage onNavigate={onNavigate} />} />
           <Route path="/uebung" element={<UebungPage onNavigate={onNavigate} />} />
           <Route path="/woerterbuch" element={<WoerterbuchPage onNavigate={onNavigate} />} />
           <Route path="/rangliste" element={<RanglistePage onNavigate={onNavigate} />} />

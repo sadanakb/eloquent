@@ -11,7 +11,7 @@ const TABS = [
 ];
 
 const DRAWER_ITEMS = [
-  { id: 'online', label: 'Online Match' },
+  { id: 'lokal', label: 'Lokales Duell' },
   { id: 'woerterbuch', label: 'W\u00f6rter' },
   { id: 'rangliste', label: 'Rangliste' },
   { id: 'achievements', label: 'Errungenschaften' },

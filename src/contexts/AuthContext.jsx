@@ -46,7 +46,18 @@ export function AuthProvider({ children }) {
     if (session?.user) {
       setUser(session.user);
       setIsAuthenticated(true);
-      const p = await fetchOrCreateProfile(session.user.id);
+      let p = await fetchOrCreateProfile(session.user.id);
+      // Ensure friend_code exists for older profiles
+      if (p && !p.friend_code && supabase) {
+        const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+        const { data: updated } = await supabase
+          .from('profiles')
+          .update({ friend_code: code })
+          .eq('id', session.user.id)
+          .select()
+          .single();
+        if (updated) p = updated;
+      }
       setProfile(p);
       // Best-effort sync from server after profile is loaded
       syncFromServer(session.user.id).catch(() => {});

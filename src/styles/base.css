@@ -23,6 +23,8 @@ body {
   line-height: 1.7;
   overflow-x: hidden;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
 }
 
 /* ── Typografie-Klassen ── */
@@ -79,11 +81,13 @@ a:hover {
 /* ── App Shell ── */
 .app-shell {
   min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
 }
 
 @media (max-width: 767px) {
   .app-shell {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
   }
 }
 

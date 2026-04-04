@@ -30,5 +30,5 @@
   animation-name: floatUp;
   animation-timing-function: ease-out;
   animation-fill-mode: forwards;
-  animation-iteration-count: infinite;
+  animation-iteration-count: 1;
 }
