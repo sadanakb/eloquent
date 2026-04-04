@@ -54,7 +54,7 @@ const TABS = [
   { id: 'uebung', label: 'Üben', ariaLabel: 'Üben' },
   { id: 'profil', label: 'Profil', ariaLabel: 'Profil' },
   { id: 'home', label: 'Home', ariaLabel: 'Startseite', isCenter: true },
-  { id: 'duell', label: 'Duell', ariaLabel: 'Online Duell' },
+  { id: 'duell', label: 'Online', ariaLabel: 'Online Duell' },
   { id: 'story', label: 'Story', ariaLabel: 'Story-Modus' },
 ];
 

@@ -1,38 +1,34 @@
-/* ── Page shell ── */
+/* ═══════════════════════════════════════════
+   HeroPage — Clean, focused landing
+   ═══════════════════════════════════════════ */
+
 .page {
-  background: var(--bg-parchment);
   min-height: 100vh;
-  padding: var(--space-xl) var(--space-md);
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
 }
 
 .container {
-  max-width: 640px;
+  max-width: 480px;
   margin: 0 auto;
 }
 
 /* ── Letter reveal animation ── */
 @keyframes letterReveal {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Hero section ── */
+/* ── Hero header ── */
 .hero {
   text-align: center;
-  padding-bottom: var(--space-2xl);
+  padding-bottom: var(--space-xl);
   position: relative;
 }
 
 .settingsBtn {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -4px;
+  right: -4px;
   width: 40px;
   height: 40px;
   display: flex;
@@ -59,24 +55,24 @@
 
 .greeting {
   font-family: var(--font-body);
-  font-size: var(--text-small);
+  font-size: 0.85rem;
   color: var(--ink-600);
-  margin-bottom: var(--space-md);
+  margin-bottom: var(--space-sm);
   letter-spacing: 0.03em;
 }
 
 .greeting strong {
-  color: var(--gold-700);
+  color: var(--gold-500);
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: var(--text-hero);
+  font-size: clamp(2.5rem, 10vw, 4rem);
   font-weight: 700;
   letter-spacing: 0.15em;
   color: var(--ink-900);
   line-height: 1;
-  margin: 0 0 var(--space-lg);
+  margin: 0 0 var(--space-md);
   text-transform: uppercase;
 }
 
@@ -85,168 +81,95 @@
   animation: letterReveal 0.5s ease both;
 }
 
-.ornamentRow {
-  margin: var(--space-md) 0;
-}
-
-.subtitle {
-  font-family: var(--font-display);
-  font-size: var(--text-title);
-  font-style: italic;
-  color: var(--ink-600);
-  margin: var(--space-md) 0;
-  line-height: 1.4;
-}
-
-/* ── Primary action cards grid ── */
-.primaryGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-md);
-  margin-bottom: var(--space-md);
-}
-
-.primaryCard {
-  display: flex !important;
-  align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-lg);
-  cursor: pointer;
-  text-align: left;
-}
-
-.cardIcon {
-  width: 52px;
-  height: 52px;
-  border-radius: 10px;
-  background: var(--bg-parchment-dark);
+/* ── Play button — the main CTA ── */
+.playBtn {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.cardInfo {
-  flex: 1;
-  min-width: 0;
-}
-
-.cardTitle {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--ink-900);
-  margin: 0 0 var(--space-xs);
-  line-height: 1.2;
-}
-
-.cardDesc {
-  font-family: var(--font-body);
-  font-size: var(--text-small);
-  color: var(--ink-600);
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* ── Secondary mode cards ── */
-.secondaryRow {
-  display: flex;
-  gap: var(--space-sm);
-  overflow-x: auto;
-  padding-bottom: var(--space-xs);
-  margin-bottom: var(--space-lg);
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.secondaryRow::-webkit-scrollbar {
-  display: none;
-}
-
-.secondaryCard {
-  display: flex !important;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-md) var(--space-lg);
+  gap: 4px;
+  width: 100%;
+  padding: var(--space-lg) var(--space-xl);
+  margin-bottom: var(--space-xl);
+  background: linear-gradient(135deg, var(--gold-700), var(--gold-500));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  flex-shrink: 0;
-  min-width: 96px;
-  text-align: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 20px rgba(197, 150, 12, 0.2);
 }
 
-.secondaryLabel {
+.playBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(197, 150, 12, 0.3);
+}
+
+.playBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.playLabel {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.playHint {
   font-family: var(--font-body);
-  font-size: var(--text-small);
-  font-weight: 600;
-  color: var(--ink-800);
-  white-space: nowrap;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
 }
 
-/* ── Featured / Daily Challenge section ── */
-.featuredSection {
+/* ── Daily Challenge section ── */
+.dailySection {
   margin-bottom: var(--space-xl);
 }
 
-.featuredCard {
-  padding: var(--space-lg);
-  animation: goldPulse 2s ease 0.8s both;
-}
-
-.featuredHeading {
-  font-family: var(--font-display);
-  font-size: var(--text-display);
-  font-weight: 700;
-  color: var(--ink-900);
-  margin: 0 0 var(--space-md);
-  text-align: center;
-}
-
-/* ── Quick links footer ── */
+/* ── Quick links ── */
 .quickLinks {
-  display: flex;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--gold-100);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-xs);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--ink-200);
 }
 
 .quickLink {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
+  gap: 4px;
+  padding: var(--space-sm) var(--space-xs);
   border: none;
   background: transparent;
-  color: var(--ink-600);
+  color: var(--ink-400);
   font-family: var(--font-body);
-  font-size: var(--text-overline);
-  letter-spacing: 0.05em;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: color var(--transition-fast);
-  border-radius: 6px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease;
+  border-radius: var(--radius-sm);
 }
 
 .quickLink:hover {
-  color: var(--gold-700);
-  background: var(--bg-parchment-dark);
+  color: var(--gold-500);
 }
 
-/* ── Mobile ≤ 480px ── */
-@media (max-width: 480px) {
-  .primaryGrid {
-    grid-template-columns: 1fr;
-  }
+.quickLink:active {
+  transform: scale(0.95);
+}
 
-  .primaryCard {
-    padding: var(--space-md);
-  }
-
-  .title {
-    letter-spacing: 0.1em;
+/* ── Mobile ── */
+@media (max-width: 360px) {
+  .quickLinks {
+    grid-template-columns: repeat(2, 1fr);
   }
 }

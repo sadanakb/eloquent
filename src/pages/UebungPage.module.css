@@ -283,3 +283,48 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* ── Lokales Duell Section ── */
+.localDuellSection {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--ink-200);
+}
+
+.localDuellBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+  padding: var(--space-md) var(--space-lg);
+  background: var(--bg-parchment-light);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-align: left;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease;
+}
+
+.localDuellBtn:hover {
+  border-color: var(--gold-500);
+}
+
+.localDuellBtn strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--ink-900);
+}
+
+.localDuellBtn small {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--ink-400);
+}
+
+.localDuellIcon {
+  font-size: 1.5rem;
+  color: var(--gold-500);
+}

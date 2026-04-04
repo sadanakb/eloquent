@@ -69,7 +69,7 @@ function SkillSidebarContent({ skills }) {
   );
 }
 
-export function UebungPage() {
+export function UebungPage({ onNavigate }) {
   const location = useLocation();
   const dailyMode = location.state?.dailyMode || false;
   const dailySituation = location.state?.dailySituation || null;
@@ -215,6 +215,16 @@ export function UebungPage() {
               ))}
             </div>
             <Button variant="ghost" onClick={() => chooseDiff(null)}>Zufällige Kategorie</Button>
+
+            <div className={styles.localDuellSection}>
+              <button className={styles.localDuellBtn} onClick={() => onNavigate('lokal')}>
+                <span className={styles.localDuellIcon}>&#x2694;</span>
+                <span>
+                  <strong>Lokales Duell</strong>
+                  <small>Spiel zu zweit auf einem Gerät</small>
+                </span>
+              </button>
+            </div>
           </div>
         )}
 

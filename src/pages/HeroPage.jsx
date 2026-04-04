@@ -1,16 +1,11 @@
 import { useAuth } from '../contexts/AuthContext.jsx';
-import { Card } from '../components/Card.jsx';
 import { Ornament } from '../components/Ornament.jsx';
 import { DailyChallenge } from '../components/DailyChallenge.jsx';
 import { getDailyChallenge } from '../engine/daily.js';
 import {
-  CrossedFeathers,
-  GlobeNetwork,
-  Bullseye,
-  OpenBook,
-  StarIcon,
   TrophyIcon,
   BookmarkBook,
+  StarIcon,
   ScrollIcon,
 } from '../components/icons/Icons.jsx';
 import styles from './HeroPage.module.css';
@@ -24,7 +19,7 @@ export function HeroPage({ onNavigate, onOpenSettings }) {
     <div className={styles.page}>
       <div className={styles.container}>
 
-        {/* ── Hero Section ── */}
+        {/* ── Hero Header ── */}
         <header className={styles.hero}>
           <button
             className={styles.settingsBtn}
@@ -36,9 +31,10 @@ export function HeroPage({ onNavigate, onOpenSettings }) {
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
           </button>
+
           {isAuthenticated && profile?.username && (
             <p className={styles.greeting}>
-              Willkommen zurück, <strong>{profile.username}</strong>
+              Willkommen, <strong>{profile.username}</strong>
             </p>
           )}
 
@@ -54,99 +50,33 @@ export function HeroPage({ onNavigate, onOpenSettings }) {
             ))}
           </h1>
 
-          <div className={styles.ornamentRow}>
-            <Ornament type="divider" />
-          </div>
-
-          <p className={styles.subtitle}>Das Wortduell der Eloquenten</p>
-
-          <div className={styles.ornamentRow}>
-            <Ornament type="divider" />
-          </div>
+          <Ornament type="divider" />
         </header>
 
-        {/* ── Primary Action Cards ── */}
-        <section className={styles.primaryGrid}>
-          <Card
-            clickable
-            onClick={() => onNavigate('duell')}
-            className={styles.primaryCard}
-          >
-            <div className={styles.cardIcon}>
-              <CrossedFeathers size={32} color="var(--gold-500)" />
-            </div>
-            <div className={styles.cardInfo}>
-              <h2 className={styles.cardTitle}>Duell starten</h2>
-              <p className={styles.cardDesc}>Spiel gegen einen Freund</p>
-            </div>
-          </Card>
+        {/* ── Schnellstart ── */}
+        <button
+          className={styles.playBtn}
+          onClick={() => onNavigate('duell')}
+        >
+          <span className={styles.playLabel}>Jetzt spielen</span>
+          <span className={styles.playHint}>Online-Match starten</span>
+        </button>
 
-          <Card
-            clickable
-            onClick={() => onNavigate('online')}
-            className={styles.primaryCard}
-          >
-            <div className={styles.cardIcon}>
-              <GlobeNetwork size={32} color="var(--gold-500)" />
-            </div>
-            <div className={styles.cardInfo}>
-              <h2 className={styles.cardTitle}>Online Match</h2>
-              <p className={styles.cardDesc}>Finde Gegner weltweit</p>
-            </div>
-          </Card>
+        {/* ── Tages-Challenge ── */}
+        <section className={styles.dailySection}>
+          <DailyChallenge onPlay={() => {
+            const daily = getDailyChallenge();
+            onNavigate('uebung', { dailyMode: true, dailySituation: daily.situation });
+          }} />
         </section>
 
-        {/* ── Secondary Mode Cards ── */}
-        <section className={styles.secondaryRow}>
-          <Card
-            clickable
-            onClick={() => onNavigate('uebung')}
-            className={styles.secondaryCard}
-          >
-            <Bullseye size={24} color="var(--gold-500)" />
-            <span className={styles.secondaryLabel}>Übung</span>
-          </Card>
-
-          <Card
-            clickable
-            onClick={() => onNavigate('story')}
-            className={styles.secondaryCard}
-          >
-            <OpenBook size={24} color="var(--gold-500)" />
-            <span className={styles.secondaryLabel}>Story</span>
-          </Card>
-
-          <Card
-            clickable
-            onClick={() => {
-              const daily = getDailyChallenge();
-              onNavigate('uebung', { dailyMode: true, dailySituation: daily.situation });
-            }}
-            className={styles.secondaryCard}
-          >
-            <StarIcon size={24} color="var(--gold-500)" />
-            <span className={styles.secondaryLabel}>Tages-Challenge</span>
-          </Card>
-        </section>
-
-        {/* ── Featured: Tages-Challenge Card ── */}
-        <section className={styles.featuredSection}>
-          <Card featured className={styles.featuredCard}>
-            <h2 className={styles.featuredHeading}>Heutiges Wort</h2>
-            <DailyChallenge onPlay={() => {
-              const daily = getDailyChallenge();
-              onNavigate('uebung', { dailyMode: true, dailySituation: daily.situation });
-            }} />
-          </Card>
-        </section>
-
-        {/* ── Quick Links Footer ── */}
+        {/* ── Quick Links ── */}
         <nav className={styles.quickLinks}>
           {[
-            { icon: <BookmarkBook size={16} color="var(--ink-600)" />, label: 'Wörterbuch', page: 'woerterbuch' },
-            { icon: <TrophyIcon size={16} color="var(--ink-600)" />, label: 'Rangliste', page: 'rangliste' },
-            { icon: <StarIcon size={16} color="var(--ink-600)" />, label: 'Errungenschaften', page: 'achievements' },
-            { icon: <ScrollIcon size={16} color="var(--ink-600)" />, label: 'Regeln', page: 'regeln' },
+            { icon: <BookmarkBook size={16} color="var(--ink-400)" />, label: 'Wörterbuch', page: 'woerterbuch' },
+            { icon: <TrophyIcon size={16} color="var(--ink-400)" />, label: 'Rangliste', page: 'rangliste' },
+            { icon: <StarIcon size={16} color="var(--ink-400)" />, label: 'Erfolge', page: 'achievements' },
+            { icon: <ScrollIcon size={16} color="var(--ink-400)" />, label: 'Regeln', page: 'regeln' },
           ].map(item => (
             <button
               key={item.page}
