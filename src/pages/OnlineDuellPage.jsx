@@ -520,69 +520,107 @@ export function OnlineDuellPage({ onNavigate }) {
     updateProfile({});
   };
 
-  // Helper: poll until match is completed (used when scoring is in progress)
-  const pollForCompletion = async () => {
-    const maxAttempts = 20; // 20 * 2s = 40s max
-    for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(r => setTimeout(r, 2000));
-      try {
-        const { data } = await supabase
-          .from('matches')
-          .select('status, player1_score, player2_score, winner_id, scoring_method')
-          .eq('id', match.id)
-          .single();
-
-        if (data?.status === 'completed' && data.player1_score != null) {
-          applyScoringResult(data);
-          return;
-        }
-      } catch (err) {
-        logger.debug('Completion poll failed:', err);
-      }
-    }
-    // Timeout — show result page with whatever we have
-    logger.warn('Completion polling timed out');
-    clearActiveMatch();
-    isScoringRef.current = false;
-    setPhase('result');
-  };
 
   const performScoring = async () => {
     if (isScoringRef.current) return;
     isScoringRef.current = true;
     setPhase('scoring');
 
-    scoringTimeoutRef.current = setTimeout(() => {
-      logger.warn('Scoring timeout reached, showing result with available data');
-      clearActiveMatch();
-      isScoringRef.current = false;
-      scoringTimeoutRef.current = null;
-      setPhase('result');
-    }, 45000);
-
     try {
-      const result = await requestServerScoring(match.id);
-
-      if (result && result.player1_score != null) {
-        // Got full results directly
-        applyScoringResult(result);
-      } else if (result && result.status === 'scoring_in_progress') {
-        // Another player already triggered scoring — poll until done
-        logger.debug('Scoring in progress by other player, polling for completion');
-        await pollForCompletion();
-      } else if (result && result.already_completed) {
-        // Match was already scored (idempotent response)
-        applyScoringResult(result);
-      } else {
-        // Unexpected response — poll as fallback
-        logger.warn('Unexpected scoring response, polling for completion:', result);
-        await pollForCompletion();
+      // 1. Versuche Server-Scoring (Edge Function, 15s timeout)
+      let result = null;
+      try {
+        result = await requestServerScoring(match.id);
+      } catch (e) {
+        logger.warn('Server scoring failed, falling back to client:', e.message);
       }
+
+      // 2. Server hat Scores geliefert → benutzen
+      if (result?.player1_score != null) {
+        applyScoringResult(result);
+        return;
+      }
+      if (result?.already_completed && result?.player1_score != null) {
+        applyScoringResult(result);
+        return;
+      }
+
+      // 3. Prüfe ob ein anderer Client schon gescored hat
+      const { data: checkMatch } = await supabase
+        .from('matches')
+        .select('status, player1_score, player2_score, winner_id, scoring_method')
+        .eq('id', match.id)
+        .single();
+
+      if (checkMatch?.player1_score != null) {
+        applyScoringResult(checkMatch);
+        return;
+      }
+
+      // 4. Fallback: Client-seitiges Scoring
+      logger.info('Client-side scoring fallback');
+      const { data: fullMatch } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('id', match.id)
+        .single();
+
+      if (!fullMatch?.player1_text || !fullMatch?.player2_text) {
+        logger.warn('Cannot score: missing texts');
+        clearActiveMatch();
+        setPhase('result');
+        return;
+      }
+
+      const { kiBewertung } = await import('../engine/scoring-engine.js');
+      const sit = situation || { titel: '', kontext: '', beschreibung: '' };
+
+      const [score1, score2] = await Promise.all([
+        kiBewertung(sit, fullMatch.player1_text),
+        kiBewertung(sit, fullMatch.player2_text),
+      ]);
+
+      const sumKat = (r) => r?.kategorien
+        ? Object.values(r.kategorien).reduce((s, k) => s + (k?.p || 0), 0)
+        : 50;
+      const p1Score = sumKat(score1);
+      const p2Score = sumKat(score2);
+      const winnerId = p1Score > p2Score ? fullMatch.player1_id
+                     : p2Score > p1Score ? fullMatch.player2_id
+                     : null;
+
+      // Schreibe Scores in DB (nur wenn noch nicht gescored)
+      await supabase
+        .from('matches')
+        .update({
+          player1_score: p1Score,
+          player2_score: p2Score,
+          winner_id: winnerId,
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          scoring_method: 'client',
+        })
+        .eq('id', match.id)
+        .is('player1_score', null);
+
+      applyScoringResult({
+        player1_score: p1Score,
+        player2_score: p2Score,
+        winner_id: winnerId,
+        scoring_method: 'client',
+      });
+
     } catch (e) {
-      logger.error('Server scoring failed:', e);
-      // Don't give up — poll for results in case the other player scored
-      logger.debug('Falling back to polling after scoring error');
-      await pollForCompletion();
+      logger.error('Scoring completely failed:', e);
+      eventBus.emit('toast:message', { message: 'Bewertung fehlgeschlagen' });
+      clearActiveMatch();
+      setPhase('result');
+    } finally {
+      isScoringRef.current = false;
+      if (scoringTimeoutRef.current) {
+        clearTimeout(scoringTimeoutRef.current);
+        scoringTimeoutRef.current = null;
+      }
     }
   };
 
