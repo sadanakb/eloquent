@@ -1,5 +1,6 @@
 import storage from './storage.js'
 import eventBus from './event-bus.js'
+import { logger } from './logger.js'
 
 let Howl = null
 let howlerLoaded = false
@@ -38,7 +39,8 @@ async function loadHowler() {
     Howl = mod.Howl
     howlerLoaded = true
     return true
-  } catch {
+  } catch (err) {
+    logger.debug('Howler.js load failed:', err)
     howlerLoading = false
     return false
   }
@@ -80,8 +82,8 @@ async function play(soundName) {
     if (sound) {
       sound.play()
     }
-  } catch {
-    // Silently fail
+  } catch (err) {
+    logger.debug('Sound play failed:', soundName, err)
   }
 }
 

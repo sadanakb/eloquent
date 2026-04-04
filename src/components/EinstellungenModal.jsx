@@ -11,6 +11,9 @@ export function EinstellungenModal({ onClose }) {
   const [testingGroq, setTestingGroq] = useState(false);
   const [groqResult, setGroqResult] = useState(null);
 
+  const [soundOn, setSoundOn] = useState(soundManager.isSoundEnabled());
+  const [musicOn, setMusicOn] = useState(soundManager.isMusicEnabled());
+
   const [theme, setTheme] = useState(
     document.documentElement.dataset.theme || 'light'
   );
@@ -154,16 +157,16 @@ export function EinstellungenModal({ onClose }) {
           <p className={styles.sectionDesc}>Steuere die Audioausgabe des Spiels.</p>
           <div className={styles.btnRow}>
             <button
-              onClick={() => soundManager.toggleSound()}
-              className={soundManager.isSoundEnabled() ? styles.smallBtnGold : styles.smallBtnGhost}
+              onClick={() => setSoundOn(soundManager.toggleSound())}
+              className={soundOn ? styles.smallBtnGold : styles.smallBtnGhost}
             >
-              {soundManager.isSoundEnabled() ? 'UI-Sounds: An' : 'UI-Sounds: Aus'}
+              {soundOn ? 'UI-Sounds: An' : 'UI-Sounds: Aus'}
             </button>
             <button
-              onClick={() => soundManager.toggleMusic()}
-              className={soundManager.isMusicEnabled() ? styles.smallBtnGold : styles.smallBtnGhost}
+              onClick={() => setMusicOn(soundManager.toggleMusic())}
+              className={musicOn ? styles.smallBtnGold : styles.smallBtnGhost}
             >
-              {soundManager.isMusicEnabled() ? 'Musik: An' : 'Musik: Aus'}
+              {musicOn ? 'Musik: An' : 'Musik: Aus'}
             </button>
           </div>
         </div>

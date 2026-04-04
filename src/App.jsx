@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-ro
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { supabase } from './lib/supabase.js';
 import eventBus from './engine/event-bus.js';
+import './engine/sound-manager.js'; // Init sound listener on app start
 import { AuthModal } from './components/AuthModal.jsx';
 import { NavBar } from './components/NavBar.jsx';
 import { SetupWizard } from './components/SetupWizard.jsx';
