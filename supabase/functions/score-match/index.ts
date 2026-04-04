@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
     // Load match first for auth check
     const { data: matchCheck, error: matchCheckError } = await admin
       .from('matches')
-      .select('player1_id, player2_id, player1_score, player2_score, winner_id, status, scoring_method')
+      .select('player1_id, player2_id, player1_score, player2_score, winner_id, status, scoring_method, situation_data')
       .eq('id', matchId)
       .single()
 
@@ -406,116 +406,120 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Build situation object from match data
+    // Build situation object from match data (situation_data stored at match creation)
+    const sitData = typeof match.situation_data === 'object' && match.situation_data ? match.situation_data : {}
     const situation = {
-      titel: '',
-      kontext: '',
-      beschreibung: `Situation ${match.situation_id || 'unbekannt'}`,
-      ...(typeof match.situation_data === 'object' ? match.situation_data : {}),
+      titel: sitData.titel || '',
+      kontext: sitData.kontext || '',
+      beschreibung: sitData.beschreibung || `Situation ${match.situation_id || 'unbekannt'}`,
     }
 
-    // Score both texts
+    // Score both texts — wrapped in try/catch for rollback on crash
     let p1Score: number, p2Score: number
     let scoringMethod = 'ki'
 
-    // Determine which Groq key to use: server env > random user key > heuristic
-    let activeGroqKey = groqKey || null
-    if (!activeGroqKey) {
-      activeGroqKey = await getRandomUserGroqKey(admin)
-      if (activeGroqKey) {
-        console.log('Using borrowed user Groq key for scoring')
+    try {
+      // Determine which Groq key to use: server env > random user key > heuristic
+      let activeGroqKey = groqKey || null
+      if (!activeGroqKey) {
+        activeGroqKey = await getRandomUserGroqKey(admin)
+        if (activeGroqKey) {
+          console.log('Using borrowed user Groq key for scoring')
+        }
       }
-    }
 
-    if (activeGroqKey) {
-      try {
-        const [result1, result2] = await Promise.all([
-          scoreText(activeGroqKey, situation, match.player1_text),
-          scoreText(activeGroqKey, situation, match.player2_text),
-        ])
-        p1Score = result1.total
-        p2Score = result2.total
-      } catch (e) {
-        console.error('Groq scoring failed, falling back to heuristic:', e)
+      if (activeGroqKey) {
+        try {
+          const [result1, result2] = await Promise.all([
+            scoreText(activeGroqKey, situation, match.player1_text),
+            scoreText(activeGroqKey, situation, match.player2_text),
+          ])
+          p1Score = result1.total
+          p2Score = result2.total
+        } catch (e) {
+          console.error('Groq scoring failed, falling back to heuristic:', e)
+          p1Score = heuristicScore(match.player1_text)
+          p2Score = heuristicScore(match.player2_text)
+          scoringMethod = 'heuristic'
+        }
+      } else {
         p1Score = heuristicScore(match.player1_text)
         p2Score = heuristicScore(match.player2_text)
         scoringMethod = 'heuristic'
       }
-    } else {
-      p1Score = heuristicScore(match.player1_text)
-      p2Score = heuristicScore(match.player2_text)
-      scoringMethod = 'heuristic'
+
+      // Determine winner
+      let winnerId: string | null = null
+      if (p1Score > p2Score) winnerId = match.player1_id
+      else if (p2Score > p1Score) winnerId = match.player2_id
+
+      // Load both profiles for ELO
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('id, elo_rating, total_games, wins, losses, draws')
+        .in('id', [match.player1_id, match.player2_id])
+
+      const p1Profile = profiles?.find((p: any) => p.id === match.player1_id)
+      const p2Profile = profiles?.find((p: any) => p.id === match.player2_id)
+      const p1Elo = p1Profile?.elo_rating ?? 400
+      const p2Elo = p2Profile?.elo_rating ?? 400
+      const p1Games = p1Profile?.total_games ?? 0
+      const p2Games = p2Profile?.total_games ?? 0
+
+      const elo = calculateElo(p1Elo, p2Elo, p1Score, p2Score, p1Games, p2Games)
+
+      // Update match
+      const { error: matchUpdateError } = await admin.from('matches').update({
+        player1_score: p1Score,
+        player2_score: p2Score,
+        winner_id: winnerId,
+        status: 'completed',
+        completed_at: new Date().toISOString(),
+        scoring_method: scoringMethod,
+      }).eq('id', matchId)
+      if (matchUpdateError) {
+        throw new Error(`Match update failed: ${matchUpdateError.message}`)
+      }
+
+      // Update player profiles
+      const p1Won = winnerId === match.player1_id
+      const p1Lost = winnerId === match.player2_id
+      const isDraw = winnerId === null
+      await admin.from('profiles').update({
+        elo_rating: elo.newPlayerRating,
+        wins: (p1Profile?.wins || 0) + (p1Won ? 1 : 0),
+        losses: (p1Profile?.losses || 0) + (p1Lost ? 1 : 0),
+        draws: ((p1Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
+        total_games: p1Games + 1,
+      }).eq('id', match.player1_id)
+
+      const p2Won = winnerId === match.player2_id
+      const p2Lost = winnerId === match.player1_id
+      await admin.from('profiles').update({
+        elo_rating: elo.newOpponentRating,
+        wins: (p2Profile?.wins || 0) + (p2Won ? 1 : 0),
+        losses: (p2Profile?.losses || 0) + (p2Lost ? 1 : 0),
+        draws: ((p2Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
+        total_games: p2Games + 1,
+      }).eq('id', match.player2_id)
+
+      return new Response(JSON.stringify({
+        player1_score: p1Score,
+        player2_score: p2Score,
+        winner_id: winnerId,
+        scoring_method: scoringMethod,
+        elo_changes: {
+          player1: elo.playerChange,
+          player2: elo.opponentChange,
+        },
+      }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+
+    } catch (scoringError) {
+      // ROLLBACK: Reset match status so it can be retried
+      console.error('Scoring pipeline crashed, rolling back:', scoringError)
+      await admin.from('matches').update({ status: 'active' }).eq('id', matchId)
+      throw scoringError
     }
-
-    // Determine winner
-    let winnerId: string | null = null
-    if (p1Score > p2Score) winnerId = match.player1_id
-    else if (p2Score > p1Score) winnerId = match.player2_id
-
-    // Load both profiles for ELO
-    const { data: profiles } = await admin
-      .from('profiles')
-      .select('id, elo_rating, total_games')
-      .in('id', [match.player1_id, match.player2_id])
-
-    const p1Profile = profiles?.find((p: any) => p.id === match.player1_id)
-    const p2Profile = profiles?.find((p: any) => p.id === match.player2_id)
-    const p1Elo = p1Profile?.elo_rating ?? 400
-    const p2Elo = p2Profile?.elo_rating ?? 400
-    const p1Games = p1Profile?.total_games ?? 0
-    const p2Games = p2Profile?.total_games ?? 0
-
-    const elo = calculateElo(p1Elo, p2Elo, p1Score, p2Score, p1Games, p2Games)
-
-    // Update match
-    const { error: matchUpdateError } = await admin.from('matches').update({
-      player1_score: p1Score,
-      player2_score: p2Score,
-      winner_id: winnerId,
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-      scoring_method: scoringMethod,
-    }).eq('id', matchId)
-    if (matchUpdateError) {
-      console.error('Match update failed:', matchUpdateError)
-      throw new Error(`Match update failed: ${matchUpdateError.message}`)
-    }
-
-    // Update player 1 profile
-    const p1Won = winnerId === match.player1_id
-    const p1Lost = winnerId === match.player2_id
-    const isDraw = winnerId === null
-    const { error: p1Error } = await admin.from('profiles').update({
-      elo_rating: elo.newPlayerRating,
-      wins: (p1Profile?.wins || 0) + (p1Won ? 1 : 0),
-      losses: (p1Profile?.losses || 0) + (p1Lost ? 1 : 0),
-      draws: ((p1Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
-      total_games: p1Games + 1,
-    }).eq('id', match.player1_id)
-    if (p1Error) console.error('Player 1 profile update failed:', p1Error)
-
-    // Update player 2 profile
-    const p2Won = winnerId === match.player2_id
-    const p2Lost = winnerId === match.player1_id
-    const { error: p2Error } = await admin.from('profiles').update({
-      elo_rating: elo.newOpponentRating,
-      wins: (p2Profile?.wins || 0) + (p2Won ? 1 : 0),
-      losses: (p2Profile?.losses || 0) + (p2Lost ? 1 : 0),
-      draws: ((p2Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
-      total_games: p2Games + 1,
-    }).eq('id', match.player2_id)
-    if (p2Error) console.error('Player 2 profile update failed:', p2Error)
-
-    return new Response(JSON.stringify({
-      player1_score: p1Score,
-      player2_score: p2Score,
-      winner_id: winnerId,
-      scoring_method: scoringMethod,
-      elo_changes: {
-        player1: elo.playerChange,
-        player2: elo.opponentChange,
-      },
-    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
   } catch (e) {
     console.error('Score-match error:', e)

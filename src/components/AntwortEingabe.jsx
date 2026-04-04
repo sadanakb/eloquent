@@ -130,6 +130,23 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
     }
   }, [matchStartTime, totalTime, doSubmit]);
 
+  // Resync timer when user returns to tab (visibilitychange)
+  useEffect(() => {
+    if (!matchStartTime) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const elapsed = Math.floor((Date.now() - new Date(matchStartTime).getTime()) / 1000);
+        const remaining = Math.max(0, totalTime - elapsed);
+        setTimeLeft(remaining);
+        if (remaining <= 0 && !submittedRef.current) {
+          doSubmit();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [matchStartTime, totalTime, doSubmit]);
+
   useEffect(() => {
     if (timeLeft === 15) {
       eventBus.emit('sound:play', { sound: 'timerWarning' });

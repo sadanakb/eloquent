@@ -161,19 +161,32 @@ function parseJson(text, label) {
 // ──────────────────────────────────────────────────────
 
 async function callGroq(apiKey, messages) {
-  const res = await fetch(`${GROQ_PROXY}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      messages,
-      temperature: 0.15,
-      response_format: { type: 'json_object' },
-    }),
-  });
+  if (!apiKey || !apiKey.startsWith('gsk_')) {
+    throw new Error('Ungültiger Groq API-Key (muss mit "gsk_" beginnen)');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  let res;
+  try {
+    res = await fetch(`${GROQ_PROXY}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages,
+        temperature: 0.15,
+        response_format: { type: 'json_object' },
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const err = await res.text();

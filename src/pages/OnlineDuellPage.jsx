@@ -371,7 +371,7 @@ export function OnlineDuellPage({ onNavigate }) {
       eventBus.off('matchmaking:found', onFound);
       eventBus.off('matchmaking:expanding', onExpanding);
     };
-  }, [user]);
+  }, [user?.id]);
 
   const handleQuickMatch = async () => {
     if (!user) return;
@@ -447,11 +447,15 @@ export function OnlineDuellPage({ onNavigate }) {
       setPhase('result');
       updateProfile({});
     }
-  }, [user]);
+  }, [user?.id]);
+
+  const submittingRef = useRef(false);
 
   // FIX 1 — Trust DB status instead of stale opponentStatus state
   const handleWritingSubmit = async (text) => {
+    if (submittingRef.current) return;
     if (!match || !user) return;
+    submittingRef.current = true;
     try {
       const updatedMatch = await submitAnswer(match.id, user.id, text);
       // Trust DB status — 'scoring' means both players have submitted
@@ -464,6 +468,8 @@ export function OnlineDuellPage({ onNavigate }) {
       logger.error('Submit answer failed:', err.message);
       // Still move to waiting so the user isn't stuck
       setPhase('waiting');
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -576,7 +582,14 @@ export function OnlineDuellPage({ onNavigate }) {
   useEffect(() => {
     if (!['waiting', 'scoring'].includes(phase) || !match?.id || !supabase) return;
 
+    const pollStart = Date.now();
     const poll = setInterval(async () => {
+      if (Date.now() - pollStart > 5 * 60 * 1000) {
+        clearInterval(poll);
+        eventBus.emit('toast:message', { message: 'Verbindung zum Gegner verloren. Match wird beendet.' });
+        handleForfeitAndLeave();
+        return;
+      }
       try {
         const { data } = await supabase
           .from('matches')

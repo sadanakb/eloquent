@@ -28,7 +28,7 @@ export async function cleanupMyStaleData(userId) {
   }
 }
 
-export async function createMatch(player1Id, player2Id, situationId) {
+export async function createMatch(player1Id, player2Id, situationId, situationData = null) {
   if (!isOnline()) return null;
 
   const { data, error } = await supabase
@@ -37,6 +37,7 @@ export async function createMatch(player1Id, player2Id, situationId) {
       player1_id: player1Id,
       player2_id: player2Id,
       situation_id: situationId,
+      situation_data: situationData,
       status: 'active',
     })
     .select()
@@ -54,7 +55,7 @@ export function subscribeToMatch(matchId, callback) {
   if (!isOnline()) return () => {};
 
   const channel = supabase
-    .channel(`match:${matchId}`)
+    .channel(`match:${matchId}:${Date.now()}`)
     .on(
       'postgres_changes',
       {
@@ -151,35 +152,42 @@ export async function forfeitMatch(matchId, playerId) {
   }
 }
 
-export async function createFriendChallenge(userId) {
+export async function createFriendChallenge(userId, retries = 3) {
   if (!isOnline()) return null;
 
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-  // Import SITUATIONEN lazily to pick a situation for the match
   const { SITUATIONEN } = await import('../data/situationen.js');
   const pool = SITUATIONEN.mittel?.length ? SITUATIONEN.mittel
     : SITUATIONEN.leicht?.length ? SITUATIONEN.leicht : [];
   const situation = pool[Math.floor(Math.random() * pool.length)];
 
-  const { data, error } = await supabase
-    .from('matches')
-    .insert({
-      player1_id: userId,
-      situation_id: situation?.id || null,
-      status: 'waiting',
-      friend_code: code,
-      expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    })
-    .select()
-    .single();
+  for (let i = 0; i < retries; i++) {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  if (error) {
+    const { data, error } = await supabase
+      .from('matches')
+      .insert({
+        player1_id: userId,
+        situation_id: situation?.id || null,
+        situation_data: situation ? { titel: situation.titel, kontext: situation.kontext, beschreibung: situation.beschreibung } : null,
+        status: 'waiting',
+        friend_code: code,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      })
+      .select()
+      .single();
+
+    if (!error) return { code, matchId: data.id };
+
+    // Retry on unique violation (friend_code collision)
+    if (error.code === '23505' && i < retries - 1) {
+      logger.debug('Friend code collision, retrying...');
+      continue;
+    }
+
     logger.error('Failed to create friend challenge:', error.message);
     return null;
   }
-
-  return { code, matchId: data.id };
+  return null;
 }
 
 /**
@@ -189,10 +197,15 @@ export async function createFriendChallenge(userId) {
 export async function requestServerScoring(matchId) {
   if (!supabase) throw new Error('Supabase not available');
 
-  const { data, error } = await supabase.functions.invoke('score-match', {
+  const scorePromise = supabase.functions.invoke('score-match', {
     body: { matchId },
   });
 
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Scoring timeout after 30s')), 30000)
+  );
+
+  const { data, error } = await Promise.race([scorePromise, timeoutPromise]);
   if (error) throw error;
   return data;
 }

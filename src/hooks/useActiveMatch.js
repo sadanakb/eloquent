@@ -74,13 +74,37 @@ export function useActiveMatch(userId) {
 
     async function checkForActiveMatch() {
       try {
-        const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+        // First check sessionStorage for specific match
+        const stored = sessionStorage.getItem('eloquent_active_match');
+        if (stored) {
+          try {
+            const { matchId } = JSON.parse(stored);
+            if (matchId) {
+              const { data: match } = await supabase
+                .from('matches')
+                .select('*')
+                .eq('id', matchId)
+                .in('status', ['active', 'scoring'])
+                .maybeSingle();
 
+              if (match) {
+                const state = restoreMatchState(match, userId);
+                setActiveMatch(match);
+                setReconnectState(state);
+                setIsLoading(false);
+                return;
+              }
+            }
+          } catch { /* invalid JSON, fall through */ }
+        }
+
+        // Fallback: query recent matches
+        const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
         const { data: match } = await supabase
           .from('matches')
           .select('*')
           .or(`player1_id.eq.${userId},player2_id.eq.${userId}`)
-          .in('status', ['active', 'scoring', 'waiting'])
+          .in('status', ['active', 'scoring'])
           .gt('created_at', tenMinAgo)
           .order('created_at', { ascending: false })
           .limit(1)

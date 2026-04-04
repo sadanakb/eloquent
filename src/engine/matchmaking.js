@@ -40,7 +40,7 @@ export async function joinQueue(userId, eloRating) {
 
   // Subscribe to Realtime for new matches involving this player
   const channel = supabase
-    .channel('matchmaking')
+    .channel(`matchmaking:${userId}`)
     .on(
       'postgres_changes',
       {
@@ -87,62 +87,41 @@ export async function leaveQueue(userId) {
 export async function findMatch(userId) {
   if (!isOnline()) return null;
 
-  // Fetch current user's queue entry
-  const { data: myEntry, error: entryError } = await supabase
+  // Get my queue entry for ELO range
+  const { data: myEntry } = await supabase
     .from('matchmaking_queue')
     .select('*')
     .eq('user_id', userId)
     .single();
-
-  if (entryError || !myEntry) return null;
+  if (!myEntry) return null;
 
   const elapsed = Date.now() - new Date(myEntry.joined_at).getTime();
   const eloRange = elapsed >= EXPAND_AFTER_MS ? EXPANDED_ELO_RANGE : INITIAL_ELO_RANGE;
-  const minElo = myEntry.elo_rating - eloRange;
-  const maxElo = myEntry.elo_rating + eloRange;
 
-  // Find compatible opponents (only recent queue entries)
-  const { data: opponents, error: searchError } = await supabase
-    .from('matchmaking_queue')
-    .select('*')
-    .neq('user_id', userId)
-    .gte('elo_rating', minElo)
-    .lte('elo_rating', maxElo)
-    .gt('joined_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
-    .order('joined_at', { ascending: true })
-    .limit(1);
-
-  if (searchError || !opponents || opponents.length === 0) return null;
-
-  const opponent = opponents[0];
-
-  // Pick a random situation server-side so both players see the same one
+  // Pick random situation
   const pool = SITUATIONEN.mittel?.length ? SITUATIONEN.mittel
     : SITUATIONEN.leicht?.length ? SITUATIONEN.leicht : [];
   const situation = pool[Math.floor(Math.random() * pool.length)];
 
-  // Create match
-  const { data: match, error: matchError } = await supabase
+  // Atomic match via DB function — prevents double-match race condition
+  const { data: matchId, error } = await supabase.rpc('find_and_create_match', {
+    p_user_id: userId,
+    p_elo: myEntry.elo_rating,
+    p_elo_range: eloRange,
+    p_situation_id: situation?.id || null,
+    p_situation_data: situation ? { titel: situation.titel, kontext: situation.kontext, beschreibung: situation.beschreibung } : null,
+  });
+
+  if (error || !matchId) return null;
+
+  // Load full match record
+  const { data: match } = await supabase
     .from('matches')
-    .insert({
-      player1_id: userId,
-      player2_id: opponent.user_id,
-      situation_id: situation?.id || null,
-      status: 'active',
-    })
-    .select()
+    .select('*')
+    .eq('id', matchId)
     .single();
 
-  if (matchError) {
-    logger.error('Failed to create match:', matchError.message);
-    return null;
-  }
-
-  // Remove both players from queue
-  await supabase
-    .from('matchmaking_queue')
-    .delete()
-    .in('user_id', [userId, opponent.user_id]);
+  if (!match) return null;
 
   eventBus.emit('matchmaking:found', { match });
   return match;
