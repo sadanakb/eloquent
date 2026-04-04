@@ -118,7 +118,7 @@ function AppRoutes() {
       <PageTransition pageKey={currentPage}>
         <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<HeroPage onNavigate={onNavigate} />} />
+          <Route path="/" element={<HeroPage onNavigate={onNavigate} onOpenSettings={() => setShowSettings(true)} />} />
           <Route path="/duell" element={<OnlineDuellPage onNavigate={onNavigate} />} />
           <Route path="/lokal" element={<DuellPage onNavigate={onNavigate} />} />
           <Route path="/uebung" element={<UebungPage onNavigate={onNavigate} />} />
@@ -134,7 +134,7 @@ function AppRoutes() {
         </Routes>
         </Suspense>
       </PageTransition>
-      <BottomNav activePage={currentPage} onNavigate={onNavigate} onOpenSettings={() => setShowSettings(true)} />
+      <BottomNav activePage={currentPage} onNavigate={onNavigate} />
       {showSettings && <EinstellungenModal onClose={() => setShowSettings(false)} />}
     </div>
   );
