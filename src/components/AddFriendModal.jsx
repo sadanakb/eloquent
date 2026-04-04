@@ -54,7 +54,11 @@ export function AddFriendModal({ isOpen, onClose, onSendRequest, onSearchUsers, 
 
   const handleSend = useCallback(async (userId) => {
     try {
-      await onSendRequest(userId);
+      const result = await onSendRequest(userId);
+      if (result?.error) {
+        // Don't mark as sent, the parent will handle the error display
+        return;
+      }
       setSentIds((prev) => new Set(prev).add(userId));
     } catch {
       // handled by parent
@@ -114,7 +118,7 @@ export function AddFriendModal({ isOpen, onClose, onSendRequest, onSearchUsers, 
                 </div>
                 <div className={styles.resultInfo}>
                   <div className={styles.resultName}>{user.username}</div>
-                  <div className={styles.resultElo}>ELO {user.elo ?? '—'}</div>
+                  <div className={styles.resultElo}>ELO {user.elo_rating ?? '—'}</div>
                 </div>
                 {sentIds.has(user.id) ? (
                   <span className={styles.sentBtn}>Gesendet ✓</span>

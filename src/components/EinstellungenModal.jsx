@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getGroqKey, setGroqKey, saveGroqKeyWithSync, getAiStatus, migrateFromGemini } from '../engine/ki-scorer.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import soundManager from '../engine/sound-manager.js';
 import styles from './EinstellungenModal.module.css';
 
 export function EinstellungenModal({ onClose }) {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, signOut } = useAuth();
   const [groqKey, setGroqKeyState] = useState('');
   const [saved, setSaved] = useState(false);
   const [testingGroq, setTestingGroq] = useState(false);
@@ -170,6 +172,38 @@ export function EinstellungenModal({ onClose }) {
             </button>
           </div>
         </div>
+
+        {/* Navigation */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Mehr</h3>
+          <div className={styles.btnRow}>
+            <button onClick={() => { onClose(); navigate('/regeln'); }} className={styles.smallBtnGhost}>
+              Regeln
+            </button>
+            <button onClick={() => { onClose(); navigate('/achievements'); }} className={styles.smallBtnGhost}>
+              Errungenschaften
+            </button>
+          </div>
+        </div>
+
+        {/* Konto */}
+        {isAuthenticated && (
+          <div className={styles.section}>
+            <h3 className={styles.sectionTitle}>Konto</h3>
+            <button
+              onClick={() => {
+                if (confirm('Wirklich abmelden?')) {
+                  signOut();
+                  onClose();
+                }
+              }}
+              className={styles.smallBtnGhost}
+              style={{ color: 'var(--accent-error)' }}
+            >
+              Abmelden
+            </button>
+          </div>
+        )}
 
         <button onClick={onClose} className={styles.closeBtn}>Schließen</button>
       </div>

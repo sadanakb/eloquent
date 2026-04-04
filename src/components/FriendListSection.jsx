@@ -41,7 +41,7 @@ export function FriendListSection({ friends = [], onChallenge, onRemove, onAddCl
               </div>
               <div className={styles.info}>
                 <div className={styles.username}>{friend.username}</div>
-                <div className={styles.elo}>ELO {friend.elo ?? '—'}</div>
+                <div className={styles.elo}>ELO {friend.elo_rating ?? '—'}</div>
               </div>
               <div className={styles.actions}>
                 {friend.isOnline && (

@@ -30,18 +30,18 @@ export function FriendRequestsSection({ requests = [], onAccept, onDecline, load
             </div>
             <div className={styles.info}>
               <div className={styles.username}>{req.username}</div>
-              <div className={styles.elo}>ELO {req.elo ?? '—'}</div>
+              <div className={styles.elo}>ELO {req.elo_rating ?? '—'}</div>
             </div>
             <div className={styles.actions}>
               <button
                 className={styles.acceptBtn}
-                onClick={() => onAccept?.(req.id)}
+                onClick={() => onAccept?.(req.friendshipId)}
               >
                 ✓ Annehmen
               </button>
               <button
                 className={styles.declineBtn}
-                onClick={() => onDecline?.(req.id)}
+                onClick={() => onDecline?.(req.friendshipId)}
               >
                 ✗ Ablehnen
               </button>

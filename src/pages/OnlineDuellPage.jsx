@@ -74,6 +74,7 @@ export function OnlineDuellPage({ onNavigate }) {
   const [friendCodeInput, setFriendCodeInput] = useState('');
   const [friendWaiting, setFriendWaiting] = useState(false);
   const [showCodeInput, setShowCodeInput] = useState(false);
+  const [challengeLoading, setChallengeLoading] = useState(false);
 
   // Presence
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
@@ -176,6 +177,17 @@ export function OnlineDuellPage({ onNavigate }) {
       isScoringRef.current = false;
     };
   }, []);
+
+  // Warn before leaving during active match
+  useEffect(() => {
+    if (!['writing', 'waiting', 'scoring'].includes(phase)) return;
+    const handler = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [phase]);
 
   // Presence tracking during active match phases
   useEffect(() => {
@@ -441,7 +453,8 @@ export function OnlineDuellPage({ onNavigate }) {
 
   // Friend challenge
   const handleCreateChallenge = async () => {
-    if (!user) return;
+    if (!user || challengeLoading) return;
+    setChallengeLoading(true);
     const result = await createFriendChallenge(user.id);
     if (result) {
       setFriendCode(result.code);
@@ -643,8 +656,14 @@ export function OnlineDuellPage({ onNavigate }) {
 
   // ── Friend handlers ──
   const handleChallengeFriend = async (friend) => {
-    if (!user) return;
+    if (!user || challengeLoading) return;
+    setChallengeLoading(true);
     const result = await createFriendChallenge(user.id);
+    if (!result) {
+      eventBus.emit('toast:message', { message: 'Fehler beim Erstellen der Herausforderung' });
+      setChallengeLoading(false);
+      return;
+    }
     if (result) {
       // Set player2_id to the friend so they get notified
       await supabase.from('matches').update({ player2_id: friend.id }).eq('id', result.matchId);
@@ -694,10 +713,12 @@ export function OnlineDuellPage({ onNavigate }) {
   const handleRemoveFriend = async (friend) => {
     await removeFriend(friend.friendshipId);
     setFriends(prev => prev.filter(f => f.id !== friend.id));
+    eventBus.emit('toast:message', { message: 'Freund entfernt' });
   };
 
   const handleAcceptRequest = async (friendshipId) => {
     await respondToRequest(friendshipId, user.id, true);
+    eventBus.emit('toast:message', { message: 'Freundschaft angenommen!' });
     // Reload both lists
     const [friendsData, requestsData] = await Promise.all([
       getFriends(user.id),
@@ -709,6 +730,7 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const handleDeclineRequest = async (friendshipId) => {
     await respondToRequest(friendshipId, user.id, false);
+    eventBus.emit('toast:message', { message: 'Anfrage abgelehnt' });
     setFriendRequests(prev => prev.filter(r => r.friendshipId !== friendshipId));
   };
 
