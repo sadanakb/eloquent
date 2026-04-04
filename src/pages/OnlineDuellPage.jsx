@@ -432,9 +432,17 @@ export function OnlineDuellPage({ onNavigate }) {
 
         clearActiveMatch();
         setPhase('result');
+      } else {
+        // Server returned no result — show result page with timeout fallback
+        logger.warn('Server scoring returned no result');
+        clearActiveMatch();
+        setPhase('result');
       }
     } catch (e) {
       logger.error('Server scoring failed:', e);
+      eventBus.emit('toast:message', { message: 'Bewertung fehlgeschlagen. Versuch es erneut.' });
+      clearActiveMatch();
+      setPhase('result');
     } finally {
       if (scoringTimeoutRef.current) {
         clearTimeout(scoringTimeoutRef.current);
