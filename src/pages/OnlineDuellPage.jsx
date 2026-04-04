@@ -93,32 +93,47 @@ export function OnlineDuellPage({ onNavigate }) {
 
   // Reconnect: check for active matches on mount
   const { activeMatch, reconnectState, isLoading: reconnectLoading } = useActiveMatch(user?.id);
+  const [showReconnectChoice, setShowReconnectChoice] = useState(false);
 
   useEffect(() => {
     if (reconnectState && activeMatch && !match) {
-      // Restore the match state
-      setMatch(activeMatch);
-
-      // Restore the situation from match data
-      if (activeMatch.situation_id) {
-        const sit = getSituationById(activeMatch.situation_id);
-        if (sit) setSituation(sit);
-      }
-
-      // Handle auto_submit: time expired — submit placeholder and move to waiting
-      if (reconnectState.phase === 'auto_submit') {
-        setMatch(reconnectState.match);
-        setPhase('waiting');
-        submitAnswer(reconnectState.match.id, user.id, '(Zeit abgelaufen)').catch(err => {
-          logger.error('Auto-submit on reconnect failed:', err);
-        });
-        return;
-      }
-
-      // Jump to the appropriate phase
-      setPhase(reconnectState.phase);
+      // Show choice dialog instead of auto-resuming
+      setShowReconnectChoice(true);
     }
   }, [reconnectState, activeMatch]);
+
+  const handleResumeMatch = () => {
+    setShowReconnectChoice(false);
+    if (!activeMatch || !reconnectState) return;
+
+    setMatch(activeMatch);
+    if (activeMatch.situation_id) {
+      const sit = getSituationById(activeMatch.situation_id);
+      if (sit) setSituation(sit);
+    }
+
+    if (reconnectState.phase === 'auto_submit') {
+      setMatch(reconnectState.match);
+      setPhase('waiting');
+      submitAnswer(reconnectState.match.id, user.id, '(Zeit abgelaufen)').catch(err => {
+        logger.error('Auto-submit on reconnect failed:', err);
+      });
+      return;
+    }
+    setPhase(reconnectState.phase);
+  };
+
+  const handleAbandonMatch = async () => {
+    setShowReconnectChoice(false);
+    if (activeMatch?.id && user?.id) {
+      try {
+        await forfeitMatch(activeMatch.id, user.id);
+      } catch (err) {
+        logger.error('Abandon match forfeit failed:', err);
+      }
+    }
+    clearActiveMatch();
+  };
 
   // Clean up stale data on page load
   useEffect(() => {
@@ -621,6 +636,40 @@ export function OnlineDuellPage({ onNavigate }) {
     await handleQuickMatch();
   };
 
+  const handleForfeitAndLeave = async () => {
+    // Forfeit the match in DB so opponent gets the win
+    if (match?.id && user?.id) {
+      try {
+        await forfeitMatch(match.id, user.id);
+      } catch (err) {
+        logger.error('Forfeit failed:', err);
+      }
+    }
+    // Clean up everything and go back to menu
+    clearActiveMatch();
+    if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
+    if (scoringTimeoutRef.current) { clearTimeout(scoringTimeoutRef.current); scoringTimeoutRef.current = null; }
+    presenceRef.current?.destroy(); presenceRef.current = null;
+    isScoringRef.current = false;
+    setOpponentDisconnected(false);
+    setDisconnectCountdown(60);
+    setPhase('menu');
+    setPlayerResult(null);
+    setOpponentScore(null);
+    setPlayerScore(null);
+    setEloChange(0);
+    setWinner(null);
+    setScoringMethod('ki');
+    setOpponentStatus('writing');
+    setMatch(null);
+    setOpponent(null);
+    setFriendCode('');
+    setFriendCodeInput('');
+    setFriendWaiting(false);
+    setShowCodeInput(false);
+    setShowReconnectChoice(false);
+  };
+
   const handleNewMatch = () => {
     // FIX 4 — Clean up match subscription before resetting
     clearActiveMatch();
@@ -807,15 +856,21 @@ export function OnlineDuellPage({ onNavigate }) {
           </div>
         )}
 
-        {/* Reconnect notice */}
-        {reconnectState && phase !== 'menu' && phase !== 'result' && (
-          <div style={{
-            textAlign: 'center', padding: '0.75rem 1rem',
-            fontFamily: 'Lora, serif', color: 'var(--text-secondary)',
-            fontSize: '0.9rem', marginBottom: '0.5rem',
-          }}>
-            Laufendes Spiel gefunden — wird fortgesetzt…
-          </div>
+        {/* Reconnect choice dialog */}
+        {showReconnectChoice && phase === 'menu' && (
+          <Card className={styles.matchCard} style={{ textAlign: 'center', marginBottom: '1rem' }}>
+            <OrnamentIcon name="tintenfass" size="lg" style={{ marginBottom: '0.75rem' }} />
+            <h3 className={styles.cardTitle}>Laufendes Spiel gefunden</h3>
+            <p className={styles.cardDesc}>Du hast ein aktives Match. Möchtest du weiterspielen?</p>
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', justifyContent: 'center' }}>
+              <Button variant="primary" onClick={handleResumeMatch}>
+                Fortsetzen
+              </Button>
+              <Button variant="secondary" onClick={handleAbandonMatch}>
+                Verlassen
+              </Button>
+            </div>
+          </Card>
         )}
 
         {/* ── MENU ── */}
@@ -1010,6 +1065,11 @@ export function OnlineDuellPage({ onNavigate }) {
               schwierigkeit="mittel"
               matchStartTime={match?.created_at}
             />
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <Button variant="tertiary" onClick={handleForfeitAndLeave}>
+                Aufgeben & Verlassen
+              </Button>
+            </div>
           </div>
         )}
 
@@ -1021,6 +1081,9 @@ export function OnlineDuellPage({ onNavigate }) {
             <p className={styles.stateText}>
               Du hast deine Antwort abgegeben. Warte, bis dein Gegner fertig ist.
             </p>
+            <Button variant="tertiary" onClick={handleForfeitAndLeave} style={{ marginTop: '2rem' }}>
+              Aufgeben & Verlassen
+            </Button>
           </div>
         )}
 
@@ -1032,6 +1095,9 @@ export function OnlineDuellPage({ onNavigate }) {
             </div>
             <h2 className={styles.stateTitle}>KI bewertet beide Antworten...</h2>
             <p className={styles.stateText}>Die Eloquenz wird analysiert</p>
+            <Button variant="tertiary" onClick={handleForfeitAndLeave} style={{ marginTop: '2rem' }}>
+              Aufgeben & Verlassen
+            </Button>
           </div>
         )}
 

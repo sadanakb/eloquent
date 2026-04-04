@@ -94,10 +94,7 @@ export function AuthProvider({ children }) {
 
   async function syncGroqKey(authUser) {
     const keyLoaded = await loadGroqKeyFromSupabase(authUser.id);
-    if (keyLoaded) {
-      eventBus.emit('toast:message', { message: 'API-Key wurde aus deinem Account geladen.' });
-      return;
-    }
+    if (keyLoaded) return;
     // No key in cloud — upload local key if it exists
     const localKey = localStorage.getItem('eloquent_groq_key');
     if (localKey) {

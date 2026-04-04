@@ -83,7 +83,11 @@ export function subscribeToMatch(matchId, callback) {
         }
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        logger.warn(`Match subscription ${status}, polling fallback active`);
+      }
+    });
 
   return () => {
     supabase.removeChannel(channel);
