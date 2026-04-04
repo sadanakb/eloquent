@@ -410,7 +410,7 @@ export function OnlineDuellPage({ onNavigate }) {
   const startWriting = () => {
     if (!match) return;
     // Subscribe to match updates
-    const unsub = subscribeToMatch(match.id, handleMatchEvent);
+    const unsub = subscribeToMatch(match.id, handleMatchEvent, user?.id);
     unsubMatchRef.current = unsub;
     setPhase('writing');
   };
@@ -672,7 +672,6 @@ export function OnlineDuellPage({ onNavigate }) {
           const m = event.match;
           const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
           if (supabase && opponentId) {
-            // FIX 3 — Use maybeSingle() to handle missing profiles gracefully
             const { data } = await supabase
               .from('profiles')
               .select('username, avatar_url, elo_rating')
@@ -686,7 +685,7 @@ export function OnlineDuellPage({ onNavigate }) {
           return;
         }
         handleMatchEvent(event);
-      });
+      }, user?.id);
       unsubMatchRef.current = unsub;
     }
   };
@@ -929,7 +928,7 @@ export function OnlineDuellPage({ onNavigate }) {
           return;
         }
         handleMatchEvent(event);
-      });
+      }, user?.id);
       unsubMatchRef.current = unsub;
     }
   };

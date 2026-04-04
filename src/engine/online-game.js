@@ -51,7 +51,7 @@ export async function createMatch(player1Id, player2Id, situationId, situationDa
   return data;
 }
 
-export function subscribeToMatch(matchId, callback) {
+export function subscribeToMatch(matchId, callback, myUserId) {
   if (!isOnline()) return () => {};
 
   const channel = supabase
@@ -74,13 +74,24 @@ export function subscribeToMatch(matchId, callback) {
         } else if (match.status === 'completed' && match.player1_score != null && match.player2_score != null) {
           callback({ type: 'scores_ready', match });
         } else if (match.status === 'active' && !old.player2_id && match.player2_id) {
-          // Friend joined the waiting challenge
           callback({ type: 'friend_joined', match });
         } else if (
           (match.player1_text && !old.player1_text) ||
           (match.player2_text && !old.player2_text)
         ) {
-          callback({ type: 'opponent_submitted', match });
+          // Only fire opponent_submitted if it's the OTHER player's text that changed
+          const isP1 = match.player1_id === myUserId;
+          const myTextChanged = isP1
+            ? (match.player1_text && !old.player1_text)
+            : (match.player2_text && !old.player2_text);
+          const opponentTextChanged = isP1
+            ? (match.player2_text && !old.player2_text)
+            : (match.player1_text && !old.player1_text);
+
+          if (opponentTextChanged) {
+            callback({ type: 'opponent_submitted', match });
+          }
+          // Ignore own text change — we already handle that in handleWritingSubmit
         }
       }
     )
