@@ -10,7 +10,7 @@ let soundListenerRegistered = false
 const sounds = {}
 
 const registry = {
-  click: { src: '/sounds/click.mp3' },
+  click: { src: '/sounds/click.mp3', volume: 0.5 },
   success: { src: '/sounds/success.mp3' },
   error: { src: '/sounds/error.mp3' },
   timerWarning: { src: '/sounds/timer-warning.mp3' },
@@ -23,15 +23,13 @@ const registry = {
 async function loadHowler() {
   if (howlerLoaded) return true
   if (howlerLoading) {
-    // Wait for the in-flight import to resolve
-    try {
-      const mod = await import('howler')
-      Howl = mod.Howl
-      howlerLoaded = true
-      return true
-    } catch {
-      return false
-    }
+    // Wait for in-flight import
+    return new Promise((resolve) => {
+      const check = setInterval(() => {
+        if (howlerLoaded) { clearInterval(check); resolve(true) }
+        if (!howlerLoading) { clearInterval(check); resolve(false) }
+      }, 50)
+    })
   }
   howlerLoading = true
   try {
@@ -54,6 +52,7 @@ function getSound(name) {
       src: [config.src],
       loop: config.loop || false,
       volume: config.volume !== undefined ? config.volume : 1,
+      preload: true,
     })
   }
   return sounds[name]
@@ -67,7 +66,7 @@ function isMusicEnabled() {
   return storage.get('music_enabled') ?? false
 }
 
-async function play(soundName) {
+function play(soundName) {
   try {
     if (soundName === 'ambient') {
       if (!isMusicEnabled()) return
@@ -75,8 +74,7 @@ async function play(soundName) {
       if (!isSoundEnabled()) return
     }
 
-    const loaded = await loadHowler()
-    if (!loaded) return
+    if (!howlerLoaded || !Howl) return
 
     const sound = getSound(soundName)
     if (sound) {
@@ -114,20 +112,34 @@ function toggleMusic() {
   return next
 }
 
+/**
+ * Preload Howler.js and common sounds so they're ready on first interaction.
+ * Called once at app startup.
+ */
+async function preload() {
+  const loaded = await loadHowler()
+  if (!loaded) return
+  // Pre-instantiate the most common sounds so first click is instant
+  getSound('click')
+  getSound('success')
+  getSound('error')
+  logger.debug('Sound manager: preloaded')
+}
+
 export function initSoundManager() {
-  if (soundListenerRegistered) return;
-  soundListenerRegistered = true;
-  eventBus.on('sound:play', (e) => play(e.detail.sound));
+  if (soundListenerRegistered) return
+  soundListenerRegistered = true
+  eventBus.on('sound:play', (e) => play(e.detail.sound))
+  // Preload after a short delay to not block app startup
+  setTimeout(preload, 1500)
 }
 
 export function destroySoundManager() {
-  soundListenerRegistered = false;
-  // Note: eventBus doesn't support removeListener by reference easily,
-  // but the flag prevents re-registration
+  soundListenerRegistered = false
 }
 
 // Auto-init on first import
-initSoundManager();
+initSoundManager()
 
 export default {
   play,
