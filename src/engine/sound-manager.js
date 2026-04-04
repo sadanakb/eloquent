@@ -17,7 +17,7 @@ const registry = {
   goldGain: { src: '/sounds/gold-gain.mp3' },
   pageFlip: { src: '/sounds/page-flip.mp3' },
   achievementUnlock: { src: '/sounds/achievement-unlock.mp3' },
-  ambient: { src: '/sounds/ambient-library.mp3', loop: true, volume: 0.15 },
+  ambient: { src: '/sounds/ambient-library.mp3', loop: true, volume: 0.06 },
 }
 
 async function loadHowler() {
