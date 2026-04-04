@@ -451,25 +451,40 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const submittingRef = useRef(false);
 
-  // FIX 1 — Trust DB status instead of stale opponentStatus state
+  // Submit answer — only move to waiting if text was actually saved
   const handleWritingSubmit = async (text) => {
     if (submittingRef.current) return;
     if (!match || !user) return;
     submittingRef.current = true;
+
+    // If text is null/empty (timer expired), use placeholder
+    const submitText = text && text.trim().length > 0 ? text.trim() : '(Zeit abgelaufen)';
+
     try {
-      const updatedMatch = await submitAnswer(match.id, user.id, text);
+      const updatedMatch = await submitAnswer(match.id, user.id, submitText);
+      if (!updatedMatch) {
+        eventBus.emit('toast:message', { message: 'Abgabe fehlgeschlagen. Bitte nochmal versuchen.' });
+        submittingRef.current = false;
+        return;
+      }
       // Trust DB status — 'scoring' means both players have submitted
-      if (updatedMatch?.status === 'scoring') {
+      if (updatedMatch.status === 'scoring') {
         await performScoring();
       } else {
         setPhase('waiting');
       }
     } catch (err) {
       logger.error('Submit answer failed:', err.message);
-      // Still move to waiting so the user isn't stuck
-      setPhase('waiting');
-    } finally {
+      // If match is already forfeited/completed, just go to menu
+      if (err.message?.includes('nicht mehr aktiv') || err.message?.includes('bereits')) {
+        clearActiveMatch();
+        setPhase('menu');
+        submittingRef.current = false;
+        return;
+      }
+      eventBus.emit('toast:message', { message: 'Abgabe fehlgeschlagen. Bitte nochmal versuchen.' });
       submittingRef.current = false;
+      return;
     }
   };
 
@@ -584,10 +599,9 @@ export function OnlineDuellPage({ onNavigate }) {
 
     const pollStart = Date.now();
     const poll = setInterval(async () => {
-      if (Date.now() - pollStart > 5 * 60 * 1000) {
+      if (Date.now() - pollStart > 10 * 60 * 1000) {
         clearInterval(poll);
-        eventBus.emit('toast:message', { message: 'Verbindung zum Gegner verloren. Match wird beendet.' });
-        handleForfeitAndLeave();
+        eventBus.emit('toast:message', { message: 'Match läuft zu lange. Klicke "Aufgeben & Verlassen" um das Match zu beenden.' });
         return;
       }
       try {
