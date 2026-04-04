@@ -469,22 +469,22 @@ export function OnlineDuellPage({ onNavigate }) {
       }
       // Trust DB status — 'scoring' means both players have submitted
       if (updatedMatch.status === 'scoring') {
+        submittingRef.current = false;
         await performScoring();
       } else {
+        submittingRef.current = false;
         setPhase('waiting');
       }
     } catch (err) {
       logger.error('Submit answer failed:', err.message);
+      submittingRef.current = false;
       // If match is already forfeited/completed, just go to menu
       if (err.message?.includes('nicht mehr aktiv') || err.message?.includes('bereits')) {
         clearActiveMatch();
         setPhase('menu');
-        submittingRef.current = false;
         return;
       }
       eventBus.emit('toast:message', { message: 'Abgabe fehlgeschlagen. Bitte nochmal versuchen.' });
-      submittingRef.current = false;
-      return;
     }
   };
 
