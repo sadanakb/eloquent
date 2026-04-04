@@ -382,7 +382,7 @@ export function OnlineDuellPage({ onNavigate }) {
         .from('matches')
         .select('id, status')
         .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
-        .in('status', ['active', 'scoring', 'waiting'])
+        .in('status', ['active', 'scoring'])
         .limit(1)
         .maybeSingle();
 
