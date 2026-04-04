@@ -8,6 +8,7 @@ import { Badge } from '../components/Badge.jsx';
 import { BewertungDisplay } from '../components/BewertungDisplay.jsx';
 import { AntwortEingabe } from '../components/AntwortEingabe.jsx';
 import { OrnamentIcon } from '../components/Ornament.jsx';
+import { SwordIcon, Bullseye } from '../components/icons/Icons.jsx';
 import { checkAchievements } from '../engine/achievements.js';
 import { completeDailyChallenge } from '../engine/daily.js';
 import styles from './UebungPage.module.css';
@@ -199,11 +200,28 @@ export function UebungPage({ onNavigate }) {
         {/* Phase: choose */}
         {phase === 'choose' && (
           <div className={`${styles.centeredPhase} animate-in`}>
-            <h1 className={styles.pageTitle}>
-              <OrnamentIcon name="ziel" size="md" style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
-              Übungsmodus
-            </h1>
-            <p className={styles.pageSubtitle}>Wähle eine Kategorie. Trainiere ohne Druck.</p>
+            <h1 className={styles.pageTitle}>Üben</h1>
+
+            {/* Mode selection */}
+            <div className={styles.modeGrid}>
+              <button className={styles.modeCard} onClick={() => setPhase('kategorie')}>
+                <Bullseye size={28} color="var(--gold-500)" />
+                <strong>Solo Übung</strong>
+                <small>Alleine trainieren</small>
+              </button>
+              <button className={styles.modeCard} onClick={() => onNavigate('lokal')}>
+                <SwordIcon size={28} color="var(--gold-500)" />
+                <strong>Lokales Duell</strong>
+                <small>Zu zweit auf einem Gerät</small>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Phase: kategorie */}
+        {phase === 'kategorie' && (
+          <div className={`${styles.centeredPhase} animate-in`}>
+            <h2 className={styles.pageTitle}>Kategorie wählen</h2>
             <div className={styles.katGrid}>
               {(SITUATION_KATEGORIEN || []).map(kat => (
                 <Card key={kat.id} onClick={() => chooseDiff(kat.id)} className={styles.katCard}>
@@ -215,15 +233,8 @@ export function UebungPage({ onNavigate }) {
               ))}
             </div>
             <Button variant="ghost" onClick={() => chooseDiff(null)}>Zufällige Kategorie</Button>
-
-            <div className={styles.localDuellSection}>
-              <button className={styles.localDuellBtn} onClick={() => onNavigate('lokal')}>
-                <span className={styles.localDuellIcon}>&#x2694;</span>
-                <span>
-                  <strong>Lokales Duell</strong>
-                  <small>Spiel zu zweit auf einem Gerät</small>
-                </span>
-              </button>
+            <div style={{ marginTop: 8 }}>
+              <Button variant="ghost" onClick={() => setPhase('choose')}>← Zurück</Button>
             </div>
           </div>
         )}
@@ -249,7 +260,7 @@ export function UebungPage({ onNavigate }) {
               ))}
             </div>
             <div style={{ marginTop: 16 }}>
-              <Button variant="ghost" onClick={() => setPhase('choose')}>← Zurück</Button>
+              <Button variant="ghost" onClick={() => setPhase('kategorie')}>← Zurück</Button>
             </div>
           </div>
         )}

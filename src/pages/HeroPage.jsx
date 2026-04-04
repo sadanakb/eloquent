@@ -5,8 +5,6 @@ import { getDailyChallenge } from '../engine/daily.js';
 import {
   TrophyIcon,
   BookmarkBook,
-  StarIcon,
-  ScrollIcon,
 } from '../components/icons/Icons.jsx';
 import styles from './HeroPage.module.css';
 
@@ -72,21 +70,14 @@ export function HeroPage({ onNavigate, onOpenSettings }) {
 
         {/* ── Quick Links ── */}
         <nav className={styles.quickLinks}>
-          {[
-            { icon: <BookmarkBook size={16} color="var(--ink-400)" />, label: 'Wörterbuch', page: 'woerterbuch' },
-            { icon: <TrophyIcon size={16} color="var(--ink-400)" />, label: 'Rangliste', page: 'rangliste' },
-            { icon: <StarIcon size={16} color="var(--ink-400)" />, label: 'Erfolge', page: 'achievements' },
-            { icon: <ScrollIcon size={16} color="var(--ink-400)" />, label: 'Regeln', page: 'regeln' },
-          ].map(item => (
-            <button
-              key={item.page}
-              onClick={() => onNavigate(item.page)}
-              className={styles.quickLink}
-            >
-              {item.icon}
-              <span>{item.label}</span>
-            </button>
-          ))}
+          <button onClick={() => onNavigate('rangliste')} className={styles.quickLink}>
+            <TrophyIcon size={18} color="var(--ink-400)" />
+            <span>Rangliste</span>
+          </button>
+          <button onClick={() => onNavigate('woerterbuch')} className={styles.quickLink}>
+            <BookmarkBook size={18} color="var(--ink-400)" />
+            <span>Wörterbuch</span>
+          </button>
         </nav>
 
       </div>

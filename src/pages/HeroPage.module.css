@@ -21,7 +21,7 @@
 /* ── Hero header ── */
 .hero {
   text-align: center;
-  padding-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
   position: relative;
 }
 
@@ -132,8 +132,8 @@
 /* ── Quick links ── */
 .quickLinks {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-xs);
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
   padding-top: var(--space-md);
   border-top: 1px solid var(--ink-200);
 }
@@ -167,9 +167,3 @@
   transform: scale(0.95);
 }
 
-/* ── Mobile ── */
-@media (max-width: 360px) {
-  .quickLinks {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}

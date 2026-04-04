@@ -284,47 +284,49 @@
   50% { opacity: 0.5; }
 }
 
-/* ── Lokales Duell Section ── */
-.localDuellSection {
-  margin-top: var(--space-xl);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--ink-200);
+/* ── Mode Selection Grid ── */
+.modeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
 }
 
-.localDuellBtn {
+.modeCard {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-md);
-  width: 100%;
-  padding: var(--space-md) var(--space-lg);
+  gap: var(--space-sm);
+  padding: var(--space-xl) var(--space-md);
   background: var(--bg-parchment-light);
   border: 1px solid var(--ink-200);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
-  text-align: left;
+  text-align: center;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 }
 
-.localDuellBtn:hover {
+.modeCard:hover {
   border-color: var(--gold-500);
+  box-shadow: 0 4px 16px rgba(197, 150, 12, 0.1);
 }
 
-.localDuellBtn strong {
+.modeCard:active {
+  transform: scale(0.97);
+}
+
+.modeCard strong {
   display: block;
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--ink-900);
 }
 
-.localDuellBtn small {
+.modeCard small {
   font-family: var(--font-body);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--ink-400);
-}
-
-.localDuellIcon {
-  font-size: 1.5rem;
-  color: var(--gold-500);
+  line-height: 1.3;
 }
