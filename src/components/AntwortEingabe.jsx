@@ -85,10 +85,12 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
 
   const doSubmit = useCallback(() => {
     if (submittedRef.current) return;
-    submittedRef.current = true;
     const currentText = textRef.current.trim();
     const currentWc = currentText.split(/\s+/).filter(Boolean).length;
+    // Don't lock submittedRef here — let the parent (handleWritingSubmit) decide
+    // if the submit actually succeeded. Only lock for timer auto-submit.
     if (!currentText || currentWc === 0) {
+      submittedRef.current = true; // Timer expired with no text — final
       onSubmit(null);
     } else {
       onSubmit(currentText);
@@ -223,7 +225,7 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
             <span className={wc < 10 ? styles.wordCountLow : styles.wordCountOk}>
               {wc} Wörter {wc < 10 ? '(min. 10)' : '\u2713'}
             </span>
-            <Button variant="gold" disabled={!canSubmit || timeLeft <= 0} onClick={() => { if (submittedRef.current) return; doSubmit(); }}>
+            <Button variant="gold" disabled={!canSubmit || timeLeft <= 0 || submittedRef.current} onClick={doSubmit}>
               Antwort abgeben →
             </Button>
           </div>
