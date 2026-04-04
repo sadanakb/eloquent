@@ -214,6 +214,16 @@ export function subscribeFriendEvents(userId, onInsert, onUpdate) {
     .on(
       'postgres_changes',
       {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'friendships',
+        filter: `addressee_id=eq.${userId}`,
+      },
+      (payload) => onUpdate(payload.old)
+    )
+    .on(
+      'postgres_changes',
+      {
         event: 'INSERT',
         schema: 'public',
         table: 'friendships',
@@ -231,7 +241,21 @@ export function subscribeFriendEvents(userId, onInsert, onUpdate) {
       },
       (payload) => onUpdate(payload.new)
     )
-    .subscribe();
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'friendships',
+        filter: `requester_id=eq.${userId}`,
+      },
+      (payload) => onUpdate(payload.old)
+    )
+    .subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        logger.warn(`Friend events subscription ${status}:`, err);
+      }
+    });
 
   logger.debug('subscribeFriendEvents: subscribed for user', userId);
   return channel;

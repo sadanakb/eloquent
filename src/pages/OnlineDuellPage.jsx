@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { supabase, isOnline } from '../lib/supabase.js';
 import { joinQueue, leaveQueue } from '../engine/matchmaking.js';
@@ -43,8 +44,11 @@ function getRandomSituation() {
 
 export function OnlineDuellPage({ onNavigate }) {
   const { user, profile, isAuthenticated, isLoading, updateProfile } = useAuth();
+  const { code: routeCode } = useParams();
+  const navigate = useNavigate();
   const [phase, setPhase] = useState('menu');
   const [showAuth, setShowAuth] = useState(false);
+  const autoJoinedRef = useRef(false);
 
   // Matchmaking
   const [searchElapsed, setSearchElapsed] = useState(0);
@@ -134,6 +138,47 @@ export function OnlineDuellPage({ onNavigate }) {
     }
     clearActiveMatch();
   };
+
+  // Auto-join match when navigating to /duell/:code (from "Annehmen" toast)
+  useEffect(() => {
+    if (!routeCode || !user?.id || !isAuthenticated || autoJoinedRef.current || match) return;
+    autoJoinedRef.current = true;
+
+    (async () => {
+      try {
+        const m = await joinFriendChallenge(routeCode, user.id);
+        if (!m) {
+          eventBus.emit('toast:message', { message: 'Match nicht gefunden oder bereits abgelaufen.' });
+          navigate('/duell', { replace: true });
+          return;
+        }
+        setMatch(m);
+        markActiveMatch(m.id);
+        if (m.situation_id) {
+          const sit = getSituationById(m.situation_id);
+          setSituation(sit || getRandomSituation());
+        } else {
+          setSituation(getRandomSituation());
+        }
+        const opponentId = m.player1_id === user.id ? m.player2_id : m.player1_id;
+        if (supabase && opponentId) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('username, avatar_url, elo_rating')
+            .eq('id', opponentId)
+            .maybeSingle();
+          setOpponent(data);
+        }
+        setPhase('matched');
+        // Clean up URL so refresh doesn't re-join
+        navigate('/duell', { replace: true });
+      } catch (err) {
+        logger.error('Auto-join from route code failed:', err);
+        eventBus.emit('toast:message', { message: 'Beitritt fehlgeschlagen: ' + (err.message || 'Unbekannter Fehler') });
+        navigate('/duell', { replace: true });
+      }
+    })();
+  }, [routeCode, user?.id, isAuthenticated]);
 
   // Clean up stale data on page load
   useEffect(() => {
@@ -375,19 +420,32 @@ export function OnlineDuellPage({ onNavigate }) {
       setOpponentStatus('submitted');
     }
     if (event.type === 'scores_ready') {
-      // Scores came from server
+      // Scores came from server via Realtime
       clearActiveMatch();
       const m = event.match;
       const isP1 = m.player1_id === user?.id;
       setPlayerScore(isP1 ? m.player1_score : m.player2_score);
       setOpponentScore(isP1 ? m.player2_score : m.player1_score);
       setWinner(m.winner_id === user?.id ? 'player' : m.winner_id ? 'opponent' : 'draw');
+      if (scoringTimeoutRef.current) {
+        clearTimeout(scoringTimeoutRef.current);
+        scoringTimeoutRef.current = null;
+      }
+      isScoringRef.current = false;
       setPhase('result');
+      // Refresh profile to get updated ELO
+      updateProfile({});
     }
     if (event.type === 'opponent_disconnected') {
       clearActiveMatch();
       setWinner('player');
+      if (scoringTimeoutRef.current) {
+        clearTimeout(scoringTimeoutRef.current);
+        scoringTimeoutRef.current = null;
+      }
+      isScoringRef.current = false;
       setPhase('result');
+      updateProfile({});
     }
   }, [user]);
 
@@ -409,6 +467,65 @@ export function OnlineDuellPage({ onNavigate }) {
     }
   };
 
+  // Helper: apply scoring result to state
+  const applyScoringResult = (result) => {
+    const isPlayer1 = match.player1_id === user.id;
+    const myScore = isPlayer1 ? result.player1_score : result.player2_score;
+    const opScore = isPlayer1 ? result.player2_score : result.player1_score;
+
+    setPlayerScore(myScore);
+    setOpponentScore(opScore);
+
+    if (result.winner_id === user.id) setWinner('player');
+    else if (result.winner_id) setWinner('opponent');
+    else setWinner('draw');
+
+    if (result.elo_changes) {
+      const myEloChange = isPlayer1 ? result.elo_changes.player1 : result.elo_changes.player2;
+      setEloChange(myEloChange);
+    }
+    if (result.scoring_method) {
+      setScoringMethod(result.scoring_method);
+    }
+
+    clearActiveMatch();
+    if (scoringTimeoutRef.current) {
+      clearTimeout(scoringTimeoutRef.current);
+      scoringTimeoutRef.current = null;
+    }
+    isScoringRef.current = false;
+    setPhase('result');
+    // Refresh profile to get updated ELO
+    updateProfile({});
+  };
+
+  // Helper: poll until match is completed (used when scoring is in progress)
+  const pollForCompletion = async () => {
+    const maxAttempts = 20; // 20 * 2s = 40s max
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(r => setTimeout(r, 2000));
+      try {
+        const { data } = await supabase
+          .from('matches')
+          .select('status, player1_score, player2_score, winner_id, scoring_method')
+          .eq('id', match.id)
+          .single();
+
+        if (data?.status === 'completed' && data.player1_score != null) {
+          applyScoringResult(data);
+          return;
+        }
+      } catch (err) {
+        logger.debug('Completion poll failed:', err);
+      }
+    }
+    // Timeout — show result page with whatever we have
+    logger.warn('Completion polling timed out');
+    clearActiveMatch();
+    isScoringRef.current = false;
+    setPhase('result');
+  };
+
   const performScoring = async () => {
     if (isScoringRef.current) return;
     isScoringRef.current = true;
@@ -420,50 +537,31 @@ export function OnlineDuellPage({ onNavigate }) {
       isScoringRef.current = false;
       scoringTimeoutRef.current = null;
       setPhase('result');
-    }, 30000);
+    }, 45000);
 
     try {
       const result = await requestServerScoring(match.id);
 
-      if (result) {
-        const isPlayer1 = match.player1_id === user.id;
-        const myScore = isPlayer1 ? result.player1_score : result.player2_score;
-        const opScore = isPlayer1 ? result.player2_score : result.player1_score;
-
-        setPlayerScore(myScore);
-        setOpponentScore(opScore);
-
-        if (result.winner_id === user.id) setWinner('player');
-        else if (result.winner_id) setWinner('opponent');
-        else setWinner('draw');
-
-        if (result.elo_changes) {
-          const myEloChange = isPlayer1 ? result.elo_changes.player1 : result.elo_changes.player2;
-          setEloChange(myEloChange);
-        }
-        if (result.scoring_method) {
-          setScoringMethod(result.scoring_method);
-        }
-
-        clearActiveMatch();
-        setPhase('result');
+      if (result && result.player1_score != null) {
+        // Got full results directly
+        applyScoringResult(result);
+      } else if (result && result.status === 'scoring_in_progress') {
+        // Another player already triggered scoring — poll until done
+        logger.debug('Scoring in progress by other player, polling for completion');
+        await pollForCompletion();
+      } else if (result && result.already_completed) {
+        // Match was already scored (idempotent response)
+        applyScoringResult(result);
       } else {
-        // Server returned no result — show result page with timeout fallback
-        logger.warn('Server scoring returned no result');
-        clearActiveMatch();
-        setPhase('result');
+        // Unexpected response — poll as fallback
+        logger.warn('Unexpected scoring response, polling for completion:', result);
+        await pollForCompletion();
       }
     } catch (e) {
       logger.error('Server scoring failed:', e);
-      eventBus.emit('toast:message', { message: 'Bewertung fehlgeschlagen. Versuch es erneut.' });
-      clearActiveMatch();
-      setPhase('result');
-    } finally {
-      if (scoringTimeoutRef.current) {
-        clearTimeout(scoringTimeoutRef.current);
-        scoringTimeoutRef.current = null;
-      }
-      isScoringRef.current = false;
+      // Don't give up — poll for results in case the other player scored
+      logger.debug('Falling back to polling after scoring error');
+      await pollForCompletion();
     }
   };
 
@@ -474,28 +572,39 @@ export function OnlineDuellPage({ onNavigate }) {
     }
   }, [phase, opponentStatus]);
 
-  // Polling fallback: if Realtime doesn't deliver, check match status every 3s
+  // Polling fallback: if Realtime doesn't deliver, check match status periodically
   useEffect(() => {
-    if (phase !== 'waiting' || !match?.id || !supabase) return;
+    if (!['waiting', 'scoring'].includes(phase) || !match?.id || !supabase) return;
 
     const poll = setInterval(async () => {
       try {
         const { data } = await supabase
           .from('matches')
-          .select('status, player1_text, player2_text')
+          .select('status, player1_text, player2_text, player1_score, player2_score, winner_id, scoring_method')
           .eq('id', match.id)
           .single();
 
-        if (data?.status === 'scoring' || data?.status === 'completed') {
-          // Both submitted — Realtime missed it, trigger scoring now
-          logger.debug('Polling detected scoring/completed status');
+        if (!data) return;
+
+        // Match completed with scores — show results directly
+        if (data.status === 'completed' && data.player1_score != null) {
+          logger.debug('Polling detected completed match with scores');
           clearInterval(poll);
-          performScoring();
-        } else if (data?.player1_text && data?.player2_text && data?.status === 'active') {
-          // Both texts exist but status stuck on active — race condition hit
-          logger.debug('Polling detected both texts submitted, triggering scoring');
-          clearInterval(poll);
-          performScoring();
+          applyScoringResult(data);
+          return;
+        }
+
+        // Both submitted but scoring not started yet — trigger it
+        if (phase === 'waiting') {
+          if (data.status === 'scoring' || data.status === 'completed') {
+            logger.debug('Polling detected scoring/completed status');
+            clearInterval(poll);
+            performScoring();
+          } else if (data.player1_text && data.player2_text && data.status === 'active') {
+            logger.debug('Polling detected both texts submitted, triggering scoring');
+            clearInterval(poll);
+            performScoring();
+          }
         }
       } catch (err) {
         logger.debug('Polling check failed:', err);
