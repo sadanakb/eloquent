@@ -381,16 +381,36 @@ Deno.serve(async (req) => {
     }
 
     // Atomic scoring lock — only ONE invocation wins this UPDATE
+    // Include 'scoring' status because submit_match_text already transitions to 'scoring'
+    // Use player1_score IS NULL to prevent double-scoring
     const { data: claimed, error: claimError } = await admin
       .from('matches')
       .update({ status: 'scoring' })
       .eq('id', matchId)
-      .in('status', ['active', 'waiting'])
+      .in('status', ['active', 'waiting', 'scoring'])
+      .is('player1_score', null)
       .select()
       .single()
 
     if (claimError || !claimed) {
-      // Another invocation claimed scoring — return 202
+      // Check if match was already scored by another invocation
+      const { data: recheckMatch } = await admin
+        .from('matches')
+        .select('status, player1_score, player2_score, winner_id, scoring_method')
+        .eq('id', matchId)
+        .single()
+
+      if (recheckMatch?.status === 'completed' && recheckMatch.player1_score !== null) {
+        return new Response(JSON.stringify({
+          player1_score: recheckMatch.player1_score,
+          player2_score: recheckMatch.player2_score,
+          winner_id: recheckMatch.winner_id,
+          scoring_method: recheckMatch.scoring_method,
+          already_completed: true,
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+
+      // Still in progress by another invocation
       return new Response(JSON.stringify({ status: 'scoring_in_progress' }), {
         status: 202, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -472,18 +492,27 @@ Deno.serve(async (req) => {
     const elo = calculateElo(p1Elo, p2Elo, p1Score, p2Score, p1Games, p2Games)
 
     // Update match — MUST succeed, otherwise match is stuck
-    const { error: matchUpdateError } = await admin.from('matches').update({
+    // Use player1_score IS NULL guard to prevent overwriting another invocation's results
+    const { data: updateResult, error: matchUpdateError } = await admin.from('matches').update({
       player1_score: p1Score,
       player2_score: p2Score,
       winner_id: winnerId,
       status: 'completed',
       completed_at: new Date().toISOString(),
       scoring_method: scoringMethod,
-    }).eq('id', matchId)
+    }).eq('id', matchId).is('player1_score', null).select().single()
 
-    if (matchUpdateError) {
+    if (matchUpdateError || !updateResult) {
+      // Another invocation scored first — return their results
+      const { data: existing } = await admin.from('matches')
+        .select('player1_score, player2_score, winner_id, scoring_method')
+        .eq('id', matchId).single()
+      if (existing?.player1_score !== null) {
+        return new Response(JSON.stringify({
+          ...existing, already_completed: true,
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
       console.error('CRITICAL: Match update failed:', matchUpdateError)
-      // Last resort: try to at least reset status so it's not stuck
       await admin.from('matches').update({ status: 'active' }).eq('id', matchId).catch(() => {})
       return new Response(JSON.stringify({ error: 'Match update failed' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
