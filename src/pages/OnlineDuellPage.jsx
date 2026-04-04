@@ -452,12 +452,43 @@ export function OnlineDuellPage({ onNavigate }) {
     }
   };
 
-  // FIX 2 — When waiting and opponent submits, trigger server scoring
+  // When waiting and opponent submits, trigger server scoring
   useEffect(() => {
     if (phase === 'waiting' && opponentStatus === 'submitted') {
       performScoring();
     }
   }, [phase, opponentStatus]);
+
+  // Polling fallback: if Realtime doesn't deliver, check match status every 3s
+  useEffect(() => {
+    if (phase !== 'waiting' || !match?.id || !supabase) return;
+
+    const poll = setInterval(async () => {
+      try {
+        const { data } = await supabase
+          .from('matches')
+          .select('status, player1_text, player2_text')
+          .eq('id', match.id)
+          .single();
+
+        if (data?.status === 'scoring' || data?.status === 'completed') {
+          // Both submitted — Realtime missed it, trigger scoring now
+          logger.debug('Polling detected scoring/completed status');
+          clearInterval(poll);
+          performScoring();
+        } else if (data?.player1_text && data?.player2_text && data?.status === 'active') {
+          // Both texts exist but status stuck on active — race condition hit
+          logger.debug('Polling detected both texts submitted, triggering scoring');
+          clearInterval(poll);
+          performScoring();
+        }
+      } catch (err) {
+        logger.debug('Polling check failed:', err);
+      }
+    }, 3000);
+
+    return () => clearInterval(poll);
+  }, [phase, match?.id]);
 
   // Friend challenge
   const handleCreateChallenge = async () => {
