@@ -10,14 +10,6 @@ import { logger } from '../engine/logger.js';
 import { getFriends } from '../engine/friends.js';
 import styles from './RanglistePage.module.css';
 
-const demo = [
-  { name: 'Aurelius', pokale: 2340, siege: 42, gespielt: 55 },
-  { name: 'Cicero', pokale: 1850, siege: 35, gespielt: 48 },
-  { name: 'Valeria', pokale: 1200, siege: 28, gespielt: 40 },
-  { name: 'Ernat', pokale: 13, siege: 1, gespielt: 1 },
-  { name: 'Sadan', pokale: 5, siege: 0, gespielt: 1 },
-];
-
 function AvatarCircle({ avatarUrl, username, size = 48, isFirst = false }) {
   if (avatarUrl) {
     return (
@@ -40,12 +32,12 @@ function AvatarCircle({ avatarUrl, username, size = 48, isFirst = false }) {
   );
 }
 
-function PodiumColumn({ entry, rank, isDemo = false }) {
+function PodiumColumn({ entry, rank }) {
   const isFirst = rank === 1;
   const isSecond = rank === 2;
-  const username = isDemo ? entry.name : (entry.username || 'Anonym');
-  const elo = isDemo ? entry.pokale : (entry.elo_rating || 1200);
-  const avatarUrl = isDemo ? null : entry.avatar_url;
+  const username = entry.username || 'Anonym';
+  const elo = entry.elo_rating || 1200;
+  const avatarUrl = entry.avatar_url;
 
   const pedestalHeightClass = isFirst
     ? styles.pedestalFirst
@@ -137,19 +129,10 @@ export function RanglistePage() {
   }, [tab, userId]);
 
   // Determine the current data set to render
-  const isLokal = tab === 'lokal';
   const isFriends = tab === 'freunde';
   const isGlobal = tab === 'global';
 
-  // For lokal tab use demo data, for global use fetched data, for friends use friendsData
-  const activeData = isLokal ? demo.map(d => ({
-    user_id: d.name,
-    username: d.name,
-    elo_rating: d.pokale,
-    wins: d.siege,
-    losses: d.gespielt - d.siege,
-    avatar_url: null,
-  })) : isFriends ? friendsData : globalData;
+  const activeData = isFriends ? friendsData : globalData;
 
   const top3 = activeData.slice(0, 3);
   const rest = activeData.slice(3);
@@ -178,7 +161,7 @@ export function RanglistePage() {
     }
   }
 
-  const showPodium = (isLokal || (isGlobal && auth?.isAuthenticated && !loadingGlobal) || (isFriends && !loadingFriends)) && activeData.length >= 1;
+  const showPodium = ((isGlobal && auth?.isAuthenticated && !loadingGlobal) || (isFriends && !loadingFriends)) && activeData.length >= 1;
 
   return (
     <div className={styles.page}>
@@ -202,12 +185,6 @@ export function RanglistePage() {
             onClick={() => setTab('freunde')}
           >
             Freunde
-          </button>
-          <button
-            className={tab === 'lokal' ? styles.tabActive : styles.tab}
-            onClick={() => setTab('lokal')}
-          >
-            Diese Woche
           </button>
         </div>
 
@@ -271,7 +248,6 @@ export function RanglistePage() {
                 key={rank}
                 entry={entry}
                 rank={rank}
-                isDemo={isLokal}
               />
             ))}
           </div>
@@ -284,9 +260,9 @@ export function RanglistePage() {
               const idx = i + 3; // 0-based index in full list
               const rank = idx + 1;
               const isMe = isGlobal && entry.user_id === userId;
-              const username = isLokal ? entry.username : (entry.username || 'Anonym');
+              const username = entry.username || 'Anonym';
               const elo = entry.elo_rating || 1200;
-              const avatarUrl = isLokal ? null : entry.avatar_url;
+              const avatarUrl = entry.avatar_url;
 
               return (
                 <div

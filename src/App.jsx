@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef, lazy, Suspense } from 'react';
 import { EinstellungenModal } from './components/EinstellungenModal.jsx';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx';
 import { supabase } from './lib/supabase.js';
 import eventBus from './engine/event-bus.js';
@@ -13,6 +13,7 @@ import { ErrorBoundary } from './components/ErrorBoundary.jsx';
 import { PageTransition } from './components/PageTransition.jsx';
 import { BottomNav } from './components/BottomNav.jsx';
 import { PageLoader } from './components/PageLoader.jsx';
+import { RequireAuthPage } from './components/RequireAuthPage.jsx';
 import './styles.css';
 
 // Keep HeroPage eager (landing page, first paint)
@@ -48,10 +49,10 @@ const pageToRoute = Object.fromEntries(
   Object.entries(routeToPage).map(([k, v]) => [v, k])
 );
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ children, message }) {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (!isAuthenticated) return <RequireAuthPage message={message} />;
   return children;
 }
 
@@ -127,7 +128,7 @@ function AppRoutes() {
         <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HeroPage onNavigate={onNavigate} onOpenSettings={() => setShowSettings(true)} />} />
-          <Route path="/duell" element={<ProtectedRoute><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
+          <Route path="/duell" element={<ProtectedRoute message="Melde dich an, um Online-Duelle zu spielen."><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
           <Route path="/lokal" element={<DuellPage onNavigate={onNavigate} />} />
           <Route path="/uebung" element={<UebungPage onNavigate={onNavigate} />} />
           <Route path="/woerterbuch" element={<WoerterbuchPage onNavigate={onNavigate} />} />
@@ -136,8 +137,8 @@ function AppRoutes() {
           <Route path="/story" element={<StoryPage onNavigate={onNavigate} />} />
           <Route path="/achievements" element={<AchievementPage onNavigate={onNavigate} />} />
           <Route path="/profil" element={<ProfilePage onNavigate={onNavigate} />} />
-          <Route path="/online" element={<ProtectedRoute><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
-          <Route path="/duell/:code" element={<ProtectedRoute><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
+          <Route path="/online" element={<ProtectedRoute message="Melde dich an, um Online-Duelle zu spielen."><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
+          <Route path="/duell/:code" element={<ProtectedRoute message="Melde dich an, um die Freund-Challenge anzunehmen."><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
           <Route path="*" element={<HeroPage onNavigate={onNavigate} />} />
         </Routes>
         </Suspense>

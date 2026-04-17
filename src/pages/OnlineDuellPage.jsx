@@ -249,9 +249,10 @@ export function OnlineDuellPage({ onNavigate }) {
     return () => window.removeEventListener('beforeunload', handler);
   }, [phase]);
 
-  // Presence tracking during active match phases
+  // Presence tracking during writing/waiting only — NEVER during scoring
+  // (scoring phase must complete, even if opponent briefly disconnects)
   useEffect(() => {
-    if (!match?.id || !user?.id || !['writing', 'waiting', 'scoring'].includes(phase)) {
+    if (!match?.id || !user?.id || !['writing', 'waiting'].includes(phase)) {
       return;
     }
 
@@ -278,7 +279,26 @@ export function OnlineDuellPage({ onNavigate }) {
         }, 1000);
       },
       onOpponentTimeout: async () => {
+        // Safety: never auto-forfeit if scoring/result is already active,
+        // if the match already has texts from both players, or if the match
+        // has any status other than 'active' (scoring/completed/forfeited).
         try {
+          if (isScoringRef.current) return;
+          if (['scoring', 'result'].includes(phase)) return;
+
+          // Re-check live DB state to avoid forfeiting a match that already
+          // has both texts (→ scoring imminent) or that already completed.
+          const { data: fresh } = await supabase
+            .from('matches')
+            .select('status, player1_text, player2_text, player1_score')
+            .eq('id', match.id)
+            .maybeSingle();
+
+          if (!fresh) return;
+          if (fresh.status !== 'active') return;
+          if (fresh.player1_text && fresh.player2_text) return;
+          if (fresh.player1_score != null) return;
+
           const opponentId = match.player1_id === user.id ? match.player2_id : match.player1_id;
           if (opponentId) {
             await forfeitMatch(match.id, opponentId);
@@ -437,8 +457,17 @@ export function OnlineDuellPage({ onNavigate }) {
       updateProfile({});
     }
     if (event.type === 'opponent_disconnected') {
+      const m = event.match;
+      // If both texts are already submitted, scoring MUST run — don't show forfeit result.
+      // Recover the match and run scoring so scores are computed.
+      if (m?.player1_text && m?.player2_text && m?.player1_score == null) {
+        logger.info('Forfeit arrived with both texts present — running scoring instead');
+        performScoring();
+        return;
+      }
       clearActiveMatch();
-      setWinner('player');
+      // Winner determined by DB (forfeit_match sets winner_id correctly)
+      setWinner(m?.winner_id === user?.id ? 'player' : m?.winner_id ? 'opponent' : 'player');
       if (scoringTimeoutRef.current) {
         clearTimeout(scoringTimeoutRef.current);
         scoringTimeoutRef.current = null;
@@ -589,21 +618,36 @@ export function OnlineDuellPage({ onNavigate }) {
                      : p2Score > p1Score ? fullMatch.player2_id
                      : null;
 
-      // Schreibe Scores in DB (nur wenn noch nicht gescored)
-      await supabase
-        .from('matches')
-        .update({
-          player1_score: p1Score,
-          player2_score: p2Score,
-          winner_id: winnerId,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          scoring_method: 'client',
-        })
-        .eq('id', match.id)
-        .is('player1_score', null);
+      // Atomic DB-side write via RPC — self-healing even if match status
+      // is 'forfeited' or 'scoring'. Handles ELO updates server-side.
+      const { data: completedMatch, error: rpcErr } = await supabase.rpc(
+        'complete_match_with_scores',
+        {
+          p_match_id: match.id,
+          p_player1_score: p1Score,
+          p_player2_score: p2Score,
+          p_scoring_method: 'client',
+        }
+      );
 
-      applyScoringResult({
+      if (rpcErr) {
+        logger.warn('complete_match_with_scores RPC failed, falling back to direct update:', rpcErr.message);
+        // Last-resort direct update (bypassed by RLS when policies hold)
+        await supabase
+          .from('matches')
+          .update({
+            player1_score: p1Score,
+            player2_score: p2Score,
+            winner_id: winnerId,
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            scoring_method: 'client',
+          })
+          .eq('id', match.id)
+          .is('player1_score', null);
+      }
+
+      applyScoringResult(completedMatch || {
         player1_score: p1Score,
         player2_score: p2Score,
         winner_id: winnerId,

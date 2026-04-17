@@ -123,6 +123,31 @@ async function decryptGroqKey(encryptedBase64: string, userId: string): Promise<
   }
 }
 
+// Prefer keys owned by one of the two match players so players contribute
+// to their own match scoring. Same key is used for BOTH texts → fair.
+async function getMatchPlayerGroqKey(
+  admin: any,
+  playerIds: string[]
+): Promise<{ key: string; ownerId: string } | null> {
+  const { data: rows } = await admin
+    .from('user_progress')
+    .select('user_id, settings')
+    .in('user_id', playerIds)
+    .not('settings->>groq_key_encrypted', 'is', null)
+
+  if (!rows || rows.length === 0) return null
+
+  // Randomize which player's key we use when both have one — prevents bias
+  const shuffled = rows.sort(() => Math.random() - 0.5)
+  for (const row of shuffled) {
+    const encrypted = row.settings?.groq_key_encrypted
+    if (!encrypted) continue
+    const key = await decryptGroqKey(encrypted, row.user_id)
+    if (key && key.startsWith('gsk_')) return { key, ownerId: row.user_id }
+  }
+  return null
+}
+
 async function getRandomUserGroqKey(admin: any): Promise<string | null> {
   // Fetch all users who have an encrypted Groq key
   const { data: rows } = await admin
@@ -381,16 +406,17 @@ Deno.serve(async (req) => {
     }
 
     // Atomic scoring lock — only ONE invocation wins this UPDATE
-    // Include 'scoring' status because submit_match_text already transitions to 'scoring'
-    // Use player1_score IS NULL to prevent double-scoring
+    // Accept ANY non-completed status as claimable so a stray forfeit does
+    // NOT lock us out (we must finish scoring if both texts are present).
+    // Use player1_score IS NULL as the real "not yet scored" guard.
     const { data: claimed, error: claimError } = await admin
       .from('matches')
       .update({ status: 'scoring' })
       .eq('id', matchId)
-      .in('status', ['active', 'waiting', 'scoring'])
+      .in('status', ['active', 'waiting', 'scoring', 'forfeited'])
       .is('player1_score', null)
       .select()
-      .single()
+      .maybeSingle()
 
     if (claimError || !claimed) {
       // Check if match was already scored by another invocation
@@ -398,9 +424,9 @@ Deno.serve(async (req) => {
         .from('matches')
         .select('status, player1_score, player2_score, winner_id, scoring_method')
         .eq('id', matchId)
-        .single()
+        .maybeSingle()
 
-      if (recheckMatch?.status === 'completed' && recheckMatch.player1_score !== null) {
+      if (recheckMatch?.player1_score !== null && recheckMatch?.player1_score !== undefined) {
         return new Response(JSON.stringify({
           player1_score: recheckMatch.player1_score,
           player2_score: recheckMatch.player2_score,
@@ -439,12 +465,33 @@ Deno.serve(async (req) => {
     let p2Score: number
     let scoringMethod = 'ki'
 
-    // Try Groq first, fall back to heuristic — NEVER leave match in scoring state
+    // Priority: (1) server secret → (2) one of the two match players'
+    // own keys → (3) any user's key → (4) heuristic.
+    // IMPORTANT: whichever key we pick, BOTH texts are scored with the SAME
+    // key in one batch so judgement is fair and comparable.
     let activeGroqKey = groqKey || null
+    let keySource = activeGroqKey ? 'server' : null
+    if (!activeGroqKey) {
+      try {
+        const playerKey = await getMatchPlayerGroqKey(admin, [
+          match.player1_id, match.player2_id,
+        ])
+        if (playerKey) {
+          activeGroqKey = playerKey.key
+          keySource = playerKey.ownerId === match.player1_id ? 'player1' : 'player2'
+          console.log(`Using ${keySource}'s Groq key for fair scoring`)
+        }
+      } catch (e) {
+        console.error('Failed to get match-player Groq key:', e)
+      }
+    }
     if (!activeGroqKey) {
       try {
         activeGroqKey = await getRandomUserGroqKey(admin)
-        if (activeGroqKey) console.log('Using borrowed user Groq key')
+        if (activeGroqKey) {
+          keySource = 'random_user'
+          console.log('Using random user Groq key as last resort')
+        }
       } catch (e) {
         console.error('Failed to get user Groq key:', e)
       }
@@ -548,6 +595,7 @@ Deno.serve(async (req) => {
       player2_score: p2Score,
       winner_id: winnerId,
       scoring_method: scoringMethod,
+      key_source: keySource,
       elo_changes: {
         player1: elo.playerChange,
         player2: elo.opponentChange,
