@@ -254,7 +254,9 @@
 /* ---- Sticky Own Rank ---- */
 .ownRank {
   position: sticky;
-  bottom: 0;
+  /* Sit above the bottom nav (height ~112px incl. safe-area). Matches the
+     app-shell padding-bottom rule so the banner is never hidden by BottomNav. */
+  bottom: calc(112px + env(safe-area-inset-bottom, 0px));
   background: var(--bg-parchment-light);
   border: 1.5px dashed var(--gold-500);
   border-radius: 8px;

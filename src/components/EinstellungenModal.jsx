@@ -48,6 +48,10 @@ export function EinstellungenModal({ onClose }) {
 
   const handleTestGroq = async () => {
     if (!groqKey) return;
+    if (!groqKey.trim().startsWith('gsk_')) {
+      setGroqResult({ ok: false, msg: 'Key muss mit gsk_ beginnen' });
+      return;
+    }
     await saveGroqKeyWithSync(groqKey.trim(), user);
     setTestingGroq(true);
     setGroqResult(null);

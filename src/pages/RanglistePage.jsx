@@ -4,6 +4,7 @@ import { supabase, isOnline } from '../lib/supabase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { getRankTitle } from '../engine/elo.js';
 import { Badge } from '../components/Badge.jsx';
+import { Button } from '../components/Button.jsx';
 import { Ornament } from '../components/Ornament.jsx';
 import { CrownIcon, ShieldIcon } from '../components/icons/Icons.jsx';
 import { logger } from '../engine/logger.js';
@@ -212,13 +213,9 @@ export function RanglistePage() {
             <p style={{ color: 'var(--text-secondary, #666)', marginBottom: '1rem' }}>
               {leaderboardError}
             </p>
-            <button
-              onClick={() => fetchLeaderboard()}
-              className="btn-gold"
-              style={{ padding: '0.5rem 1.5rem', cursor: 'pointer' }}
-            >
+            <Button variant="gold" onClick={() => fetchLeaderboard()}>
               Erneut versuchen
-            </button>
+            </Button>
           </div>
         )}
 

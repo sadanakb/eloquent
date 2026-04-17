@@ -145,6 +145,15 @@
 .catChip {
   flex-shrink: 0;
   cursor: pointer;
+  min-height: 44px;
+  padding: 6px 12px;
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  color: inherit;
 }
 
 /* Word list */

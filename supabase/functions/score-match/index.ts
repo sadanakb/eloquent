@@ -569,6 +569,8 @@ Deno.serve(async (req) => {
     // Update player profiles (best-effort, don't fail the match)
     const p1Won = winnerId === match.player1_id
     const p1Lost = winnerId === match.player2_id
+    const p2Won = winnerId === match.player2_id
+    const p2Lost = winnerId === match.player1_id
     const isDraw = winnerId === null
 
     await admin.from('profiles').update({
@@ -586,9 +588,6 @@ Deno.serve(async (req) => {
       draws: ((p2Profile as any)?.draws || 0) + (isDraw ? 1 : 0),
       total_games: p2Games + 1,
     }).eq('id', match.player2_id).catch(e => console.error('P2 profile update failed:', e))
-
-    const p2Won = winnerId === match.player2_id
-    const p2Lost = winnerId === match.player1_id
 
     return new Response(JSON.stringify({
       player1_score: p1Score,

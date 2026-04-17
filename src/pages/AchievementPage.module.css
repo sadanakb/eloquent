@@ -39,10 +39,12 @@
   font-family: var(--font-body);
   font-size: 14px;
   color: var(--ink-600);
-  padding: var(--space-xs) var(--space-sm);
+  padding: 8px 16px;
+  min-height: 44px;
   margin-bottom: var(--space-lg);
   transition: color var(--transition-base);
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .backBtn:hover {

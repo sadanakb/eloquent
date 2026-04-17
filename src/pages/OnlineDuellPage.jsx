@@ -514,10 +514,21 @@ export function OnlineDuellPage({ onNavigate }) {
       setPlayerScore(isP1 ? m.player1_score : m.player2_score);
       setOpponentScore(isP1 ? m.player2_score : m.player1_score);
       setWinner(m.winner_id === user?.id ? 'player' : m.winner_id ? 'opponent' : 'draw');
+      if (m.scoring_method) setScoringMethod(m.scoring_method);
+      // ELO delta: snapshot current profile ELO, then refresh and diff.
+      // The DB trigger / score-match function has already updated profiles.elo_rating.
+      const oldElo = profile?.elo_rating ?? 1200;
+      (async () => {
+        try {
+          const fresh = await updateProfile({});
+          const newElo = fresh?.elo_rating ?? oldElo;
+          setEloChange(newElo - oldElo);
+        } catch {
+          setEloChange(0);
+        }
+      })();
       isScoringRef.current = false;
       setPhase('result');
-      // Refresh profile to get updated ELO
-      updateProfile({});
     }
     if (event.type === 'opponent_disconnected') {
       const m = event.match;
@@ -535,7 +546,7 @@ export function OnlineDuellPage({ onNavigate }) {
       setPhase('result');
       updateProfile({});
     }
-  }, [user?.id, updateProfile]);
+  }, [user?.id, updateProfile, profile?.elo_rating]);
 
   const submittingRef = useRef(false);
 
@@ -856,8 +867,9 @@ export function OnlineDuellPage({ onNavigate }) {
   const handleCreateChallenge = async () => {
     if (!user || challengeLoading) return;
     setChallengeLoading(true);
-    const result = await createFriendChallenge(user.id);
-    if (result) {
+    try {
+      const result = await createFriendChallenge(user.id);
+      if (!result) return;
       setFriendCode(result.code);
       setFriendWaiting(true);
 
@@ -897,6 +909,11 @@ export function OnlineDuellPage({ onNavigate }) {
         }
         handleMatchEvent(event);
       });
+    } catch (err) {
+      logger.error('Create challenge failed:', err?.message || err);
+      eventBus.emit('toast:message', { message: 'Fehler beim Erstellen der Herausforderung' });
+    } finally {
+      setChallengeLoading(false);
     }
   };
 
@@ -1104,13 +1121,12 @@ export function OnlineDuellPage({ onNavigate }) {
   const handleChallengeFriend = async (friend) => {
     if (!user || challengeLoading) return;
     setChallengeLoading(true);
-    const result = await createFriendChallenge(user.id);
-    if (!result) {
-      eventBus.emit('toast:message', { message: 'Fehler beim Erstellen der Herausforderung' });
-      setChallengeLoading(false);
-      return;
-    }
-    if (result) {
+    try {
+      const result = await createFriendChallenge(user.id);
+      if (!result) {
+        eventBus.emit('toast:message', { message: 'Fehler beim Erstellen der Herausforderung' });
+        return;
+      }
       // Set player2_id to the friend so they get notified
       await supabase.from('matches').update({ player2_id: friend.id }).eq('id', result.matchId);
 
@@ -1152,6 +1168,11 @@ export function OnlineDuellPage({ onNavigate }) {
         }
         handleMatchEvent(event);
       });
+    } catch (err) {
+      logger.error('Challenge friend failed:', err?.message || err);
+      eventBus.emit('toast:message', { message: 'Fehler beim Erstellen der Herausforderung' });
+    } finally {
+      setChallengeLoading(false);
     }
   };
 

@@ -149,28 +149,35 @@ export function UebungPage({ onNavigate }) {
         empfehlungen: [], feedback: 'Keine Antwort eingereicht — 0 Punkte.', gaming: false, _methode: 'skip',
       });
       setPhase('result');
-      return;
+      // Empty/timeout path: lock UI so AntwortEingabe stops the timer permanently.
+      return { success: true };
     }
     setLoading(true);
     setPhase('result');
-    const r = await kiBewertung(situation, text);
-    setErgebnis(r);
-    setLoading(false);
-    // Check achievements
-    const score = Object.values(r.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
-    checkAchievements('uebung_complete', {
-      score,
-      gehobene: r.gehobene || [],
-      mittel: r.mittel || [],
-      kategorie: kategorie,
-    });
-    // Record daily challenge completion if in daily mode
-    if (dailyMode) {
-      completeDailyChallenge(score);
+    try {
+      const r = await kiBewertung(situation, text);
+      setErgebnis(r);
+      setLoading(false);
+      // Check achievements
+      const score = Object.values(r.kategorien || {}).reduce((s, v) => s + (v.p || 0), 0);
+      checkAchievements('uebung_complete', {
+        score,
+        gehobene: r.gehobene || [],
+        mittel: r.mittel || [],
+        kategorie: kategorie,
+      });
+      // Record daily challenge completion if in daily mode
+      if (dailyMode) {
+        completeDailyChallenge(score);
+      }
+      // Mark today as completed in streak
+      const todayKey = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(`streak_${todayKey}`, '1');
+      return { success: true };
+    } catch (err) {
+      setLoading(false);
+      return { success: false };
     }
-    // Mark today as completed in streak
-    const todayKey = new Date().toISOString().slice(0, 10);
-    localStorage.setItem(`streak_${todayKey}`, '1');
   };
 
   const diffOptions = [

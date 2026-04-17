@@ -57,7 +57,7 @@ export function createPresence(matchId, userId, callbacks, options = {}) {
       if (disconnectTimer) clearTimeout(disconnectTimer);
       disconnectTimer = setTimeout(() => {
         callbacks.onOpponentTimeout?.();
-      }, 60_000);
+      }, timeoutMs);
     }
   });
 

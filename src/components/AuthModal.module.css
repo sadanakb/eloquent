@@ -24,14 +24,15 @@
 
 .closeX {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 32px;
-  height: 32px;
+  top: 6px;
+  right: 6px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: none;
   cursor: pointer;
-  font-size: 20px;
+  font-size: 24px;
+  line-height: 1;
   color: var(--ink-600);
   border-radius: var(--radius-sm);
   display: flex;

@@ -100,7 +100,7 @@ export function DuellPage({ onNavigate }) {
     empfehlungen: [], feedback: 'Keine Antwort eingereicht — 0 Punkte.', gaming: false, _methode: 'skip',
   };
 
-  const handleS1Submit = (text) => {
+  const handleS1Submit = async (text) => {
     if (text === null || !text.trim()) {
       setErgebnis1({ text: null, skipped: true });
       s1PromiseRef.current = null;
@@ -113,6 +113,10 @@ export function DuellPage({ onNavigate }) {
     }
     setPhase('s1_pass');
     window.scrollTo(0, 0);
+    // Signal AntwortEingabe that submit is complete so the UI locks and the
+    // timer stops. Without this the lokal-duell timer keeps ticking in the
+    // background and the button stays active.
+    return { success: true };
   };
 
   const handleS2Submit = async (text) => {
@@ -153,6 +157,8 @@ export function DuellPage({ onNavigate }) {
       mittel: [...(r1.mittel || []), ...(r2.mittel || [])],
       kategorie: kategorie,
     });
+    // Signal AntwortEingabe that submit is complete so the UI locks.
+    return { success: true };
   };
 
   const nextRound = () => {

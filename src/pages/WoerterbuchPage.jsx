@@ -51,9 +51,15 @@ export function WoerterbuchPage() {
 
       <div className={styles.catRow}>
         {cats.map(c => (
-          <span key={c} onClick={() => setFilter(c)} className={styles.catChip}>
+          <button
+            key={c}
+            type="button"
+            onClick={() => setFilter(c)}
+            className={styles.catChip}
+            aria-pressed={filter === c}
+          >
             <Badge type="category" active={filter === c}>{c}</Badge>
-          </span>
+          </button>
         ))}
       </div>
 

@@ -77,10 +77,32 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Check session immediately on mount (handles OAuth redirect code exchange)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
+    // Check session immediately on mount (handles OAuth redirect code exchange).
+    // Wrap in 10s timeout so a hanging Supabase call never leaves the AuthModal
+    // spinner spinning forever. If we time out we proceed as "not logged in";
+    // onAuthStateChange can still recover later when the network is back.
+    let settled = false;
+    const timeoutId = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      logger.error('Supabase getSession() timed out after 10s — proceeding as unauthenticated');
+      setIsLoading(false);
+    }, 10000);
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        setSession(session);
+      })
+      .catch((err) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        logger.error('Session load failed:', err?.message || err);
+        setIsLoading(false);
+      });
 
     // Listen to all subsequent auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -89,7 +111,10 @@ export function AuthProvider({ children }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function syncGroqKey(authUser) {
