@@ -126,14 +126,19 @@
   100% { transform: translateY(-120px) scale(0.5); opacity: 0; }
 }
 
+/* NOTE: Animations are opacity-only (no transform) to avoid creating a
+   fixed-containing-block via `transform`. A transformed ancestor breaks
+   `position: fixed` on modals/overlays, which would cause them to be
+   sized/positioned relative to the page-transition wrapper instead of
+   the viewport — visually clipping modal content on mobile. */
 @keyframes pageEnter {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes pageExit {
-  from { opacity: 1; transform: translateY(0); }
-  to { opacity: 0; transform: translateY(-8px); }
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 @keyframes slideInFromTop {
