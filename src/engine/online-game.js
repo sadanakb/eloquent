@@ -51,8 +51,35 @@ export async function createMatch(player1Id, player2Id, situationId, situationDa
   return data;
 }
 
+// Module-level last-seen-state per match id. Realtime's `payload.old` can be
+// empty if REPLICA IDENTITY is not FULL on the matches table, so we track the
+// last known text state ourselves to detect transitions reliably.
+const lastSeenMatchState = new Map();
+
 export function subscribeToMatch(matchId, callback, myUserId) {
   if (!isOnline()) return () => {};
+
+  // Seed last-seen state from current DB row so the very first UPDATE is
+  // compared against real data instead of an empty baseline.
+  (async () => {
+    try {
+      const { data } = await supabase
+        .from('matches')
+        .select('player1_text, player2_text, player2_id, status')
+        .eq('id', matchId)
+        .maybeSingle();
+      if (data) {
+        lastSeenMatchState.set(matchId, {
+          player1_text: data.player1_text || null,
+          player2_text: data.player2_text || null,
+          player2_id: data.player2_id || null,
+          status: data.status || null,
+        });
+      }
+    } catch {
+      // Non-fatal; first update will initialize from payload.new.
+    }
+  })();
 
   const channel = supabase
     .channel(`match:${matchId}:${Date.now()}`)
@@ -66,36 +93,53 @@ export function subscribeToMatch(matchId, callback, myUserId) {
       },
       (payload) => {
         const match = payload.new;
-        const old = payload.old;
+        const prev = lastSeenMatchState.get(matchId) || {
+          player1_text: null,
+          player2_text: null,
+          player2_id: null,
+          status: null,
+        };
 
-        // Determine event type
+        // Detect transitions relative to our local last-seen state.
+        const p1TextAdded = !prev.player1_text && !!match.player1_text;
+        const p2TextAdded = !prev.player2_text && !!match.player2_text;
+        const friendJoined = !prev.player2_id && !!match.player2_id && match.status === 'active';
+
+        // Update last-seen BEFORE firing callbacks to keep the ref monotonic.
+        lastSeenMatchState.set(matchId, {
+          player1_text: match.player1_text || null,
+          player2_text: match.player2_text || null,
+          player2_id: match.player2_id || null,
+          status: match.status || null,
+        });
+
+        // Terminal states take priority.
         if (match.status === 'forfeited') {
           callback({ type: 'opponent_disconnected', match });
-        } else if (match.status === 'completed' && match.player1_score != null && match.player2_score != null) {
+          return;
+        }
+        if (match.status === 'completed' && match.player1_score != null && match.player2_score != null) {
           callback({ type: 'scores_ready', match });
-        } else if (match.status === 'active' && !old.player2_id && match.player2_id) {
+          return;
+        }
+        if (friendJoined) {
           callback({ type: 'friend_joined', match });
-        } else if (
-          (match.player1_text && !old.player1_text) ||
-          (match.player2_text && !old.player2_text)
-        ) {
-          // Only fire opponent_submitted if it's the OTHER player's text that changed
-          const isP1 = match.player1_id === myUserId;
-          const myTextChanged = isP1
-            ? (match.player1_text && !old.player1_text)
-            : (match.player2_text && !old.player2_text);
-          const opponentTextChanged = isP1
-            ? (match.player2_text && !old.player2_text)
-            : (match.player1_text && !old.player1_text);
+          return;
+        }
 
+        // Text transitions → only fire opponent_submitted when OPPONENT text
+        // flipped from null/empty → non-empty based on our local last-seen.
+        if (p1TextAdded || p2TextAdded) {
+          const isP1 = match.player1_id === myUserId;
+          const opponentTextChanged = isP1 ? p2TextAdded : p1TextAdded;
           if (opponentTextChanged) {
             callback({ type: 'opponent_submitted', match });
           }
-          // Ignore own text change — we already handle that in handleWritingSubmit
+          // Own text change: ignore (handled in handleWritingSubmit).
         }
       }
     )
-    .subscribe((status, err) => {
+    .subscribe((status) => {
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
         logger.warn(`Match subscription ${status}, polling fallback active`);
       }
@@ -103,6 +147,7 @@ export function subscribeToMatch(matchId, callback, myUserId) {
 
   return () => {
     supabase.removeChannel(channel);
+    lastSeenMatchState.delete(matchId);
   };
 }
 
@@ -216,8 +261,24 @@ export async function requestServerScoring(matchId) {
     setTimeout(() => reject(new Error('Scoring timeout after 30s')), 30000)
   );
 
-  const { data, error } = await Promise.race([scorePromise, timeoutPromise]);
-  if (error) throw error;
+  const response = await Promise.race([scorePromise, timeoutPromise]);
+  const { data, error } = response || {};
+
+  // Edge function signals "another invocation is already scoring" via
+  // HTTP 202 or body.status === 'scoring_in_progress'. In that case we
+  // MUST NOT fall back to client-scoring — wait for the real result to
+  // arrive through Realtime/polling instead.
+  const status = response?.response?.status ?? response?.status;
+  if (status === 202 || data?.status === 'scoring_in_progress') {
+    return { status: 'in_progress' };
+  }
+
+  if (error) {
+    // Some error shapes include a `context` with HTTP status; treat 202 there too.
+    const ctxStatus = error?.context?.status;
+    if (ctxStatus === 202) return { status: 'in_progress' };
+    throw error;
+  }
   return data;
 }
 

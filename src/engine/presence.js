@@ -5,13 +5,17 @@
  * Events emitted via callbacks:
  * - onOpponentOnline: Opponent is (re)connected
  * - onOpponentOffline: Opponent lost connection
- * - onOpponentTimeout: 60s since disconnect — auto-forfeit
+ * - onOpponentTimeout: timeoutMs since disconnect — auto-forfeit (default 30s)
  */
 
 import { supabase } from '../lib/supabase';
 
-export function createPresence(matchId, userId, callbacks) {
+export const DEFAULT_DISCONNECT_TIMEOUT_MS = 30_000;
+
+export function createPresence(matchId, userId, callbacks, options = {}) {
   if (!supabase) return null;
+
+  const timeoutMs = options.timeoutMs ?? DEFAULT_DISCONNECT_TIMEOUT_MS;
 
   const channel = supabase.channel(`presence:match:${matchId}`, {
     config: {
@@ -40,7 +44,7 @@ export function createPresence(matchId, userId, callbacks) {
       if (!disconnectTimer) {
         disconnectTimer = setTimeout(() => {
           callbacks.onOpponentTimeout?.();
-        }, 60_000);
+        }, timeoutMs);
       }
     }
   });

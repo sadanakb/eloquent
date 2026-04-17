@@ -63,7 +63,14 @@ export function OnlineDuellPage({ onNavigate }) {
   const [opponentStatus, setOpponentStatus] = useState('writing');
   const unsubMatchRef = useRef(null);
   const isScoringRef = useRef(false);
-  const scoringTimeoutRef = useRef(null);
+  // submitError carries the cause for a failed submit so we can render a
+  // persistent, informative card in the result phase (never silent reset).
+  // shape: { kind: 'match_ended'|'network'|'unknown', message: string, raw?: any }
+  const [submitError, setSubmitError] = useState(null);
+  // UX hint flags — persistent info cards in waiting/scoring phases.
+  const [waitingLongHint, setWaitingLongHint] = useState(false);
+  const [scoringLongHint, setScoringLongHint] = useState(false);
+  const opponentSubmittedRef = useRef(false);
 
   // Result
   const [playerResult, setPlayerResult] = useState(null);
@@ -82,9 +89,14 @@ export function OnlineDuellPage({ onNavigate }) {
 
   // Presence
   const [opponentDisconnected, setOpponentDisconnected] = useState(false);
-  const [disconnectCountdown, setDisconnectCountdown] = useState(60);
+  const [disconnectCountdown, setDisconnectCountdown] = useState(30);
   const presenceRef = useRef(null);
   const countdownIntervalRef = useRef(null);
+  // Tracks whether the local player has successfully submitted their text.
+  // Used as a Guard in onOpponentTimeout: we only auto-forfeit the opponent
+  // if WE have already submitted; otherwise we wait to avoid destroying our
+  // own in-progress work.
+  const mySubmittedRef = useRef(false);
 
   const myElo = profile?.elo_rating || 1200;
 
@@ -118,12 +130,18 @@ export function OnlineDuellPage({ onNavigate }) {
 
     if (reconnectState.phase === 'auto_submit') {
       setMatch(reconnectState.match);
+      subscribeToMatchIfNeeded(reconnectState.match.id);
       setPhase('waiting');
+      mySubmittedRef.current = true;
       submitAnswer(reconnectState.match.id, user.id, '(Zeit abgelaufen)').catch(err => {
         logger.error('Auto-submit on reconnect failed:', err);
       });
       return;
     }
+    // For all resumed phases, ensure we have a live subscription so
+    // state transitions (opponent submit, scores ready, forfeit) arrive
+    // via Realtime and not only via the 3s polling fallback.
+    subscribeToMatchIfNeeded(activeMatch.id);
     setPhase(reconnectState.phase);
   };
 
@@ -230,10 +248,6 @@ export function OnlineDuellPage({ onNavigate }) {
       if (unsubMatchRef.current) unsubMatchRef.current();
       presenceRef.current?.destroy();
       if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-      if (scoringTimeoutRef.current) {
-        clearTimeout(scoringTimeoutRef.current);
-        scoringTimeoutRef.current = null;
-      }
       isScoringRef.current = false;
     };
   }, []);
@@ -259,7 +273,7 @@ export function OnlineDuellPage({ onNavigate }) {
     const presence = createPresence(match.id, user.id, {
       onOpponentOnline: () => {
         setOpponentDisconnected(false);
-        setDisconnectCountdown(60);
+        setDisconnectCountdown(30);
         if (countdownIntervalRef.current) {
           clearInterval(countdownIntervalRef.current);
           countdownIntervalRef.current = null;
@@ -267,7 +281,7 @@ export function OnlineDuellPage({ onNavigate }) {
       },
       onOpponentOffline: () => {
         setOpponentDisconnected(true);
-        setDisconnectCountdown(60);
+        setDisconnectCountdown(30);
         countdownIntervalRef.current = setInterval(() => {
           setDisconnectCountdown(prev => {
             if (prev <= 1) {
@@ -279,25 +293,49 @@ export function OnlineDuellPage({ onNavigate }) {
         }, 1000);
       },
       onOpponentTimeout: async () => {
-        // Safety: never auto-forfeit if scoring/result is already active,
-        // if the match already has texts from both players, or if the match
-        // has any status other than 'active' (scoring/completed/forfeited).
+        // Strict guards — any failed check aborts forfeit silently.
         try {
           if (isScoringRef.current) return;
           if (['scoring', 'result'].includes(phase)) return;
 
-          // Re-check live DB state to avoid forfeiting a match that already
-          // has both texts (→ scoring imminent) or that already completed.
+          // Guard A: we ourselves must already have submitted. Forfeiting the
+          // opponent while we still have an unfinished text only punishes us.
+          if (!mySubmittedRef.current) {
+            logger.info('Auto-forfeit skipped: local player has not submitted yet');
+            return;
+          }
+
+          // Guard B: opponent must NOT have submitted yet. If they did, scoring
+          // is imminent and a forfeit here would destroy valid work.
+          if (opponentSubmittedRef.current) {
+            logger.info('Auto-forfeit skipped: opponent already submitted');
+            return;
+          }
+
+          // Guard C: live DB recheck — status still active, no scores yet,
+          // and opponent text still missing.
           const { data: fresh } = await supabase
             .from('matches')
             .select('status, player1_text, player2_text, player1_score')
             .eq('id', match.id)
             .maybeSingle();
 
-          if (!fresh) return;
-          if (fresh.status !== 'active') return;
-          if (fresh.player1_text && fresh.player2_text) return;
-          if (fresh.player1_score != null) return;
+          if (!fresh) {
+            logger.info('Auto-forfeit skipped: match not found on recheck');
+            return;
+          }
+          if (fresh.status !== 'active') {
+            logger.info('Auto-forfeit skipped: match status ' + fresh.status);
+            return;
+          }
+          if (fresh.player1_text && fresh.player2_text) {
+            logger.info('Auto-forfeit skipped: both texts present');
+            return;
+          }
+          if (fresh.player1_score != null) {
+            logger.info('Auto-forfeit skipped: already scored');
+            return;
+          }
 
           const opponentId = match.player1_id === user.id ? match.player2_id : match.player1_id;
           if (opponentId) {
@@ -356,9 +394,20 @@ export function OnlineDuellPage({ onNavigate }) {
     return () => clearInterval(iv);
   }, [phase]);
 
+  // Track latest phase in a ref so event-bus listeners (registered once) can
+  // read the current phase without being re-attached on every transition.
+  const phaseRef = useRef(phase);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+
   // Listen for matchmaking events
   useEffect(() => {
     const onFound = async ({ match: m }) => {
+      // Phase-guard: only react while we are actively searching. After
+      // handleCancelSearch or any phase change, late "found" events from
+      // stale subscriptions must be ignored (otherwise user gets yanked
+      // back into a match they already abandoned).
+      if (phaseRef.current !== 'searching') return;
+
       setMatch(m);
       markActiveMatch(m.id);
       // Fetch opponent profile
@@ -427,16 +476,34 @@ export function OnlineDuellPage({ onNavigate }) {
     setPhase('menu');
   };
 
+  // Ensures exactly one active match subscription at a time.
+  // If a subscription already exists (e.g. from startWriting / resume / friend
+  // challenge), it is torn down before a new one is created. Safe to call
+  // multiple times with the same matchId.
+  const subscribeToMatchIfNeeded = useCallback((matchId, cb = handleMatchEvent) => {
+    if (!matchId || !user?.id) return;
+    if (unsubMatchRef.current) {
+      try { unsubMatchRef.current(); } catch { /* ignore */ }
+      unsubMatchRef.current = null;
+    }
+    const unsub = subscribeToMatch(matchId, cb, user.id);
+    unsubMatchRef.current = unsub;
+  }, [handleMatchEvent, user?.id]);
+
   const startWriting = () => {
     if (!match) return;
-    // Subscribe to match updates
-    const unsub = subscribeToMatch(match.id, handleMatchEvent, user?.id);
-    unsubMatchRef.current = unsub;
+    subscribeToMatchIfNeeded(match.id);
     setPhase('writing');
   };
 
+  // performScoring is defined further down. Wrap it in a ref so handleMatchEvent
+  // (and other callbacks) can call it without needing to be re-declared
+  // every render / introducing circular useCallback deps.
+  const performScoringRef = useRef(() => {});
+
   const handleMatchEvent = useCallback((event) => {
     if (event.type === 'opponent_submitted') {
+      opponentSubmittedRef.current = true;
       setOpponentStatus('submitted');
     }
     if (event.type === 'scores_ready') {
@@ -447,10 +514,6 @@ export function OnlineDuellPage({ onNavigate }) {
       setPlayerScore(isP1 ? m.player1_score : m.player2_score);
       setOpponentScore(isP1 ? m.player2_score : m.player1_score);
       setWinner(m.winner_id === user?.id ? 'player' : m.winner_id ? 'opponent' : 'draw');
-      if (scoringTimeoutRef.current) {
-        clearTimeout(scoringTimeoutRef.current);
-        scoringTimeoutRef.current = null;
-      }
       isScoringRef.current = false;
       setPhase('result');
       // Refresh profile to get updated ELO
@@ -462,28 +525,26 @@ export function OnlineDuellPage({ onNavigate }) {
       // Recover the match and run scoring so scores are computed.
       if (m?.player1_text && m?.player2_text && m?.player1_score == null) {
         logger.info('Forfeit arrived with both texts present — running scoring instead');
-        performScoring();
+        performScoringRef.current();
         return;
       }
       clearActiveMatch();
       // Winner determined by DB (forfeit_match sets winner_id correctly)
       setWinner(m?.winner_id === user?.id ? 'player' : m?.winner_id ? 'opponent' : 'player');
-      if (scoringTimeoutRef.current) {
-        clearTimeout(scoringTimeoutRef.current);
-        scoringTimeoutRef.current = null;
-      }
       isScoringRef.current = false;
       setPhase('result');
       updateProfile({});
     }
-  }, [user?.id]);
+  }, [user?.id, updateProfile]);
 
   const submittingRef = useRef(false);
 
-  // Submit answer — only move to waiting if text was actually saved
-  const handleWritingSubmit = async (text) => {
-    if (submittingRef.current) return;
-    if (!match || !user) return;
+  // Submit answer — returns { success: true|false, reason? } so AntwortEingabe
+  // knows whether to lock the UI. NEVER silently setPhase('menu') — a failed
+  // submit always surfaces via a persistent error card in the result phase.
+  const handleWritingSubmit = useCallback(async (text) => {
+    if (submittingRef.current) return { success: false, reason: 'in_flight' };
+    if (!match || !user) return { success: false, reason: 'no_match' };
     submittingRef.current = true;
 
     // If text is null/empty (timer expired), use placeholder
@@ -492,33 +553,59 @@ export function OnlineDuellPage({ onNavigate }) {
     try {
       const updatedMatch = await submitAnswer(match.id, user.id, submitText);
       if (!updatedMatch) {
-        eventBus.emit('toast:message', { message: 'Abgabe fehlgeschlagen. Bitte nochmal versuchen.' });
         submittingRef.current = false;
-        return;
+        setSubmitError({
+          kind: 'unknown',
+          message: 'Abgabe fehlgeschlagen — keine Antwort vom Server. Bitte nochmal versuchen.',
+        });
+        setPhase('result');
+        return { success: false, reason: 'no_match_returned' };
       }
+      mySubmittedRef.current = true;
+      submittingRef.current = false;
       // Trust DB status — 'scoring' means both players have submitted
       if (updatedMatch.status === 'scoring') {
-        submittingRef.current = false;
-        await performScoring();
+        // Kick off scoring in the background. AntwortEingabe proceeds into
+        // its post-submit disabled state; performScoring will itself move
+        // us to 'scoring' then 'result'.
+        performScoringRef.current();
       } else {
-        submittingRef.current = false;
         setPhase('waiting');
       }
+      return { success: true };
     } catch (err) {
-      logger.error('Submit answer failed:', err.message);
       submittingRef.current = false;
-      // If match is already forfeited/completed, just go to menu
-      if (err.message?.includes('nicht mehr aktiv') || err.message?.includes('bereits')) {
+      logger.error('Submit answer failed:', err?.message);
+      const msg = err?.message || '';
+      if (msg.includes('nicht mehr aktiv') || msg.includes('bereits')) {
+        // Match ended while we were typing — surface a clear, recoverable
+        // error card instead of dumping the user back to the menu.
         clearActiveMatch();
-        setPhase('menu');
-        return;
+        setSubmitError({
+          kind: 'match_ended',
+          message: 'Das Match wurde während deiner Eingabe beendet. Dein Text konnte nicht gespeichert werden.',
+          raw: msg,
+        });
+        setPhase('result');
+        return { success: false, reason: 'match_ended' };
       }
-      eventBus.emit('toast:message', { message: 'Abgabe fehlgeschlagen. Bitte nochmal versuchen.' });
+      // Network / unknown error
+      const isNetwork = /network|fetch|timeout|abort/i.test(msg);
+      setSubmitError({
+        kind: isNetwork ? 'network' : 'unknown',
+        message: isNetwork
+          ? 'Keine Verbindung zum Server. Prüfe deine Internetverbindung und versuche es erneut.'
+          : ('Abgabe fehlgeschlagen: ' + (msg || 'unbekannter Fehler')),
+        raw: msg,
+      });
+      setPhase('result');
+      return { success: false, reason: isNetwork ? 'network' : 'unknown' };
     }
-  };
+  }, [match, user]);
 
   // Helper: apply scoring result to state
-  const applyScoringResult = (result) => {
+  const applyScoringResult = useCallback((result) => {
+    if (!match || !user) return;
     const isPlayer1 = match.player1_id === user.id;
     const myScore = isPlayer1 ? result.player1_score : result.player2_score;
     const opScore = isPlayer1 ? result.player2_score : result.player1_score;
@@ -539,29 +626,36 @@ export function OnlineDuellPage({ onNavigate }) {
     }
 
     clearActiveMatch();
-    if (scoringTimeoutRef.current) {
-      clearTimeout(scoringTimeoutRef.current);
-      scoringTimeoutRef.current = null;
-    }
     isScoringRef.current = false;
     setPhase('result');
     // Refresh profile to get updated ELO
     updateProfile({});
-  };
+  }, [match, user, updateProfile]);
 
 
-  const performScoring = async () => {
+  const performScoring = useCallback(async () => {
     if (isScoringRef.current) return;
+    if (!match || !user) return;
     isScoringRef.current = true;
+    setScoringLongHint(false);
     setPhase('scoring');
 
     try {
-      // 1. Versuche Server-Scoring (Edge Function, 15s timeout)
+      // 1. Versuche Server-Scoring (Edge Function)
       let result = null;
       try {
         result = await requestServerScoring(match.id);
       } catch (e) {
-        logger.warn('Server scoring failed, falling back to client:', e.message);
+        logger.warn('Server scoring failed:', e.message);
+      }
+
+      // 1a. Server hat 202/in_progress geliefert — ein anderer Client/Invocation
+      //     scort bereits. Nicht fallback-scoren! Realtime/Polling liefert
+      //     den finalen State nach. setPhase bleibt 'scoring'.
+      if (result?.status === 'in_progress') {
+        logger.info('Server scoring in progress, awaiting realtime/polling');
+        isScoringRef.current = false;
+        return;
       }
 
       // 2. Server hat Scores geliefert → benutzen
@@ -597,6 +691,10 @@ export function OnlineDuellPage({ onNavigate }) {
       if (!fullMatch?.player1_text || !fullMatch?.player2_text) {
         logger.warn('Cannot score: missing texts');
         clearActiveMatch();
+        setSubmitError({
+          kind: 'unknown',
+          message: 'Bewertung fehlgeschlagen: Texte konnten nicht geladen werden.',
+        });
         setPhase('result');
         return;
       }
@@ -656,24 +754,55 @@ export function OnlineDuellPage({ onNavigate }) {
 
     } catch (e) {
       logger.error('Scoring completely failed:', e);
-      eventBus.emit('toast:message', { message: 'Bewertung fehlgeschlagen' });
+      setSubmitError({
+        kind: 'unknown',
+        message: 'Bewertung fehlgeschlagen: ' + (e?.message || 'unbekannter Fehler'),
+      });
       clearActiveMatch();
       setPhase('result');
     } finally {
       isScoringRef.current = false;
-      if (scoringTimeoutRef.current) {
-        clearTimeout(scoringTimeoutRef.current);
-        scoringTimeoutRef.current = null;
-      }
     }
-  };
+  }, [match, user, situation, applyScoringResult]);
+
+  // Expose current performScoring to refs-that-want-to-call-it
+  useEffect(() => {
+    performScoringRef.current = performScoring;
+  }, [performScoring]);
 
   // When waiting and opponent submits, trigger server scoring
   useEffect(() => {
     if (phase === 'waiting' && opponentStatus === 'submitted') {
       performScoring();
     }
-  }, [phase, opponentStatus]);
+  }, [phase, opponentStatus, performScoring]);
+
+  // UX: show persistent info hint in 'waiting' if opponent didn't submit within 15s.
+  useEffect(() => {
+    if (phase !== 'waiting') {
+      setWaitingLongHint(false);
+      return;
+    }
+    setWaitingLongHint(false);
+    if (opponentSubmittedRef.current) return;
+    const t = setTimeout(() => {
+      if (!opponentSubmittedRef.current && isOnline()) {
+        setWaitingLongHint(true);
+      }
+    }, 15000);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // UX: show persistent info hint in 'scoring' if it takes > 30s.
+  useEffect(() => {
+    if (phase !== 'scoring') {
+      setScoringLongHint(false);
+      return;
+    }
+    setScoringLongHint(false);
+    const t = setTimeout(() => setScoringLongHint(true), 30000);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   // Polling fallback: if Realtime doesn't deliver, check match status periodically
   useEffect(() => {
@@ -749,7 +878,7 @@ export function OnlineDuellPage({ onNavigate }) {
       }
 
       // Subscribe to match for when friend joins
-      const unsub = subscribeToMatch(result.matchId, async (event) => {
+      subscribeToMatchIfNeeded(result.matchId, async (event) => {
         if (event.type === 'friend_joined') {
           const m = event.match;
           const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
@@ -767,8 +896,7 @@ export function OnlineDuellPage({ onNavigate }) {
           return;
         }
         handleMatchEvent(event);
-      }, user?.id);
-      unsubMatchRef.current = unsub;
+      });
     }
   };
 
@@ -830,13 +958,12 @@ export function OnlineDuellPage({ onNavigate }) {
 
   const handleRematch = async () => {
     isScoringRef.current = false;
-    if (scoringTimeoutRef.current) { clearTimeout(scoringTimeoutRef.current); scoringTimeoutRef.current = null; }
     // FIX 4 — Clean up match subscription before resetting
     clearActiveMatch();
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
     presenceRef.current?.destroy(); presenceRef.current = null;
     setOpponentDisconnected(false);
-    setDisconnectCountdown(60);
+    setDisconnectCountdown(30);
     setPlayerResult(null);
     setOpponentScore(null);
     setPlayerScore(null);
@@ -846,6 +973,11 @@ export function OnlineDuellPage({ onNavigate }) {
     setOpponentStatus('writing');
     setMatch(null);
     setOpponent(null);
+    setSubmitError(null);
+    setWaitingLongHint(false);
+    setScoringLongHint(false);
+    mySubmittedRef.current = false;
+    opponentSubmittedRef.current = false;
     // Re-enter matchmaking queue (creates a fresh match)
     setPhase('searching');
     setSearchElapsed(0);
@@ -865,11 +997,10 @@ export function OnlineDuellPage({ onNavigate }) {
     // Clean up everything and go back to menu
     clearActiveMatch();
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
-    if (scoringTimeoutRef.current) { clearTimeout(scoringTimeoutRef.current); scoringTimeoutRef.current = null; }
     presenceRef.current?.destroy(); presenceRef.current = null;
     isScoringRef.current = false;
     setOpponentDisconnected(false);
-    setDisconnectCountdown(60);
+    setDisconnectCountdown(30);
     setPhase('menu');
     setPlayerResult(null);
     setOpponentScore(null);
@@ -885,6 +1016,11 @@ export function OnlineDuellPage({ onNavigate }) {
     setFriendWaiting(false);
     setShowCodeInput(false);
     setShowReconnectChoice(false);
+    setSubmitError(null);
+    setWaitingLongHint(false);
+    setScoringLongHint(false);
+    mySubmittedRef.current = false;
+    opponentSubmittedRef.current = false;
   };
 
   const handleNewMatch = () => {
@@ -893,7 +1029,7 @@ export function OnlineDuellPage({ onNavigate }) {
     if (unsubMatchRef.current) { unsubMatchRef.current(); unsubMatchRef.current = null; }
     presenceRef.current?.destroy(); presenceRef.current = null;
     setOpponentDisconnected(false);
-    setDisconnectCountdown(60);
+    setDisconnectCountdown(30);
     setPhase('menu');
     setPlayerResult(null);
     setOpponentScore(null);
@@ -908,6 +1044,11 @@ export function OnlineDuellPage({ onNavigate }) {
     setFriendCodeInput('');
     setFriendWaiting(false);
     setShowCodeInput(false);
+    setSubmitError(null);
+    setWaitingLongHint(false);
+    setScoringLongHint(false);
+    mySubmittedRef.current = false;
+    opponentSubmittedRef.current = false;
   };
 
   // Supabase not initialized — stale cached version, user must reload
@@ -992,7 +1133,7 @@ export function OnlineDuellPage({ onNavigate }) {
       }
 
       // Subscribe to match
-      const unsub = subscribeToMatch(result.matchId, async (event) => {
+      subscribeToMatchIfNeeded(result.matchId, async (event) => {
         if (event.type === 'friend_joined') {
           const m = event.match;
           const opponentId = m.player1_id === user?.id ? m.player2_id : m.player1_id;
@@ -1010,8 +1151,7 @@ export function OnlineDuellPage({ onNavigate }) {
           return;
         }
         handleMatchEvent(event);
-      }, user?.id);
-      unsubMatchRef.current = unsub;
+      });
     }
   };
 
@@ -1298,6 +1438,20 @@ export function OnlineDuellPage({ onNavigate }) {
             <p className={styles.stateText}>
               Du hast deine Antwort abgegeben. Warte, bis dein Gegner fertig ist.
             </p>
+            {waitingLongHint && (
+              <div role="status" aria-live="polite" style={{
+                marginTop: '1rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 8,
+                background: 'rgba(218, 165, 32, 0.12)',
+                border: '1px solid rgba(218, 165, 32, 0.4)',
+                color: 'var(--text-primary, #eee)',
+                fontSize: '0.9rem',
+                maxWidth: 440,
+              }}>
+                Gegner schreibt noch… das kann bis zu 2–3 Minuten dauern.
+              </div>
+            )}
             <Button variant="tertiary" onClick={handleForfeitAndLeave} style={{ marginTop: '2rem' }}>
               Aufgeben & Verlassen
             </Button>
@@ -1312,14 +1466,62 @@ export function OnlineDuellPage({ onNavigate }) {
             </div>
             <h2 className={styles.stateTitle}>KI bewertet beide Antworten...</h2>
             <p className={styles.stateText}>Die Eloquenz wird analysiert</p>
+            {scoringLongHint && (
+              <div role="status" aria-live="polite" style={{
+                marginTop: '1rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 8,
+                background: 'rgba(218, 165, 32, 0.12)',
+                border: '1px solid rgba(218, 165, 32, 0.4)',
+                color: 'var(--text-primary, #eee)',
+                fontSize: '0.9rem',
+                maxWidth: 440,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem',
+              }}>
+                <span>Scoring dauert länger als üblich…</span>
+                <Button
+                  variant="secondary"
+                  onClick={() => { isScoringRef.current = false; performScoring(); }}
+                >
+                  Nochmal versuchen
+                </Button>
+              </div>
+            )}
             <Button variant="tertiary" onClick={handleForfeitAndLeave} style={{ marginTop: '2rem' }}>
               Aufgeben & Verlassen
             </Button>
           </div>
         )}
 
+        {/* ── RESULT: ERROR-CARD ── (submit failed, match ended mid-typing, etc.) */}
+        {phase === 'result' && submitError && (
+          <div className="animate-in">
+            <Card ornate style={{ marginBottom: 16, textAlign: 'center' }}>
+              <OrnamentIcon name="tintenfass" size="lg" style={{ marginBottom: '0.75rem' }} />
+              <h2 className={styles.resultMainTitle} style={{ marginTop: 0 }}>
+                {submitError.kind === 'match_ended' ? 'Match beendet'
+                  : submitError.kind === 'network' ? 'Verbindungsproblem'
+                  : 'Abgabe fehlgeschlagen'}
+              </h2>
+              <p className={styles.stateText} style={{ marginTop: '0.5rem' }}>
+                {submitError.message}
+              </p>
+              <div className={styles.resultActions} style={{ marginTop: '1.5rem' }}>
+                <Button variant="primary" onClick={handleNewMatch}>
+                  Neues Match
+                </Button>
+                <Button variant="tertiary" onClick={() => onNavigate('home')}>
+                  Zum Menü
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
+
         {/* ── RESULT ── */}
-        {phase === 'result' && (
+        {phase === 'result' && !submitError && (
           <div className="animate-in">
             {winner === 'player' && <Confetti active={true} />}
 

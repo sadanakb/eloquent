@@ -51,9 +51,10 @@ function WortHinweise() {
   );
 }
 
-export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit, matchStartTime, onPasteDetected }) {
+export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit, matchStartTime, onPasteDetected, disabled = false }) {
   const [text, setText] = useState('');
   const [pasteHint, setPasteHint] = useState(false);
+  const [internalDisabled, setInternalDisabled] = useState(false);
   const wc = text.trim().split(/\s+/).filter(Boolean).length;
   const charCount = text.length;
   const charsRemaining = 5000 - charCount;
@@ -62,6 +63,10 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
   const taRef = useRef(null);
   const textRef = useRef(text);
   const submittedRef = useRef(false);
+  const timerIntervalRef = useRef(null);
+
+  // External disabled (e.g. after successful submit) locks the UI hard.
+  const hardDisabled = disabled || internalDisabled || submittedRef.current;
 
   const handlePaste = useCallback((e) => {
     const pasted = e.clipboardData?.getData('text') || '';
@@ -83,21 +88,58 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
     setTimeLeft(totalTime);
   }, [totalTime]);
 
-  const doSubmit = useCallback(() => {
-    if (submittedRef.current) return;
+  const stopTimer = useCallback(() => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  }, []);
+
+  const doSubmit = useCallback(async () => {
+    if (submittedRef.current || internalDisabled) return;
     const currentText = textRef.current.trim();
     const currentWc = currentText.split(/\s+/).filter(Boolean).length;
-    // Don't lock submittedRef here — let the parent (handleWritingSubmit) decide
-    // if the submit actually succeeded. Only lock for timer auto-submit.
+
+    // Timer expired with no text — final lock, no retry possible.
     if (!currentText || currentWc === 0) {
-      submittedRef.current = true; // Timer expired with no text — final
-      onSubmit(null);
-    } else {
-      onSubmit(currentText);
+      submittedRef.current = true;
+      setInternalDisabled(true);
+      stopTimer();
+      try {
+        await onSubmit(null);
+      } catch {
+        // Parent handles errors; UI stays locked on empty-timeout path.
+      }
+      return;
     }
-  }, [onSubmit]);
+
+    // Optimistically mark "in flight" so double-clicks are ignored.
+    // Only fully lock the UI if the parent reports success.
+    submittedRef.current = true;
+    try {
+      const result = await onSubmit(currentText);
+      if (result && result.success === true) {
+        setInternalDisabled(true);
+        stopTimer();
+        setText('');
+      } else {
+        // Re-open UI so user can retry or edit
+        submittedRef.current = false;
+      }
+    } catch {
+      submittedRef.current = false;
+    }
+  }, [onSubmit, internalDisabled, stopTimer]);
 
   useEffect(() => {
+    // Pause timer completely if hard-disabled (after successful submit or by parent).
+    if (hardDisabled) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      return;
+    }
     if (matchStartTime) {
       // Server-synced timer: calculate from match creation time
       const interval = setInterval(() => {
@@ -107,19 +149,25 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
 
         if (remaining <= 0) {
           clearInterval(interval);
+          timerIntervalRef.current = null;
           if (!submittedRef.current) {
             doSubmit();
           }
         }
       }, 1000); // 1s interval — display shows whole seconds only
+      timerIntervalRef.current = interval;
 
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        if (timerIntervalRef.current === interval) timerIntervalRef.current = null;
+      };
     } else {
       // Local timer fallback (offline/practice modes)
       const interval = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
             clearInterval(interval);
+            if (timerIntervalRef.current === interval) timerIntervalRef.current = null;
             if (!submittedRef.current) {
               doSubmit();
             }
@@ -128,9 +176,13 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
           return prev - 1;
         });
       }, 1000);
-      return () => clearInterval(interval);
+      timerIntervalRef.current = interval;
+      return () => {
+        clearInterval(interval);
+        if (timerIntervalRef.current === interval) timerIntervalRef.current = null;
+      };
     }
-  }, [matchStartTime, totalTime, doSubmit]);
+  }, [matchStartTime, totalTime, doSubmit, hardDisabled]);
 
   // Resync timer when user returns to tab (visibilitychange)
   useEffect(() => {
@@ -203,7 +255,7 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
             onPaste={handlePaste}
             maxLength={5000}
             placeholder="Schreibe hier deine eloquente Antwort..."
-            disabled={timeLeft <= 0}
+            disabled={timeLeft <= 0 || hardDisabled}
             className={styles.textarea}
             style={isUrgent ? { borderColor: timerColor } : undefined}
             aria-label="Deine Antwort"
@@ -225,7 +277,7 @@ export function AntwortEingabe({ situation, spielerName, onSubmit, schwierigkeit
             <span className={wc < 10 ? styles.wordCountLow : styles.wordCountOk}>
               {wc} Wörter {wc < 10 ? '(min. 10)' : '\u2713'}
             </span>
-            <Button variant="gold" disabled={!canSubmit || timeLeft <= 0 || submittedRef.current} onClick={doSubmit}>
+            <Button variant="gold" disabled={!canSubmit || timeLeft <= 0 || hardDisabled} onClick={doSubmit}>
               Antwort abgeben →
             </Button>
           </div>

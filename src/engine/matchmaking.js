@@ -7,11 +7,31 @@ const INITIAL_ELO_RANGE = 200;
 const EXPANDED_ELO_RANGE = 400;
 const EXPAND_AFTER_MS = 30_000;
 
+// Module-level singletons are fragile (HMR/double-mount leaks). We keep them
+// ONLY as an internal safety net: joinQueue always tears down the prior
+// subscription/timer before creating new ones. The returned unsubscribe
+// function is the authoritative owner; callers should still prefer it.
 let activeSubscription = null;
 let expandTimer = null;
 
+function tearDownActive() {
+  if (activeSubscription) {
+    try { supabase.removeChannel(activeSubscription); } catch { /* ignore */ }
+    activeSubscription = null;
+  }
+  if (expandTimer) {
+    clearTimeout(expandTimer);
+    expandTimer = null;
+  }
+}
+
 export async function joinQueue(userId, eloRating) {
   if (!isOnline()) return null;
+
+  // Clean up any leftover subscription/timer from a previous joinQueue call
+  // BEFORE we touch DB state. This makes repeated joins safe across HMR and
+  // rapid cancel/retry cycles.
+  tearDownActive();
 
   // Insert into matchmaking queue
   const { error } = await supabase
@@ -28,19 +48,9 @@ export async function joinQueue(userId, eloRating) {
   // Try immediate match
   await findMatch(userId);
 
-  // Clean up any existing subscription first
-  if (activeSubscription) {
-    supabase.removeChannel(activeSubscription);
-    activeSubscription = null;
-  }
-  if (expandTimer) {
-    clearTimeout(expandTimer);
-    expandTimer = null;
-  }
-
   // Subscribe to Realtime for new matches involving this player
   const channel = supabase
-    .channel(`matchmaking:${userId}`)
+    .channel(`matchmaking:${userId}:${Date.now()}`)
     .on(
       'postgres_changes',
       {
@@ -71,14 +81,10 @@ export async function leaveQueue(userId) {
   if (!isOnline()) return;
 
   try {
-    if (expandTimer) clearTimeout(expandTimer);
-    if (activeSubscription) supabase.removeChannel(activeSubscription);
+    tearDownActive();
     await supabase.from('matchmaking_queue').delete().eq('user_id', userId);
   } catch (err) {
     logger.error('leaveQueue error:', err);
-  } finally {
-    expandTimer = null;
-    activeSubscription = null;
   }
 
   eventBus.emit('matchmaking:left', { userId });
