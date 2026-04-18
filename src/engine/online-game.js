@@ -1,6 +1,7 @@
 import { supabase, isOnline } from '../lib/supabase.js';
 import eventBus from './event-bus.js';
 import { logger } from './logger.js';
+import { generateFriendCode } from './friends.js';
 
 /**
  * Clean up stale data for this user.
@@ -165,34 +166,26 @@ export async function submitAnswer(matchId, playerId, text) {
   return match;
 }
 
-// Fallback for offline mode. In Phase 4, online scoring will be handled by the Edge Function.
+// Client-side fallback for submitting scores. Uses the SECURITY DEFINER RPC
+// `secure_submit_scores` (migration 012) so the caller's identity, both-text
+// presence, and score ranges are validated server-side. Prevents clients
+// from writing arbitrary scores via direct UPDATE.
 export async function submitScores(matchId, scores) {
   if (!isOnline()) return null;
 
-  const winnerId = scores.player1Score > scores.player2Score
-    ? scores.player1Id
-    : scores.player1Score < scores.player2Score
-      ? scores.player2Id
-      : null;
-
-  const { data, error } = await supabase
-    .from('matches')
-    .update({
-      player1_score: scores.player1Score,
-      player2_score: scores.player2Score,
-      winner_id: winnerId,
-      status: 'completed',
-      completed_at: new Date().toISOString(),
-    })
-    .eq('id', matchId)
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc('secure_submit_scores', {
+    p_match_id: matchId,
+    p_player1_score: Math.round(scores.player1Score),
+    p_player2_score: Math.round(scores.player2Score),
+    p_scoring_method: 'client',
+  });
 
   if (error) {
     logger.error('Failed to submit scores:', error.message);
     return null;
   }
 
+  const winnerId = data?.winner_id ?? null;
   eventBus.emit('match:completed', { matchId, winner: winnerId });
   return data;
 }
@@ -217,7 +210,7 @@ export async function createFriendChallenge(userId, retries = 3) {
   const situation = pool[Math.floor(Math.random() * pool.length)];
 
   for (let i = 0; i < retries; i++) {
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const code = generateFriendCode();
 
     const { data, error } = await supabase
       .from('matches')

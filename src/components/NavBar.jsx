@@ -22,7 +22,6 @@ export function NavBar({ current, onNavigate }) {
 
   const navItems = [
     { id: 'duell', label: 'Duell', ariaLabel: 'Duell-Modus' },
-    { id: 'online', label: 'Online', ariaLabel: 'Online Match' },
     { id: 'story', label: 'Story', ariaLabel: 'Story-Modus' },
     { id: 'uebung', label: 'Übung', ariaLabel: 'Übungsmodus' },
     { id: 'woerterbuch', label: 'Wörter', ariaLabel: 'Wörterbuch' },

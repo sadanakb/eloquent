@@ -176,6 +176,11 @@ export function checkAchievements(eventType, eventData = {}) {
   if (newlyUnlocked.length > 0) {
     storage.set(UNLOCKED_KEY, unlocked);
 
+    // Best-effort sync to Supabase (fire & forget; local write already done)
+    for (const ach of newlyUnlocked) {
+      syncAchievementToSupabase(ach.id).catch(() => {});
+    }
+
     // Emit events for each new unlock
     for (const ach of newlyUnlocked) {
       eventBus.emit('achievement:unlocked', ach);
@@ -183,6 +188,54 @@ export function checkAchievements(eventType, eventData = {}) {
   }
 
   return newlyUnlocked;
+}
+
+/**
+ * Upsert a single unlocked achievement to Supabase. Best-effort; failures
+ * are swallowed because the local write is already authoritative.
+ */
+async function syncAchievementToSupabase(achievementId) {
+  try {
+    const { supabase } = await import('../lib/supabase.js');
+    if (!supabase) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('user_achievements').upsert({
+      user_id: user.id,
+      achievement_id: achievementId,
+      unlocked_at: new Date().toISOString(),
+    }, { onConflict: 'user_id,achievement_id' });
+  } catch (e) {
+    console.warn('Achievement sync failed:', e);
+  }
+}
+
+/**
+ * Pull all user_achievements from Supabase and merge into localStorage.
+ * Called on login. Local-only unlocks are preserved (union merge).
+ */
+export async function syncAchievementsFromSupabase(userId) {
+  if (!userId) return;
+  try {
+    const { supabase } = await import('../lib/supabase.js');
+    if (!supabase) return;
+    const { data, error } = await supabase
+      .from('user_achievements')
+      .select('achievement_id')
+      .eq('user_id', userId);
+    if (error || !data) return;
+
+    const cloudIds = data.map(r => r.achievement_id).filter(Boolean);
+    if (cloudIds.length === 0) return;
+
+    const local = getUnlocked();
+    const merged = Array.from(new Set([...local, ...cloudIds]));
+    if (merged.length !== local.length) {
+      storage.set(UNLOCKED_KEY, merged);
+    }
+  } catch (e) {
+    console.warn('Achievement pull failed:', e);
+  }
 }
 
 /**

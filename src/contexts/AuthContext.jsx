@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseReady } from '../lib/supabase.js';
 import { syncFromServer, syncToServer } from '../engine/sync';
-import { loadGroqKeyFromSupabase, saveGroqKeyWithSync, getGroqKey } from '../engine/ki-scorer.js';
+import { loadGroqKeyFromSupabase, saveGroqKeyWithSync, getGroqKey, setGroqKey } from '../engine/ki-scorer.js';
+import { syncAchievementsFromSupabase } from '../engine/achievements.js';
 import eventBus from '../engine/event-bus.js';
 import { logger } from '../engine/logger.js';
 
@@ -63,6 +64,8 @@ export function AuthProvider({ children }) {
       syncFromServer(session.user.id).catch(() => {});
       // Sync Groq key: cloud → local, or local → cloud on first login
       syncGroqKey(session.user).catch(() => {});
+      // Pull unlocked achievements from Supabase into localStorage (union merge)
+      syncAchievementsFromSupabase(session.user.id).catch(() => {});
     } else {
       setUser(null);
       setProfile(null);
@@ -118,9 +121,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function syncGroqKey(authUser) {
-    const keyLoaded = await loadGroqKeyFromSupabase(authUser.id);
-    if (keyLoaded) return;
-    // No key in cloud — upload local key if it exists
+    const { hasKey, keyExplicitlyDeleted } = await loadGroqKeyFromSupabase(authUser.id);
+    if (hasKey) return;
+
+    if (keyExplicitlyDeleted) {
+      // Cloud says the user intentionally removed the key on another device.
+      // Honor that decision by clearing the local key and NOT re-uploading.
+      setGroqKey('');
+      return;
+    }
+
+    // No key in cloud and no deletion marker — upload local key if it exists
     const localKey = localStorage.getItem('eloquent_groq_key');
     if (localKey) {
       try {
@@ -134,12 +145,20 @@ export function AuthProvider({ children }) {
 
   async function signIn() {
     if (!supabase) return;
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
+    try {
+      // Use current path (minus hash/query) so Supabase returns the user to the
+      // same route (e.g. /duell/:code) after the OAuth redirect.
+      const redirectTo = window.location.href.split('#')[0].split('?')[0];
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      });
+      if (error) {
+        logger.error('OAuth signIn failed:', error.message);
+      }
+    } catch (e) {
+      logger.error('OAuth signIn exception:', e);
+    }
   }
 
   async function signOut() {

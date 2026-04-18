@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { getRang } from '../data/raenge.js';
 import { supabase, isOnline } from '../lib/supabase.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
@@ -81,8 +81,21 @@ export function RanglistePage() {
   const auth = useAuth();
   const userId = auth?.user?.id;
 
-  const fetchLeaderboard = useCallback(async () => {
+  // 5 min client-side cache so tab switches don't re-hit Supabase each time
+  const leaderboardCacheRef = useRef({ data: null, timestamp: 0 });
+  const CACHE_TTL = 5 * 60 * 1000;
+
+  const fetchLeaderboard = useCallback(async (force = false) => {
     if (!isOnline() || !supabase) return;
+
+    const now = Date.now();
+    const cached = leaderboardCacheRef.current;
+    if (!force && cached.data && (now - cached.timestamp) < CACHE_TTL) {
+      setGlobalData(cached.data);
+      setLeaderboardError(null);
+      return;
+    }
+
     try {
       setLoadingGlobal(true);
       setLeaderboardError(null);
@@ -97,7 +110,9 @@ export function RanglistePage() {
         setLeaderboardError('Rangliste konnte nicht geladen werden.');
         setGlobalData([]);
       } else {
-        setGlobalData(data || []);
+        const rows = data || [];
+        setGlobalData(rows);
+        leaderboardCacheRef.current = { data: rows, timestamp: Date.now() };
       }
     } catch (err) {
       logger.error('Leaderboard fetch error:', err);
@@ -213,7 +228,7 @@ export function RanglistePage() {
             <p style={{ color: 'var(--text-secondary, #666)', marginBottom: '1rem' }}>
               {leaderboardError}
             </p>
-            <Button variant="gold" onClick={() => fetchLeaderboard()}>
+            <Button variant="gold" onClick={() => fetchLeaderboard(true)}>
               Erneut versuchen
             </Button>
           </div>

@@ -727,33 +727,32 @@ export function OnlineDuellPage({ onNavigate }) {
                      : p2Score > p1Score ? fullMatch.player2_id
                      : null;
 
-      // Atomic DB-side write via RPC — self-healing even if match status
-      // is 'forfeited' or 'scoring'. Handles ELO updates server-side.
+      // Atomic DB-side write via SECURITY DEFINER RPC — self-healing even if
+      // match status is 'forfeited' or 'scoring'. The RPC validates caller
+      // identity, text presence, and score ranges, then delegates to
+      // complete_match_with_scores (which also handles ELO updates).
       const { data: completedMatch, error: rpcErr } = await supabase.rpc(
-        'complete_match_with_scores',
+        'secure_submit_scores',
         {
           p_match_id: match.id,
-          p_player1_score: p1Score,
-          p_player2_score: p2Score,
+          p_player1_score: Math.round(p1Score),
+          p_player2_score: Math.round(p2Score),
           p_scoring_method: 'client',
         }
       );
 
       if (rpcErr) {
-        logger.warn('complete_match_with_scores RPC failed, falling back to direct update:', rpcErr.message);
-        // Last-resort direct update (bypassed by RLS when policies hold)
-        await supabase
-          .from('matches')
-          .update({
-            player1_score: p1Score,
-            player2_score: p2Score,
-            winner_id: winnerId,
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-            scoring_method: 'client',
-          })
-          .eq('id', match.id)
-          .is('player1_score', null);
+        logger.warn('secure_submit_scores RPC failed:', rpcErr.message);
+        // No client-side fallback write — direct UPDATE is exactly the
+        // cheat vector this migration closes. Surface the failure so the
+        // user can retry / realtime can deliver a later server result.
+        setSubmitError({
+          kind: 'unknown',
+          message: 'Bewertung konnte nicht gespeichert werden: ' + (rpcErr.message || 'unbekannter Fehler'),
+        });
+        clearActiveMatch();
+        setPhase('result');
+        return;
       }
 
       applyScoringResult(completedMatch || {

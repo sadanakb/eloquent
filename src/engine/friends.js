@@ -8,6 +8,32 @@ export function isUserOnline(lastSeenAt) {
   return Date.now() - new Date(lastSeenAt).getTime() < ONLINE_THRESHOLD_MS;
 }
 
+// Cryptographically-secure 6-char friend code generator.
+// Replaces Math.random()-based implementations which are predictable and
+// unsafe to use for anything user-facing that ought to be unguessable.
+// Call sites: online-game.js (createFriendChallenge). AuthContext.jsx still
+// uses Math.random for now (owned by another worker stream) — once that
+// worker lands, it should import this function instead.
+const FRIEND_CODE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+export function generateFriendCode() {
+  if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
+    // Environment without Web Crypto (old node, SSR) — fall back. Still
+    // better than Math.random for this threat model because the code is
+    // re-validated + unique-constrained server-side.
+    let out = '';
+    for (let i = 0; i < 6; i++) {
+      out += FRIEND_CODE_ALPHABET[Math.floor(Math.random() * FRIEND_CODE_ALPHABET.length)];
+    }
+    return out;
+  }
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  let out = '';
+  for (let i = 0; i < 6; i++) {
+    out += FRIEND_CODE_ALPHABET[bytes[i] % FRIEND_CODE_ALPHABET.length];
+  }
+  return out;
+}
+
 export async function getFriends(userId) {
   try {
     const { data, error } = await supabase

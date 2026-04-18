@@ -360,25 +360,27 @@ export async function saveGroqKeyWithSync(groqKey, user) {
           settings: {
             ...(existing?.settings || {}),
             groq_key_encrypted: encrypted,
+            // Reset any previous deletion marker when a new key is saved
+            groq_key_deleted_at: null,
           },
         }, { onConflict: 'user_id' });
       } else {
-        // Key removed — clear from cloud too
+        // Key removed — clear from cloud and mark as explicitly deleted so
+        // other devices don't re-upload their stale local key on next login.
         const { data: existing } = await supabase
           .from('user_progress')
           .select('settings')
           .eq('user_id', user.id)
           .maybeSingle();
 
-        if (existing?.settings?.groq_key_encrypted) {
-          await supabase.from('user_progress').upsert({
-            user_id: user.id,
-            settings: {
-              ...(existing.settings || {}),
-              groq_key_encrypted: null,
-            },
-          }, { onConflict: 'user_id' });
-        }
+        await supabase.from('user_progress').upsert({
+          user_id: user.id,
+          settings: {
+            ...(existing?.settings || {}),
+            groq_key_encrypted: null,
+            groq_key_deleted_at: new Date().toISOString(),
+          },
+        }, { onConflict: 'user_id' });
       }
     } catch {
       // Best-effort sync — local save already succeeded
@@ -387,13 +389,17 @@ export async function saveGroqKeyWithSync(groqKey, user) {
 }
 
 /**
- * Load Groq key from Supabase after login. Returns true if key was loaded.
+ * Load Groq key from Supabase after login.
+ * Returns { hasKey, keyExplicitlyDeleted }:
+ *   - hasKey: true when a cloud key was fetched and written to localStorage
+ *   - keyExplicitlyDeleted: true when the cloud has no key but a deletion
+ *     marker is set — caller should drop any local key instead of re-uploading.
  */
 export async function loadGroqKeyFromSupabase(userId) {
   try {
     const { decryptGroqKey } = await import('./key-encryption.js');
     const { supabase } = await import('../lib/supabase.js');
-    if (!supabase) return false;
+    if (!supabase) return { hasKey: false, keyExplicitlyDeleted: false };
 
     const { data } = await supabase
       .from('user_progress')
@@ -401,17 +407,22 @@ export async function loadGroqKeyFromSupabase(userId) {
       .eq('user_id', userId)
       .maybeSingle();
 
-    if (data?.settings?.groq_key_encrypted) {
-      const decrypted = await decryptGroqKey(data.settings.groq_key_encrypted, userId);
+    const settings = data?.settings || {};
+
+    if (settings.groq_key_encrypted) {
+      const decrypted = await decryptGroqKey(settings.groq_key_encrypted, userId);
       if (decrypted) {
         localStorage.setItem('eloquent_groq_key', btoa(decrypted));
-        return true;
+        return { hasKey: true, keyExplicitlyDeleted: false };
       }
     }
+
+    const keyExplicitlyDeleted = !!settings.groq_key_deleted_at && !settings.groq_key_encrypted;
+    return { hasKey: false, keyExplicitlyDeleted };
   } catch {
     // Decryption or network failure — keep local key as-is
+    return { hasKey: false, keyExplicitlyDeleted: false };
   }
-  return false;
 }
 
 export function hasAiProvider() {

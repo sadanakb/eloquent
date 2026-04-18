@@ -43,7 +43,6 @@ const routeToPage = {
   '/story': 'story',
   '/achievements': 'achievements',
   '/profil': 'profil',
-  '/online': 'online',
   '/lokal': 'lokal',
 };
 
@@ -144,7 +143,6 @@ function AppRoutes() {
           <Route path="/story" element={<StoryPage onNavigate={onNavigate} />} />
           <Route path="/achievements" element={<AchievementPage onNavigate={onNavigate} />} />
           <Route path="/profil" element={<ProfilePage onNavigate={onNavigate} />} />
-          <Route path="/online" element={<ProtectedRoute requireGroqKey message="Melde dich an, um Online-Duelle zu spielen."><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
           <Route path="/duell/:code" element={<ProtectedRoute requireGroqKey message="Melde dich an, um die Freund-Challenge anzunehmen."><OnlineDuellPage onNavigate={onNavigate} /></ProtectedRoute>} />
           <Route path="*" element={<HeroPage onNavigate={onNavigate} />} />
         </Routes>

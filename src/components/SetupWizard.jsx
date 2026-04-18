@@ -26,6 +26,7 @@ export function SetupWizard({ onComplete }) {
   }, []);
 
   const handleSaveGroq = async () => {
+    if (!groqKey || !groqKey.trim()) return;
     await saveGroqKeyWithSync(groqKey, user);
     setKiReady(true);
     setGroqResult({ ok: true, msg: 'Gespeichert!' });
